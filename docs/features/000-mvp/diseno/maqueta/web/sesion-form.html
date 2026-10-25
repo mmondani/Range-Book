@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nueva sesión — web · RangeBook</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Barlow:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0D0F}
+.rb{--bg:#0B0D0F;--surface:#14181C;--surface-2:#1C2126;--surface-3:#262C33;--border:#2E353D;--text:#F2F4F5;--text-2:#B4BCC5;--text-3:#8A949F;--accent:#FF6A1A;--accent-soft:rgba(255,106,26,.14);--on-accent:#1A0B02;--success:#3DD68C;--warning:#F5C04A;--danger:#FF6B6B;font-family:'Barlow',system-ui,sans-serif;color:var(--text);background:var(--bg);font-size:16px;line-height:1.5}
+.rb *{box-sizing:border-box}
+.rb h1,.rb h2,.rb h3,.rb p{margin:0}
+.display{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.01em;text-transform:uppercase;line-height:1.05}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:12px;border:1px solid transparent;font:600 15px 'Barlow',sans-serif;cursor:pointer;text-decoration:none;color:var(--text);background:var(--surface-2)}
+.btn-primary{background:var(--accent);color:var(--on-accent)}
+.btn-primary:hover{background:var(--accent-hover);color:var(--on-accent)}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text)}
+.btn-ghost:hover{background:var(--surface-2);color:var(--text)}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;border:0;background:transparent;color:var(--text-2);cursor:pointer;text-decoration:none}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);font:500 15px 'Barlow',sans-serif;cursor:pointer}
+.chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--text)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label,.lbl{font-size:14px;font-weight:600;color:var(--text-2)}
+.req{color:var(--accent)}
+.help{font-size:13px;color:var(--text-3)}
+.input{min-height:44px;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font:400 16px 'Barlow',sans-serif;width:100%;color-scheme:var(--scheme)}
+.input:focus{outline:2px solid var(--accent);outline-offset:1px}
+select.input{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--text-3) 50%),linear-gradient(135deg,var(--text-3) 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 15px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:40px}
+.side{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:var(--text-2);text-decoration:none;font-weight:600}
+.side:hover{background:var(--surface-2);color:var(--text)}
+.side.on{background:var(--accent-soft);color:var(--text)}
+.side.on svg{color:var(--accent)}
+.ph{background:repeating-linear-gradient(135deg,var(--surface-2) 0 10px,var(--ph-2) 10px 20px);display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:13px;text-align:center}
+.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sm{width:18px;height:18px}
+a{color:var(--accent)}a:hover{color:var(--accent-hover)}
+</style>
+<link rel="stylesheet" href="../assets/frame.css">
+</head>
+<body class="mk-web">
+<div class="rb" style="min-height:1100px;display:flex;flex-wrap:wrap">
+  <aside style="flex:1 1 240px;background:var(--sunken);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;align-items:center;gap:10px;padding:0 8px">
+      <div style="width:36px;height:36px;border-radius:10px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4.5"></circle><path d="M12 1v5"></path><path d="M12 18v5"></path><path d="M1 12h5"></path><path d="M18 12h5"></path></svg></div>
+      <span class="display" style="font-size:24px">RangeBook</span>
+    </div>
+    <nav aria-label="Principal" style="display:flex;flex-direction:column;gap:4px">
+      <a href="sesiones.html" class="side on" aria-current="page"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M22 12h-4"></path><path d="M6 12H2"></path><path d="M12 6V2"></path><path d="M12 22v-4"></path></svg>Sesiones</a>
+      <a href="rendimiento.html" class="side"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>Rendimiento</a>
+      <a href="inventario.html" class="side"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>Inventario</a>
+      <a href="#" class="side"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg>Perfil</a>
+    </nav>
+  </aside>
+
+  <main style="flex:999 1 560px;min-width:0;padding:24px 40px 48px">
+    <form style="max-width:880px;display:flex;flex-direction:column;gap:24px">
+      <nav aria-label="Ruta" style="font-size:14px;color:var(--text-3);display:flex;gap:8px;align-items:center"><a href="sesiones.html" style="text-decoration:none">Sesiones</a><span aria-hidden="true">/</span><span>Nueva sesión</span></nav>
+      <h1 class="display" style="font-size:40px">Nueva sesión</h1>
+
+      <section class="card" style="padding:24px;display:flex;flex-direction:column;gap:20px">
+        <h2 class="eyebrow">Arma</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px">
+          <div class="field">
+            <label for="arma">Arma / configuración <span class="req">*</span></label>
+            <select id="arma" class="input"><option>Glock 17 Gen5 · Config. IPSC</option><option>Glock 17 Gen5 · Stock</option><option>CZ Shadow 2 · Stock</option><option>Ruger 10/22 · Precisión</option></select>
+            <span class="help">Arma base o configuración (arma + modificaciones).</span>
+          </div>
+          <div class="field">
+            <label for="municion">Munición <span class="req">*</span></label>
+            <select id="municion" class="input"><option>Magtech 9mm FMJ 115gr</option><option>Sellier &amp; Bellot 9mm 124gr</option></select>
+          </div>
+        </div>
+        <div class="field">
+          <span class="lbl" id="mods-lbl">Personalizaciones</span>
+          <div role="group" aria-labelledby="mods-lbl" style="display:flex;flex-wrap:wrap;gap:8px">
+            <span class="chip on" style="padding-right:4px">Holosun 507C X2<button type="button" class="icon-btn" aria-label="Quitar Holosun 507C X2" style="width:32px;height:32px"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></span>
+            <span class="chip on" style="padding-right:4px">Zev PRO Trigger<button type="button" class="icon-btn" aria-label="Quitar Zev PRO Trigger" style="width:32px;height:32px"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></span>
+            <span class="chip on" style="padding-right:4px">Taran Tactical +2<button type="button" class="icon-btn" aria-label="Quitar Taran Tactical +2" style="width:32px;height:32px"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button></span>
+            <button type="button" class="chip" style="border-style:dashed"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Agregar</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" style="padding:24px;display:flex;flex-direction:column;gap:20px">
+        <h2 class="eyebrow">Lugar y condiciones</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px">
+          <div class="field"><label for="fecha">Fecha <span class="req">*</span></label><input id="fecha" class="input" type="date" value="2026-10-25"></div>
+          <div class="field"><label for="poligono">Polígono <span class="req">*</span></label><select id="poligono" class="input"><option>Polígono Norte</option><option>Club de Tiro Los Álamos</option></select></div>
+        </div>
+        <div class="field">
+          <span class="lbl" id="clima-lbl">Clima</span>
+          <div role="radiogroup" aria-labelledby="clima-lbl" style="display:flex;flex-wrap:wrap;gap:8px">
+            <button type="button" role="radio" aria-checked="true" class="chip on"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>Soleado</button>
+            <button type="button" role="radio" aria-checked="false" class="chip"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>Nublado</button>
+            <button type="button" role="radio" aria-checked="false" class="chip"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M16 14v6"></path><path d="M8 14v6"></path><path d="M12 16v6"></path></svg>Lluvioso</button>
+            <button type="button" role="radio" aria-checked="false" class="chip"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M16 17H7"></path><path d="M17 21H9"></path></svg>Niebla</button>
+            <button type="button" role="radio" aria-checked="false" class="chip"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.8 19.6A2 2 0 1 0 14 16H2"></path><path d="M17.5 8a2.5 2.5 0 1 1 2 4H2"></path><path d="M9.8 4.4A2 2 0 1 1 11 8H2"></path></svg>Ventoso</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" style="padding:24px;display:flex;flex-direction:column;gap:16px">
+        <h2 class="eyebrow">Fotos del polígono</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px">
+          <div class="ph" style="aspect-ratio:4/3;border-radius:12px">Foto 1</div>
+          <div class="ph" style="aspect-ratio:4/3;border-radius:12px">Foto 2</div>
+          <label style="aspect-ratio:4/3;border-radius:12px;border:1px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--text-2);font-size:14px;cursor:pointer;text-align:center;padding:8px">
+            <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"></path><path d="m17 8-5-5-5 5"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>
+            Arrastrá o elegí archivos
+            <input type="file" accept="image/*" multiple style="position:absolute;width:1px;height:1px;opacity:0">
+          </label>
+        </div>
+      </section>
+
+      <section class="card" style="padding:24px;display:flex;flex-direction:column;gap:12px">
+        <div class="field"><label for="notas">Notas</label><textarea id="notas" class="input" rows="4" placeholder="Objetivos, condiciones, sensaciones…" style="resize:vertical"></textarea></div>
+      </section>
+
+      <div style="display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap">
+        <a href="sesiones.html" class="btn btn-ghost">Cancelar</a>
+        <a href="sesiones.html" class="btn btn-primary">Guardar sesión</a>
+      </div>
+    </form>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>
