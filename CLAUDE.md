@@ -2,7 +2,7 @@
 [Range Book]: app web/mobile para llevar un registro de los entrenamientos en el polígono, con analítica de fotos de dianas.
 
 ## Convenciones
-- Código y nombres en [inglés / castellano]; documentación en castellano.
+- Código y nombres en inglés; textos de la UI y documentación en castellano.
 - Componentes en PascalCase, funciones en camelCase, archivos en kebab-case.
 - Un componente por archivo. Lógica de negocio fuera de los componentes, en `src/lib/`.
 - No agregar dependencias nuevas sin mencionarlo en el plan.
