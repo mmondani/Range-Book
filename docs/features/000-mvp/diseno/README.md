@@ -1,0 +1,24 @@
+# Diseño — RangeBook MVP
+
+Recursos de UI para implementar el MVP con React + Vite.
+
+| Archivo | Contenido |
+|---|---|
+| [design-system.md](./design-system.md) | Tokens (color, tipografía, espaciado, movimiento), íconos, layout responsive, componentes y mínimos de accesibilidad |
+| [pantallas.md](./pantallas.md) | Rutas, especificación y estados de cada pantalla, métricas del análisis, comportamiento PWA y preguntas abiertas |
+| [maqueta/index.html](./maqueta/index.html) | Maqueta navegable en HTML estático: 12 pantallas mobile (`maqueta/mobile/`) y 7 web (`maqueta/web/`) |
+| `maqueta/assets/` | `frame.css` (marco de la maqueta), `app.js` (interacciones genéricas), `analyzer.js` (analizador de blancos de referencia) |
+
+## Cómo ver la maqueta
+
+- Abrir `maqueta/index.html` con doble clic. Funciona sin servidor ni instalación; solo necesita internet para las fuentes de Google.
+- Opcional, para verla desde el celular en la misma red: `pnpm dlx serve docs/features/000-mvp/diseno/maqueta` y abrir la URL de red que muestra.
+- En desktop, las pantallas mobile se ven dentro de un marco de teléfono. En un celular ocupan toda la pantalla.
+
+## Cómo usar estos recursos al implementar
+
+1. Leer `design-system.md` y llevar los tokens a `src/styles/tokens.css` antes de crear componentes.
+2. Para cada pantalla, leer su sección en `pantallas.md` y abrir el HTML correspondiente (tabla de rutas) como referencia visual: estructura, jerarquía, textos y espaciados.
+3. La maqueta **no** es código para copiar. Usa estilos inline y CSS repetido por página. Hay que reimplementarla como componentes React reutilizables (lista en `design-system.md` → Componentes).
+4. `maqueta/assets/analyzer.js` muestra el cálculo de las métricas y la interacción del analizador. La implementación real va en `src/lib/`, como funciones puras con tests.
+5. Las dependencias que proponen estos documentos (`lucide-react` y, si hace falta, una librería de gráficos) se deciden en `plan.md`, como pide `CLAUDE.md`.
