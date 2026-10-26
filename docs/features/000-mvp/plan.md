@@ -2,7 +2,7 @@
 
 **Estado:** Aprobado
 **Requerimientos:** [./requerimientos.md](./requerimientos.md)
-**Diseño:** [design-system.md](./diseno/design-system.md) · [pantallas.md](./diseno/pantallas.md) · [maqueta](./diseno/maqueta/index.html)
+**Diseño:** [design-system.md](../../diseno/design-system.md) · [pantallas.md](../../diseno/pantallas.md) · [maqueta](../../diseno/maqueta/index.html)
 
 ## Resumen del enfoque
 Se construye una SPA con **React + Vite + TypeScript**, instalable como PWA, desplegada en Firebase Hosting y que usa Firestore, Storage y Authentication (Google) directamente desde el cliente. Las reglas de seguridad de Firestore y Storage son la única barrera de privacidad: cada usuario solo lee y escribe bajo `users/{uid}`, y solo si su email figura en `allowedEmails`. Toda la lógica de negocio (métricas de tiro, puntaje por zonas, validación de blancos, snapshots, tiros acumulados, agregaciones de Rendimiento, calibración y detección de impactos) vive en `src/lib/` como funciones puras con tests. Los componentes solo orquestan datos y UI. El trabajo avanza por capas: base del proyecto → auth → inventario → sesiones y rondas → análisis → rendimiento → PWA/offline, y cada paso deja la app desplegable.

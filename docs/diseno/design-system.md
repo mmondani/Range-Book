@@ -1,4 +1,4 @@
-# Sistema de diseño — RangeBook MVP
+# Sistema de diseño — RangeBook
 
 **Estado:** Borrador para revisión
 **Maqueta:** [`maqueta/index.html`](./maqueta/index.html)

@@ -2,6 +2,7 @@
 
 **Estado:** Propuesto | Aprobado | En curso | Terminado
 **Requerimientos:** [./requerimientos.md](./requerimientos.md)
+**Diseño:** [cambios.md](./diseno/cambios.md) · [maqueta](./diseno/maqueta/index.html) <!-- Solo si la iteración cambia la UI; si no, borrar la línea. -->
 
 ## Resumen del enfoque
 <!-- Tres a cinco oraciones: cómo se va a resolver y por qué de esta forma. -->
@@ -52,5 +53,6 @@
 - [ ] Todos los criterios de aceptación verificados
 - [ ] Tests y lint pasan
 - [ ] `docs/arquitectura.md` actualizado
+- [ ] `docs/diseno/` actualizado si la iteración cambió la UI
 - [ ] ADR creado si corresponde
 - [ ] `notas.md` completado

@@ -14,6 +14,9 @@
 - **`src/routes.tsx` todavía no existe.** Se crea junto con `react-router` cuando haya rutas.
 - Se excluyen `docs/` y `CLAUDE.md` de Prettier para no reformatear la documentación.
 
+### Entre el paso 1 y el 2 — Diseño global
+- **El diseño pasó de `docs/features/000-mvp/diseno/` a `docs/diseno/`.** Desde ahora hay una sola maqueta (junto con `design-system.md` y `pantallas.md`) que refleja lo implementado; cada iteración propone sus cambios en su propia carpeta y se incorporan al cerrarla (ver `docs/diseno/README.md` y `CLAUDE.md`). En esta iteración la maqueta general ya es la aprobada, así que al cerrar solo hay que ajustarla a lo que se implementó.
+
 ## Pendientes
 - `pnpm` ignoró el script de instalación de `protobufjs` (dependencia de `firebase-tools`). Los emuladores funcionan igual; si aparece algún problema, correr `pnpm approve-builds`.
 - Al apagar los emuladores, el runtime de reglas de Storage imprime un `NullPointerException` de Java. Es inofensivo (el script sale con código 0).

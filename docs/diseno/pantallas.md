@@ -1,7 +1,7 @@
-# Pantallas — RangeBook MVP
+# Pantallas — RangeBook
 
 **Estado:** Borrador para revisión
-**Requerimientos:** [../requerimientos.md](../requerimientos.md) · **Métricas:** [../shooting_metrics.md](../shooting_metrics.md) · **Sistema de diseño:** [design-system.md](./design-system.md)
+**Requerimientos:** [requerimientos del MVP](../features/000-mvp/requerimientos.md) · **Métricas:** [shooting_metrics.md](../features/000-mvp/shooting_metrics.md) · **Sistema de diseño:** [design-system.md](./design-system.md)
 **Maqueta:** [`maqueta/index.html`](./maqueta/index.html): HTML estático; se abre con doble clic en el navegador.
 
 > Los datos de ejemplo de la maqueta (armas, polígonos, puntajes) son ilustrativos y no siempre coinciden entre una pantalla y otra.
