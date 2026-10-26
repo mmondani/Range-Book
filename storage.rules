@@ -1,0 +1,10 @@
+rules_version = '2';
+
+// Todo cerrado hasta el paso 3 (Login y autorización).
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

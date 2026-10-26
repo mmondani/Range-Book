@@ -1,0 +1,6 @@
+dist
+coverage
+.firebase
+pnpm-lock.yaml
+docs
+CLAUDE.md

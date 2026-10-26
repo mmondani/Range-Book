@@ -75,7 +75,7 @@ No hay código todavía; todo es nuevo. `docs/arquitectura.md` no existe y se cr
 - Estado global: React context + suscripciones de Firestore (`onSnapshot`). No hace falta Redux/Zustand/React Query.
 
 ## Pasos
-- [ ] **1. Base del proyecto**
+- [x] **1. Base del proyecto**
   - Qué: Vite + React + TS con pnpm, ESLint, Prettier, Vitest, alias `@/`. Scripts `dev`, `build`, `lint`, `test`, `test:rules`, `emulators`. `firebase.json` con Hosting (SPA rewrite) y emuladores.
   - Verificación: `pnpm build`, `pnpm lint` y `pnpm test` pasan; `pnpm dev` muestra una página vacía.
 - [ ] **2. Tokens, tema y componentes base**
