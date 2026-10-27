@@ -45,6 +45,15 @@
 - **`AppLayout` toma el usuario del contexto de auth** (la prop `user` sigue disponible y tiene prioridad).
 - El build avisa que el bundle supera los 500 kB, por el SDK de Firebase. Se revisa con la división de código en el paso 13.
 
+### Entre el paso 3 y el 4 — Se adelanta el proyecto de Firebase
+- **El proyecto `range-book` se crea ahora y no en el paso 14.** Los emuladores no prueban el login real con Google (dominios autorizados, `authDomain`, redirect en la PWA de iOS) ni permiten usar la app desde el celular por HTTPS. Desplegar desde ahora deja probar cada paso en el entorno real.
+- Por ahora queda en el plan **Spark**: Auth (Google), Firestore (`southamerica-east1`) y Hosting. Se pasa a **Blaze** en el paso 5, cuando haga falta Storage; ahí se despliega `storage.rules` y se agrega `storage` al script `deploy`.
+- `pnpm deploy` hace el build y despliega `hosting` y `firestore` (reglas e índices) en `range-book`.
+- `pnpm emulators` y `pnpm test:rules` fijan `--project demo-rangebook`, para que nunca toquen el proyecto real. `.firebaserc` tiene `range-book` por defecto y el alias `demo`.
+- La configuración va en `.env.development.local` (emuladores) y `.env.production.local` (proyecto real), ambos fuera de git. `.env.example` documenta los dos.
+- `authDomain` es `range-book.web.app` (el dominio de Hosting) y no `firebaseapp.com`, por la mitigación del riesgo del redirect en iOS. Para eso hubo que agregar `https://range-book.web.app/__/auth/handler` como URI de redirección del cliente OAuth en Google Cloud.
+- `firebase.json` suma encabezados de caché: `/assets/**` inmutables (tienen hash); `index.html`, `/` y las rutas de la SPA (`**/!(*.*)`) sin caché, para que cada despliegue se vea al instante. El encabezado se aplica a la ruta pedida, no al `index.html` reescrito, por eso hacen falta las tres reglas.
+
 ## Pendientes
 - `pnpm` ignoró el script de instalación de `protobufjs` (dependencia de `firebase-tools`). Los emuladores funcionan igual; si aparece algún problema, correr `pnpm approve-builds`.
 - Al apagar los emuladores, el runtime de reglas de Storage imprime un `NullPointerException` de Java. Es inofensivo (el script sale con código 0).

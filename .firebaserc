@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "demo-rangebook"
+    "default": "range-book",
+    "demo": "demo-rangebook"
   }
 }
