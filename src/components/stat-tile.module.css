@@ -1,0 +1,43 @@
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.value {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.number {
+  font-size: 30px;
+}
+
+.lg .number {
+  font-size: 40px;
+}
+
+.accent .number {
+  color: var(--accent);
+}
+
+.unit {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.help {
+  font-size: 14px;
+  color: var(--text-3);
+}
+
+.up {
+  color: var(--success);
+}
+
+.down {
+  color: var(--danger);
+}

@@ -1,0 +1,41 @@
+.wrap {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+}
+
+.segment {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-2);
+  font: 600 15px var(--font-body);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-state),
+    color var(--dur-state);
+}
+
+.segment:hover {
+  color: var(--text);
+}
+
+.segment svg {
+  width: 18px;
+  height: 18px;
+}
+
+.on {
+  background: var(--surface-3);
+  color: var(--text);
+}

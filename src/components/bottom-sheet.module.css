@@ -1,0 +1,133 @@
+/* Sheet desde abajo en mobile; diálogo centrado desde 1024 px. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-sheet);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+  animation: fade-in var(--dur-enter) var(--ease-enter);
+}
+
+.sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: calc(100dvh - 48px);
+  border-top: 1px solid var(--border);
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+  animation: slide-up var(--dur-enter) var(--ease-enter);
+}
+
+.sheet:focus {
+  outline: none;
+}
+
+.grabber {
+  display: flex;
+  justify-content: center;
+  padding-top: 10px;
+}
+
+.grabber span {
+  width: 40px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--surface-3);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-5);
+}
+
+.titles {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.title {
+  font-size: 26px;
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px var(--space-5) var(--space-4);
+}
+
+.footer {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5) calc(var(--space-6) + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+}
+
+@media (min-width: 1024px) {
+  .overlay {
+    align-items: center;
+    padding: var(--space-8);
+  }
+
+  .sheet {
+    max-width: 560px;
+    max-height: calc(100dvh - 64px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sheet);
+    animation-name: pop-in;
+  }
+
+  .grabber {
+    display: none;
+  }
+
+  .header {
+    padding-top: var(--space-4);
+  }
+
+  .footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-bottom: var(--space-5);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation-name: fade-in;
+  }
+}

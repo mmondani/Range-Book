@@ -78,7 +78,7 @@ No hay código todavía; todo es nuevo. `docs/arquitectura.md` no existe y se cr
 - [x] **1. Base del proyecto**
   - Qué: Vite + React + TS con pnpm, ESLint, Prettier, Vitest, alias `@/`. Scripts `dev`, `build`, `lint`, `test`, `test:rules`, `emulators`. `firebase.json` con Hosting (SPA rewrite) y emuladores.
   - Verificación: `pnpm build`, `pnpm lint` y `pnpm test` pasan; `pnpm dev` muestra una página vacía.
-- [ ] **2. Tokens, tema y componentes base**
+- [x] **2. Tokens, tema y componentes base**
   - Qué: `tokens.css` (oscuro y claro), fuentes Barlow / Barlow Condensed, script inline en `index.html` que aplica `data-theme` antes del render, `useTheme`. Componentes: `Button`, `IconButton`, `Chip`, `Badge`, `Card`, `StatTile`, `Field`, `Input`/`Select`/`Textarea`/`DateInput`, `Stepper`, `SegmentedControl`, `Tabs`, `BottomSheet`/`Dialog`, `ConfirmDialog`, `Toast`, `EmptyState`, `Skeleton`. Layout con barra inferior y sidebar.
   - Verificación: tests de componentes (estados `loading`/`disabled`, `aria-*`, cierre del sheet con Escape y confirmación con cambios); revisión visual contra la maqueta en los dos temas.
 - [ ] **3. Login y autorización**

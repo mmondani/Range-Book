@@ -1,0 +1,61 @@
+/* Mobile: chips seleccionables. Desktop: tabs subrayados. */
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text-2);
+  font: 500 15px var(--font-body);
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.count {
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+@media (min-width: 1024px) {
+  .list {
+    flex-wrap: nowrap;
+    gap: var(--space-6);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    min-height: 48px;
+    margin-bottom: -1px;
+    padding: 0 4px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .on {
+    background: transparent;
+    border-bottom-color: var(--accent);
+  }
+}
