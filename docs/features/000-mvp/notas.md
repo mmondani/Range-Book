@@ -54,6 +54,16 @@
 - `authDomain` es `range-book.web.app` (el dominio de Hosting) y no `firebaseapp.com`, por la mitigación del riesgo del redirect en iOS. Para eso hubo que agregar `https://range-book.web.app/__/auth/handler` como URI de redirección del cliente OAuth en Google Cloud.
 - `firebase.json` suma encabezados de caché: `/assets/**` inmutables (tienen hash); `index.html`, `/` y las rutas de la SPA (`**/!(*.*)`) sin caché, para que cada despliegue se vea al instante. El encabezado se aplica a la ruta pedida, no al `index.html` reescrito, por eso hacen falta las tres reglas.
 
+### Paso 4 — Perfil
+- **Resumen (sesiones, disparos, armas) con datos reales desde ya.** `subscribeSummary` en `profile-repository.ts` escucha `sessions` y `firearms`, y `profileSummary` (en `src/lib/profile.ts`) cuenta con tipos mínimos (`rounds[].shots`, `archived`), porque los modelos completos llegan en los pasos 7 y 9. Por ahora muestra ceros. Hay que revisarlo cuando existan los repositorios de sesiones y armas, y quizá moverlo ahí.
+- **`ProfileProvider` + `useProfile` / `useUnits` / `useProfileSummary`** (en `src/hooks/use-profile.ts`): perfil en vivo con `onSnapshot`. El tema de Firestore manda: si cambia (por ejemplo, desde otro dispositivo), se aplica y se copia a `localStorage`. Al elegir un tema se aplica primero en local y después se guarda; si falla, avisa con un toast.
+- **Componente `Avatar`** (foto de Google o iniciales); el `Sidebar` ahora lo usa. Si la foto no carga, muestra las iniciales.
+- **Versión desde `package.json`**, inyectada por Vite como `__APP_VERSION__` (`src/globals.d.ts`). Se muestra `0.1.0`, sin el "(MVP)" de la maqueta.
+- **El tipo `Units` pasó a `src/lib/units.ts`** (estaba en `lib/auth.ts`).
+- Las etiquetas de "Unidades de medida" y "Tema" usan `Field` (14 px, `--text-2`) en lugar del texto de 16 px de la maqueta, para mantener el mismo estilo de etiqueta en toda la app.
+- Cerrar sesión no pide confirmación (la maqueta no la muestra). Al volver a ingresar se vuelve a `/perfil`.
+- Nuevo test de reglas: las preferencias se actualizan por separado con `updateDoc` y solo con valores válidos.
+
 ## Pendientes
 - `pnpm` ignoró el script de instalación de `protobufjs` (dependencia de `firebase-tools`). Los emuladores funcionan igual; si aparece algún problema, correr `pnpm approve-builds`.
 - Al apagar los emuladores, el runtime de reglas de Storage imprime un `NullPointerException` de Java. Es inofensivo (el script sale con código 0).

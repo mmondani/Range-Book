@@ -1,0 +1,96 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 640px;
+}
+
+.title {
+  font-size: 34px;
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar {
+  border-width: 2px;
+}
+
+.accountText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.email {
+  overflow: hidden;
+  font-size: 14px;
+  color: var(--text-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.provider {
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.summaryCard {
+  padding: var(--space-3);
+}
+
+/* Tres columnas en 375 px: el número va un poco más chico que en `StatTile`. */
+.summaryCard :global(.num) {
+  font-size: 26px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.preferences {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 56px;
+  padding: 14px var(--space-4);
+}
+
+.rowIcon {
+  flex-shrink: 0;
+  color: var(--text-2);
+}
+
+.rowLabel {
+  flex: 1;
+}
+
+.rowValue {
+  color: var(--text-3);
+}
+
+.screen > :last-child {
+  margin-top: var(--space-2);
+}

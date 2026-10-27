@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react';
 import { NavLink } from 'react-router';
 import { cx } from '@/lib/cx';
-import { initials } from '@/lib/format';
+import { Avatar } from './avatar';
 import { LinkButton } from './link-button';
 import { Logo } from './logo';
 import { NAV_ITEMS } from './nav-items';
@@ -40,13 +40,7 @@ export function Sidebar({ user }: SidebarProps) {
       </nav>
       {user && (
         <div className={styles.user}>
-          {user.photoURL ? (
-            <img className={styles.avatar} src={user.photoURL} alt="" />
-          ) : (
-            <span className={cx('display', styles.avatar)} aria-hidden="true">
-              {initials(user.displayName)}
-            </span>
-          )}
+          <Avatar name={user.displayName} photoURL={user.photoURL} />
           <span className={styles.userText}>
             <span className={styles.userName}>{user.displayName}</span>
             <span className={styles.userEmail}>{user.email}</span>

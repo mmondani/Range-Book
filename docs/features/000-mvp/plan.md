@@ -84,7 +84,7 @@ No hay código todavía; todo es nuevo. `docs/arquitectura.md` no existe y se cr
 - [x] **3. Login y autorización**
   - Qué: Login con Google (popup en desktop, redirect en mobile PWA). Tras autenticar, se lee `allowedEmails/{email}`; si no existe, `signOut` y alerta "no autorizado". Guard de rutas. Creación del perfil en el primer ingreso. Reglas de Firestore y Storage con `isAllowed()` y dueño.
   - Verificación: tests de reglas (usuario no autorizado no lee nada; usuario A no lee datos de B; nadie escribe `allowedEmails`); tests de pantalla de los estados inicial, cargando, no autorizado y error de red.
-- [ ] **4. Perfil**
+- [x] **4. Perfil**
   - Qué: M11 con avatar, resumen, unidades (mm / pulgadas), tema (Oscuro / Claro / Sistema, guardado en Firestore y `localStorage`), versión y cerrar sesión. "Instalar" se agrega en el paso 13.
   - Verificación: tests de `units.ts`; tests de que el tema se aplica al instante y persiste; cerrar sesión vuelve a `/login`.
 - [ ] **5. Fotos**

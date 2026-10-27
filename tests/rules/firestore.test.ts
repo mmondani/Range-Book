@@ -3,7 +3,7 @@ import {
   assertSucceeds,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { collection, deleteDoc, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, setDoc, updateDoc } from 'firebase/firestore';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
 import {
   ALLOWED,
@@ -119,5 +119,16 @@ describe('users', () => {
     await assertSucceeds(setDoc(ref, PROFILE));
     await assertSucceeds(setDoc(ref, { ...PROFILE, units: 'in', theme: 'system' }));
     await assertFails(deleteDoc(ref));
+  });
+
+  it('las preferencias se actualizan por separado, solo con valores válidos', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    const ref = doc(db, 'users', ALLOWED.uid);
+    await assertSucceeds(updateDoc(ref, { units: 'in' }));
+    await assertSucceeds(updateDoc(ref, { theme: 'light' }));
+    await assertFails(updateDoc(ref, { units: 'yd' }));
+    await assertFails(updateDoc(ref, { theme: 'azul' }));
+    await assertFails(updateDoc(ref, { admin: true }));
+    await assertFails(updateDoc(doc(db, 'users', OTHER_ALLOWED.uid), { theme: 'light' }));
   });
 });

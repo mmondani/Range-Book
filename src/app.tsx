@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import { AuthProvider } from '@/components/auth-provider';
+import { ProfileProvider } from '@/components/profile-provider';
 import { ToastProvider } from '@/components/toast-provider';
 import { firebaseAuthRepository, type AuthRepository } from '@/data/auth-repository';
 import { firebaseProfileRepository, type ProfileRepository } from '@/data/profile-repository';
@@ -23,9 +24,11 @@ export function App({
 
   return (
     <AuthProvider auth={auth} profiles={profiles}>
-      <ToastProvider>
-        <RouterProvider router={router} />
-      </ToastProvider>
+      <ProfileProvider repository={profiles}>
+        <ToastProvider>
+          <RouterProvider router={router} />
+        </ToastProvider>
+      </ProfileProvider>
     </AuthProvider>
   );
 }

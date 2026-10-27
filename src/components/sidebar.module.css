@@ -64,20 +64,6 @@
   border-top: 1px solid var(--border);
 }
 
-.avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--accent);
-  border-radius: 50%;
-  background: var(--accent-soft);
-  font-size: 15px;
-  object-fit: cover;
-}
-
 .userText {
   display: flex;
   flex-direction: column;

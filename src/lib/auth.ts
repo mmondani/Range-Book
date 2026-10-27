@@ -1,4 +1,5 @@
 import { DEFAULT_THEME, type ThemePreference } from '@/lib/theme';
+import { DEFAULT_UNITS, type Units } from '@/lib/units';
 
 export type SignInMethod = 'popup' | 'redirect';
 
@@ -13,8 +14,6 @@ export interface AuthUser {
   displayName: string | null;
   photoURL: string | null;
 }
-
-export type Units = 'mm' | 'in';
 
 export interface Profile {
   displayName: string;
@@ -61,7 +60,7 @@ export function initialProfile(user: AuthUser): Profile {
   return {
     displayName: user.displayName?.trim() || fallbackName,
     photoURL: user.photoURL,
-    units: 'mm',
+    units: DEFAULT_UNITS,
     theme: DEFAULT_THEME,
   };
 }
