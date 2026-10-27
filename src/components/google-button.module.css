@@ -1,0 +1,16 @@
+/* `button.` sube la especificidad sobre las clases de `Button`. */
+button.google {
+  gap: var(--space-3);
+  background: #ffffff;
+  color: #1f1f1f;
+}
+
+button.google:hover {
+  background: #f1f3f4;
+  color: #1f1f1f;
+}
+
+/* En el tema claro el fondo es casi blanco: el borde mantiene el botón visible. */
+:root[data-theme='light'] button.google {
+  border-color: var(--border);
+}

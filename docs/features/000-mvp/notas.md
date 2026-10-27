@@ -31,6 +31,20 @@
 - La preferencia de tema usa los valores del modelo de datos (`dark` / `light` / `system`, clave `rb-theme`); la maqueta usaba `oscuro` / `claro` / `sistema`. El guardado en Firestore llega en el paso 4.
 - **Las fuentes se cargan desde Google Fonts.** Si hay que autoalojarlas para que funcionen offline, se hace en el paso 13.
 
+### Paso 3 — Login y autorización
+- **`@firebase/rules-unit-testing` 5 en lugar de la última (6).** La 6 requiere `firebase` 13; el plan fija `firebase` 12, así que se usa la 5, que es la compatible.
+- **Componentes extra:** `AuthProvider` (+ `useAuth` / `useCurrentUser` en `src/hooks/use-auth.ts`), `RequireAuth` (guard), `SplashScreen` (mientras se resuelve la sesión al abrir), `GoogleButton` y `Alert` (aviso en línea con acción opcional; se va a reusar, por ejemplo, en "detección fallida" del análisis).
+- **Repositorios inyectables.** `App` recibe `auth` y `profiles` (por defecto los de Firebase); los tests usan `src/test/fake-auth.ts`. Firebase se inicializa recién la primera vez que se usa (`firebase()` en `src/data/firebase.ts`).
+- **Redirect solo en la PWA instalada** (`display-mode: standalone` o `navigator.standalone`). En el navegador mobile el popup funciona bien y no saca al usuario de la página. Si el navegador bloquea el popup, se pasa a redirect.
+- **"Reintentar"** repite lo que falló: si ya hay un usuario de Firebase (falló la verificación por red), vuelve a verificarlo sin pedir la cuenta; si no, vuelve a abrir el login. El selector de cuentas se muestra siempre (`prompt: select_account`) para poder probar con otra cuenta.
+- **Reglas más estrictas que lo pedido:**
+  - El perfil (`users/{uid}`) se valida (solo `displayName`, `photoURL`, `units`, `theme`, con valores válidos) y no se puede borrar.
+  - Storage solo acepta imágenes de hasta 10 MB.
+  - El id de `allowedEmails` es el email **en minúsculas**; las reglas comparan con `email.lower()`.
+  - Se exige `email_verified` (las cuentas de Google siempre lo tienen).
+- **`AppLayout` toma el usuario del contexto de auth** (la prop `user` sigue disponible y tiene prioridad).
+- El build avisa que el bundle supera los 500 kB, por el SDK de Firebase. Se revisa con la división de código en el paso 13.
+
 ## Pendientes
 - `pnpm` ignoró el script de instalación de `protobufjs` (dependencia de `firebase-tools`). Los emuladores funcionan igual; si aparece algún problema, correr `pnpm approve-builds`.
 - Al apagar los emuladores, el runtime de reglas de Storage imprime un `NullPointerException` de Java. Es inofensivo (el script sale con código 0).

@@ -81,7 +81,7 @@ No hay código todavía; todo es nuevo. `docs/arquitectura.md` no existe y se cr
 - [x] **2. Tokens, tema y componentes base**
   - Qué: `tokens.css` (oscuro y claro), fuentes Barlow / Barlow Condensed, script inline en `index.html` que aplica `data-theme` antes del render, `useTheme`. Componentes: `Button`, `IconButton`, `Chip`, `Badge`, `Card`, `StatTile`, `Field`, `Input`/`Select`/`Textarea`/`DateInput`, `Stepper`, `SegmentedControl`, `Tabs`, `BottomSheet`/`Dialog`, `ConfirmDialog`, `Toast`, `EmptyState`, `Skeleton`. Layout con barra inferior y sidebar.
   - Verificación: tests de componentes (estados `loading`/`disabled`, `aria-*`, cierre del sheet con Escape y confirmación con cambios); revisión visual contra la maqueta en los dos temas.
-- [ ] **3. Login y autorización**
+- [x] **3. Login y autorización**
   - Qué: Login con Google (popup en desktop, redirect en mobile PWA). Tras autenticar, se lee `allowedEmails/{email}`; si no existe, `signOut` y alerta "no autorizado". Guard de rutas. Creación del perfil en el primer ingreso. Reglas de Firestore y Storage con `isAllowed()` y dueño.
   - Verificación: tests de reglas (usuario no autorizado no lee nada; usuario A no lee datos de B; nadie escribe `allowedEmails`); tests de pantalla de los estados inicial, cargando, no autorizado y error de red.
 - [ ] **4. Perfil**
