@@ -1,0 +1,133 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.title {
+  font-size: 34px;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.chipValue {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  align-items: end;
+  gap: var(--space-3);
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.fewData {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text-2);
+}
+
+.fewData p {
+  margin: 0;
+}
+
+.fewDataIcon {
+  flex-shrink: 0;
+  color: var(--text-3);
+}
+
+.charts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.chartCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.chartHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-2);
+}
+
+.chartTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.chartNote {
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+.chartEmpty {
+  margin: 0;
+  padding: var(--space-6) 0;
+  color: var(--text-3);
+  text-align: center;
+}
+
+.tableSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.tableHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.dateLink {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.dateLink:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+@media (min-width: 1024px) {
+  .title {
+    font-size: 40px;
+  }
+
+  .kpis {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-3);
+  }
+
+  .charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: var(--space-3);
+  }
+
+  .chartTitle {
+    font-size: 18px;
+  }
+}

@@ -107,6 +107,12 @@ export function formatShortDate(value: string): string {
   return `${capitalize(weekday.slice(0, 3))} ${day} ${month.slice(0, 3)} ${year}`;
 }
 
+/** `2026-08-02` → `2 ago` (ejes de los gráficos). */
+export function formatDayMonth(value: string): string {
+  const { month, day } = dateParts(value);
+  return `${day} ${month.slice(0, 3)}`;
+}
+
 /** `2026-10-25` → `Sábado 25 de octubre de 2026`. */
 export function formatLongDate(value: string): string {
   const { year, month, day, weekday } = dateParts(value);

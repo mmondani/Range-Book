@@ -3,6 +3,7 @@ import {
   formatDecimal,
   formatInteger,
   formatIsoDate,
+  formatDayMonth,
   formatLongDate,
   formatMonthYear,
   formatShortDate,
@@ -82,6 +83,7 @@ describe('fechas de las sesiones', () => {
     expect(formatShortMonth('2026-10-25')).toBe('Oct');
     expect(formatShortDate('2026-10-25')).toBe('Dom 25 oct 2026');
     expect(formatLongDate('2026-10-24')).toBe('Sábado 24 de octubre de 2026');
+    expect(formatDayMonth('2026-08-02')).toBe('2 ago');
     expect(formatLongDate('2026-03-02')).toBe('Lunes 2 de marzo de 2026');
   });
 });

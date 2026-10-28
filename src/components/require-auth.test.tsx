@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { describe, expect, it } from 'vitest';
 import { routes } from '@/routes';
+import { DataProviders } from '@/test/data-providers';
 import { ANA, createFakeAuth, INTRUDER, never, type FakeAuthOptions } from '@/test/fake-auth';
 import { AuthProvider } from './auth-provider';
 
@@ -11,7 +12,9 @@ function renderAt(path: string, options?: FakeAuthOptions) {
   const router = createMemoryRouter(routes, { initialEntries: [path] });
   render(
     <AuthProvider auth={fake.auth} profiles={fake.profiles}>
-      <RouterProvider router={router} />
+      <DataProviders>
+        <RouterProvider router={router} />
+      </DataProviders>
     </AuthProvider>,
   );
   return { ...fake, router };

@@ -108,7 +108,7 @@ No hay código todavía; todo es nuevo. `docs/arquitectura.md` no existe y se cr
 - [x] **11. Análisis de blancos**
   - Qué: M06/W04. Calibración de la foto (centro + anillo visible elegido de la lista, o centro + dos puntos con distancia en mm en blancos sin zonas; anillos calibrados dibujados para verificar), `TargetAnalyzer` con modos Detectar / Agregar / Quitar, Deshacer con historial, PMI (cruz azul) y grupo (círculo punteado), aviso de impactos ≠ disparos, tabla de impactos en desktop, `MetricTile`s en vivo, checkbox "Usar el puntaje calculado". Estados: detectando, detección fallida, sin foto, blanco sin zonas. Se guardan impactos en mm y un snapshot de las métricas.
   - Verificación: tests de `metrics.ts` con casos calculados a mano (incluido MOA a varias distancias y horas de reloj del PMI), de `calibration.ts` (escala con distintos anillos de referencia y con dos puntos + distancia) y de `impact-detection.ts` con imágenes sintéticas; tests de pantalla de la confirmación del puntaje (marcado → usa el calculado; desmarcado → conserva el manual).
-- [ ] **12. Rendimiento**
+- [x] **12. Rendimiento**
   - Qué: M07/W05 con filtros en la query string (configuración, munición, blanco, distancia, polígono, período), KPIs con delta, gráficos de puntaje promedio y tamaño de grupo por sesión (filtro por la distancia más usada por defecto), comparación por munición (mobile), tabla ordenable + CSV (desktop). Estados sin análisis y pocos datos.
   - Verificación: tests de `performance.ts` (filtros, deltas vs. período anterior, distancia por defecto, CSV).
 - [ ] **13. PWA y offline**

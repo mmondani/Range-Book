@@ -1,3 +1,4 @@
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { MouseEvent, ReactNode } from 'react';
 import { cx } from '@/lib/cx';
 import styles from './data-table.module.css';
@@ -8,8 +9,18 @@ export interface DataTableColumn<T> {
   header: string;
   hideHeader?: boolean;
   cell: (row: T) => ReactNode;
-  /** `primary` resalta la columna principal; `muted`, una secundaria; `actions` alinea a la derecha. */
-  kind?: 'primary' | 'muted' | 'actions';
+  /**
+   * `primary` resalta la columna principal; `muted`, una secundaria; `numeric` alinea números a la
+   * derecha; `actions` alinea a la derecha.
+   */
+  kind?: 'primary' | 'muted' | 'numeric' | 'actions';
+  /** Si la tabla se ordena por esta columna (ver `sort`). */
+  sortable?: boolean;
+}
+
+export interface DataTableSort {
+  key: string;
+  direction: 'ascending' | 'descending';
 }
 
 export interface DataTableProps<T> {
@@ -24,10 +35,13 @@ export interface DataTableProps<T> {
    * fila tiene que tener también un link o botón con la misma acción, para el teclado.
    */
   onRowClick?: (row: T) => void;
+  /** Orden actual. Las filas llegan ya ordenadas; el encabezado solo lo muestra y lo cambia. */
+  sort?: DataTableSort;
+  onSortChange?: (key: string) => void;
   className?: string;
 }
 
-/** Tabla de desktop, con scroll horizontal en su contenedor. El orden llega con Rendimiento. */
+/** Tabla de desktop, con scroll horizontal en su contenedor y columnas ordenables. */
 export function DataTable<T>({
   columns,
   rows,
@@ -35,6 +49,8 @@ export function DataTable<T>({
   'aria-label': ariaLabel,
   dimmed,
   onRowClick,
+  sort,
+  onSortChange,
   className,
 }: DataTableProps<T>) {
   function handleRowClick(event: MouseEvent<HTMLTableRowElement>, row: T) {
@@ -47,15 +63,33 @@ export function DataTable<T>({
       <table className={styles.table} aria-label={ariaLabel}>
         <thead>
           <tr>
-            {columns.map((column) => (
-              <th key={column.key} scope="col" className={column.kind && styles[column.kind]}>
-                {column.hideHeader ? (
-                  <span className="visually-hidden">{column.header}</span>
-                ) : (
-                  column.header
-                )}
-              </th>
-            ))}
+            {columns.map((column) => {
+              const direction = sort?.key === column.key ? sort.direction : undefined;
+              const Icon = direction === 'ascending' ? ChevronUp : ChevronDown;
+              return (
+                <th
+                  key={column.key}
+                  scope="col"
+                  className={column.kind && styles[column.kind]}
+                  aria-sort={column.sortable ? (direction ?? 'none') : undefined}
+                >
+                  {column.hideHeader ? (
+                    <span className="visually-hidden">{column.header}</span>
+                  ) : column.sortable && onSortChange ? (
+                    <button
+                      type="button"
+                      className={cx(styles.sort, direction && styles.sorted)}
+                      onClick={() => onSortChange(column.key)}
+                    >
+                      {column.header}
+                      <Icon className={styles.sortIcon} aria-hidden="true" />
+                    </button>
+                  ) : (
+                    column.header
+                  )}
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>

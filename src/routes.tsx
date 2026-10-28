@@ -8,7 +8,7 @@ import { FirearmScreen } from '@/screens/firearm-screen';
 import { InventoryItemRoute } from '@/screens/inventory-item-route';
 import { InventoryScreen } from '@/screens/inventory-screen';
 import { LoginScreen } from '@/screens/login-screen';
-import { PlaceholderScreen } from '@/screens/placeholder-screen';
+import { PerformanceScreen } from '@/screens/performance-screen';
 import { ProfileScreen } from '@/screens/profile-screen';
 import { RoundItemRoute } from '@/screens/round-item-route';
 import { SessionDetail } from '@/screens/session-detail';
@@ -55,7 +55,8 @@ export const routes: RouteObject[] = [
         element: <AnalysisScreen />,
         handle: FULL_SCREEN,
       },
-      { path: 'rendimiento', element: <PlaceholderScreen title="Rendimiento" /> },
+      // Filtros en la query string; en mobile, el sheet de cada filtro también (`?filtro=`).
+      { path: 'rendimiento', element: <PerformanceScreen /> },
       { path: 'inventario', element: <Navigate to="/inventario/armas" replace /> },
       {
         path: 'inventario/:category',
