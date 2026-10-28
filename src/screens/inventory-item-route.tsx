@@ -6,6 +6,7 @@ import { AmmunitionSheet } from './ammunition-sheet';
 import { ConfigurationSheet } from './configuration-sheet';
 import { FirearmSheet } from './firearm-sheet';
 import { RangeSheet } from './range-sheet';
+import { TargetSheet } from './target-sheet';
 
 export type InventoryItemRouteProps = { segment: 'nueva' | 'nuevo' } | { segment: 'editar' };
 
@@ -32,7 +33,7 @@ function itemsOf<T>(state: CollectionState<T>): T[] {
 export function InventoryItemRoute(props: InventoryItemRouteProps) {
   const params = useParams();
   const category = parseCategory(params.category);
-  const { firearms, configurations, ammunition, ranges, listPath } = useInventoryOutlet();
+  const { firearms, configurations, ammunition, ranges, targets, listPath } = useInventoryOutlet();
   const back = <Navigate to={listPath} replace />;
   const id = props.segment === 'editar' ? params.id : undefined;
 
@@ -67,6 +68,11 @@ export function InventoryItemRoute(props: InventoryItemRouteProps) {
     const found = lookup(ranges, id);
     if (found.status === 'loading') return null;
     return found.status === 'found' ? <RangeSheet key={id} item={found.item} /> : back;
+  }
+  if (category === 'blancos') {
+    const found = lookup(targets, id);
+    if (found.status === 'loading') return null;
+    return found.status === 'found' ? <TargetSheet key={id} item={found.item} /> : back;
   }
   return back;
 }

@@ -81,6 +81,20 @@ service cloud.firestore {
         && data.archived is bool;
     }
 
+    // Límites de `src/lib/target-zones.ts` (MAX_REFERENCE_MM, MAX_ZONES). Las reglas no recorren
+    // listas: el contenido de cada zona lo valida el cliente.
+    function isValidTarget(data) {
+      return data.keys().hasOnly(['name', 'photo', 'scoring', 'referenceSizeMm', 'zones', 'archived'])
+        && isText(data.name, 100) && data.name.size() > 0
+        && (data.photo == null || data.photo is string)
+        && data.scoring in ['rings', 'none']
+        && data.referenceSizeMm is number
+        && data.referenceSizeMm > 0 && data.referenceSizeMm <= 10000
+        && data.zones is list && data.zones.size() <= 50
+        && (data.scoring == 'rings' ? data.zones.size() > 0 : data.zones.size() == 0)
+        && data.archived is bool;
+    }
+
     // Lista de acceso: se administra a mano desde la consola. Cada usuario solo puede
     // consultar su propio email (exista o no) y nadie puede escribirla desde el cliente.
     match /allowedEmails/{allowedEmail} {
@@ -127,12 +141,18 @@ service cloud.firestore {
         allow delete: if false;
       }
 
+      match /targets/{id} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidTarget(request.resource.data);
+        allow delete: if false;
+      }
+
       // Resto de los datos del usuario, hasta que tengan sus propias reglas. `{subcollection}`
       // evita que el comodín recursivo (que acepta cero segmentos) también matchee el perfil.
       match /{subcollection}/{document=**} {
         allow read: if isOwner(uid);
         allow write: if isOwner(uid)
-          && !(subcollection in ['firearms', 'configurations', 'ammunition', 'ranges']);
+          && !(subcollection in ['firearms', 'configurations', 'ammunition', 'ranges', 'targets']);
       }
     }
   }

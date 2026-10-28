@@ -1,0 +1,68 @@
+/* Mobile: dos columnas. Desktop: grilla de tarjetas de 200 px o más. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  height: 100%;
+  padding: 10px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.thumb {
+  width: 100%;
+  margin-bottom: var(--space-1);
+  border-radius: 10px;
+}
+
+.name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.summary {
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.archivedActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.archived .name {
+  color: var(--text-3);
+}
+
+.archived .thumb {
+  opacity: 0.6;
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .card {
+    gap: 10px;
+    padding: var(--space-3);
+  }
+
+  .thumb {
+    margin-bottom: 0;
+  }
+}

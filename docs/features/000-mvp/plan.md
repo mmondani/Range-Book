@@ -96,7 +96,7 @@ No hay código todavía; todo es nuevo. `docs/arquitectura.md` no existe y se cr
 - [x] **7. Inventario: armas, modificaciones y configuraciones**
   - Qué: M09/W07, M10. Fotos múltiples con portada, calibre con sugerencias, tiros previos. Modificaciones en sheet. Configuraciones (nombre + checkboxes de modificaciones). Tiros acumulados = previos + disparos de sesiones.
   - Verificación: tests de `firearms.ts` (tiros acumulados, configuración "Stock" implícita, archivados); tests de validación del formulario de arma.
-- [ ] **8. Inventario: blancos**
+- [x] **8. Inventario: blancos**
   - Qué: M12 con tipo de puntuación, tamaño de referencia, `ZoneEditor` con "Generar" y vista previa.
   - Verificación: tests de `target-zones.ts` (diámetros únicos y crecientes al bajar el puntaje, ninguna zona mayor que la referencia, generación uniforme, zona más chica que contiene el centro, 0 fuera).
 - [ ] **9. Sesiones: lista, alta, edición y detalle**

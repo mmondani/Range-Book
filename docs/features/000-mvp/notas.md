@@ -128,8 +128,24 @@
 - **Fotos del arma:** se suben antes de guardar el documento y las quitadas se borran después, como se definió en el paso 5. Si falla el alta después de subir las fotos, quedan huérfanas en Storage (al reintentar se reusan las mismas rutas).
 - **Reglas:** `firearms`, `firearms/{id}/modifications` y `configurations` validan campos, tipos, longitudes y límites (iguales a `src/lib/firearms.ts`), no se pueden borrar, y una configuración tiene que apuntar a un arma existente del mismo usuario. El test de reglas que borraba un arma ahora borra una sesión.
 
+### Paso 8 — Inventario: blancos
+- **Archivo extra `src/lib/targets.ts`** (no estaba en la tabla del plan): la entidad blanco (tipos, borrador de M12, validación, documento a guardar, resumen «Anillos · Ø 500 mm · 10 zonas» y lectura de Firestore). `src/lib/target-zones.ts` queda solo con la geometría: validación de zonas, `generateZones`, `sortZones` y `zoneScore` (la zona más chica que contiene el centro, borde incluido; 0 afuera), que va a usar el análisis del paso 11.
+- **`src/lib/format.ts` suma `formatDecimal` y `parseDecimal`:** los mm aceptan coma o punto decimal y se muestran con coma y hasta un decimal (`100,5`), sin separador de miles.
+- **Componentes extra:** `TargetThumb` (de `design-system.md`, adelantado: foto del blanco o dibujo de sus anillos; la silueta de cartón para los blancos sin zonas), `TargetCards` (grilla de la pestaña Blancos) y `ZoneEditor`. Pantalla `TargetSheet` (M12).
+- **Modelo:** `photo` es `string | null` (no un campo opcional), igual que `purchaseDate` del arma. Las zonas se guardan ordenadas de mayor a menor puntaje; con "Sin zonas" se guarda `zones: []` (las filas cargadas se conservan en el borrador por si se vuelve a "Anillos", pero no se guardan).
+- **Validación de las zonas:** puntaje entero entre 0 y 1000, diámetro mayor que 0, sin puntajes ni diámetros repetidos, diámetros crecientes al bajar el puntaje (el error va en la fila que no crece e indica la zona anterior) y ninguno mayor que la referencia (igual sí). Hasta 50 zonas; referencia de hasta 10.000 mm. **Los puntajes tampoco se pueden repetir**, aunque el requerimiento no lo dice: con dos zonas del mismo puntaje no hay un orden definido. Los errores de cada fila se muestran después de intentar guardar y se borran al editar cualquier zona (mismo patrón que el resto de los campos); el foco va al primer campo inválido, incluidas las filas.
+- **"Generar"** reemplaza las filas por N anillos uniformes (el central vale N; diámetros redondeados a 0,1 mm). Pide un diámetro exterior válido; la cantidad (por defecto 10, entre 1 y 50) no es parte del borrador. No pide confirmación: nada se guarda hasta "Guardar blanco".
+- **Reglas:** `targets` valida campos, tipos y límites; `rings` exige al menos una zona y `none` ninguna. Las reglas no recorren listas, así que el contenido de cada zona lo valida solo el cliente. No se pueden borrar.
+- **Desvíos de la maqueta:**
+  - M12 es un sheet (diálogo en desktop), como el resto del inventario, con "Cancelar" / "Guardar blanco" y "Archivar blanco" al editar.
+  - El tamaño de referencia va en su propio campo, arriba; la vista previa queda junto a "Cantidad de zonas" + "Generar".
+  - Las tarjetas de blancos son links a la edición (en la maqueta no tenían acción). Las archivadas se ven atenuadas, con el badge "Archivado" y "Restaurar". La búsqueda de desktop filtra por nombre y resumen.
+  - Las etiquetas de las filas usan el número de fila («Puntaje de la zona 2», «Quitar la zona 2»), no el puntaje como en la maqueta, para que no cambien al escribir.
+- Ya no queda ninguna categoría "En construcción": se quitó ese estado de `InventoryScreen`.
+
 ## Pendientes
 - El paso 7 tampoco tuvo revisión visual en el navegador (solo tests): revisar M09 / W07 / M10 y las pestañas Armas y Configuraciones en los dos temas, en 375 px y 1280 px.
+- El paso 8 tampoco: revisar M12 (con anillos y sin zonas, errores en las filas, vista previa) y la pestaña Blancos en los dos temas, en 375 px y 1280 px.
 - **Guardar sin conexión (paso 13).** `create` y `update` esperan la confirmación del servidor de Firestore: sin conexión el sheet quedaría en "guardando". Revisarlo junto con la persistencia offline (no esperar la promesa o cerrar al escribir en la caché local).
 - El paso 6 no tuvo revisión visual contra la maqueta en el navegador (solo tests). Revisarla en los dos temas, en 375 px y 1280 px.
 - `pnpm` ignoró el script de instalación de `protobufjs` (dependencia de `firebase-tools`). Los emuladores funcionan igual; si aparece algún problema, correr `pnpm approve-builds`.

@@ -35,6 +35,18 @@ const CONFIGURATION = {
   archived: false,
 };
 
+const TARGET = {
+  name: 'ISSF',
+  photo: null,
+  scoring: 'rings',
+  referenceSizeMm: 500,
+  zones: [
+    { score: 10, diameterMm: 250 },
+    { score: 9, diameterMm: 500 },
+  ],
+  archived: false,
+};
+
 let env: RulesTestEnvironment;
 
 beforeAll(async () => {
@@ -272,5 +284,55 @@ describe('inventario: armas, modificaciones y configuraciones', () => {
     await assertFails(getDoc(other('firearms', 'cz')));
     await assertFails(setDoc(other('firearms', 'cz', 'modifications', 'm'), MODIFICATION));
     await assertFails(setDoc(other('configurations', 'c'), { ...CONFIGURATION, firearmId: 'cz' }));
+  });
+});
+
+describe('inventario: blancos', () => {
+  type Db = ReturnType<ReturnType<typeof signedIn>['firestore']>;
+  const target = (db: Db, id = 'issf') => doc(db, 'users', ALLOWED.uid, 'targets', id);
+
+  it('se crean y editan con anillos o sin zonas', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    await assertSucceeds(setDoc(target(db), TARGET));
+    await assertSucceeds(updateDoc(target(db), { referenceSizeMm: 500.5, photo: 'a.jpg' }));
+    await assertSucceeds(
+      setDoc(target(db, 'ipsc'), { ...TARGET, scoring: 'none', referenceSizeMm: 460, zones: [] }),
+    );
+    await assertSucceeds(getDocs(collection(db, 'users', ALLOWED.uid, 'targets')));
+  });
+
+  it('rechaza campos faltantes, vacíos, inválidos o de más', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    const ref = target(db, 'x');
+    await assertFails(setDoc(ref, { ...TARGET, name: '' }));
+    await assertFails(setDoc(ref, { ...TARGET, scoring: 'zonas' }));
+    await assertFails(setDoc(ref, { ...TARGET, referenceSizeMm: 0 }));
+    await assertFails(setDoc(ref, { ...TARGET, referenceSizeMm: 10001 }));
+    await assertFails(setDoc(ref, { ...TARGET, referenceSizeMm: '500' }));
+    await assertFails(setDoc(ref, { ...TARGET, photo: ['a.jpg'] }));
+    await assertFails(setDoc(ref, { ...TARGET, zones: [] }));
+    await assertFails(setDoc(ref, { ...TARGET, scoring: 'none' }));
+    await assertFails(
+      setDoc(ref, {
+        ...TARGET,
+        zones: Array.from({ length: 51 }, (_, i) => ({ score: i, diameterMm: i + 1 })),
+      }),
+    );
+    await assertFails(setDoc(ref, { ...TARGET, color: 'negro' }));
+  });
+
+  it('se archivan y restauran, pero no se borran', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    await assertSucceeds(setDoc(target(db), TARGET));
+    await assertSucceeds(updateDoc(target(db), { archived: true }));
+    await assertSucceeds(updateDoc(target(db), { archived: false }));
+    await assertFails(deleteDoc(target(db)));
+  });
+
+  it('el usuario A no lee ni escribe los blancos de B', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    const other = doc(db, 'users', OTHER_ALLOWED.uid, 'targets', 't');
+    await assertFails(getDoc(other));
+    await assertFails(setDoc(other, TARGET));
   });
 });

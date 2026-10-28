@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { formatInteger, formatIsoDate, initials, isoDate } from './format';
+import {
+  formatDecimal,
+  formatInteger,
+  formatIsoDate,
+  initials,
+  isoDate,
+  parseDecimal,
+} from './format';
 
 describe('formatInteger', () => {
   it('usa el punto como separador de miles', () => {
@@ -30,5 +37,29 @@ describe('formatIsoDate', () => {
   it('muestra la fecha como dd/mm/aaaa', () => {
     expect(formatIsoDate('2023-03-14')).toBe('14/03/2023');
     expect(formatIsoDate('')).toBe('');
+  });
+});
+
+describe('formatDecimal', () => {
+  it('usa coma decimal, hasta un decimal y sin separador de miles', () => {
+    expect(formatDecimal(500)).toBe('500');
+    expect(formatDecimal(100.5)).toBe('100,5');
+    expect(formatDecimal(33.333)).toBe('33,3');
+    expect(formatDecimal(1200)).toBe('1200');
+  });
+});
+
+describe('parseDecimal', () => {
+  it('acepta coma o punto decimal', () => {
+    expect(parseDecimal('12,5')).toBe(12.5);
+    expect(parseDecimal(' 12.5 ')).toBe(12.5);
+    expect(parseDecimal('0')).toBe(0);
+  });
+
+  it('vacío, negativo o con texto es inválido', () => {
+    expect(parseDecimal('')).toBeUndefined();
+    expect(parseDecimal('-3')).toBeUndefined();
+    expect(parseDecimal('12 mm')).toBeUndefined();
+    expect(parseDecimal('1,2,3')).toBeUndefined();
   });
 });

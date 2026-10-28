@@ -27,3 +27,23 @@ export function formatIsoDate(value: string): string {
   const [year, month, day] = value.split('-');
   return year && month && day ? `${day}/${month}/${year}` : value;
 }
+
+const decimalFormat = new Intl.NumberFormat('es-AR', {
+  maximumFractionDigits: 1,
+  useGrouping: false,
+});
+
+/** Número con hasta un decimal y coma decimal, sin separador de miles: `12,5`. */
+export function formatDecimal(value: number): string {
+  return decimalFormat.format(value);
+}
+
+/**
+ * Número positivo o cero escrito a mano; acepta coma o punto decimal (`12,5`, `12.5`).
+ * `undefined` si está vacío o no es un número.
+ */
+export function parseDecimal(value: string): number | undefined {
+  const text = value.trim();
+  if (!/^\d+([.,]\d+)?$/.test(text)) return undefined;
+  return Number(text.replace(',', '.'));
+}

@@ -28,6 +28,7 @@ import {
   type Range,
   type RangeInput,
 } from '@/lib/inventory';
+import { parseTarget, type Target, type TargetInput } from '@/lib/targets';
 import { firebase } from './firebase';
 
 /** Una colección del inventario (`users/{uid}/{colección}`). Nada se borra: se archiva. */
@@ -62,6 +63,7 @@ export interface InventoryRepositories {
   configurations: InventoryRepository<Configuration, ConfigurationInput>;
   ammunition: InventoryRepository<Ammunition, AmmunitionInput>;
   ranges: InventoryRepository<Range, RangeInput>;
+  targets: InventoryRepository<Target, TargetInput>;
   /**
    * Arma, configuración y disparos de cada sesión, para los tiros acumulados y los contadores de
    * sesiones. Cuando existan las sesiones (paso 9) puede salir de su repositorio.
@@ -130,6 +132,7 @@ export const firebaseInventoryRepositories: InventoryRepositories = {
     parseAmmunition,
   ),
   ranges: firestoreCollection<Range, RangeInput>(userCollection('ranges'), parseRange),
+  targets: firestoreCollection<Target, TargetInput>(userCollection('targets'), parseTarget),
   usage: {
     subscribe(uid, onItems, onError) {
       return onSnapshot(

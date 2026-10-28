@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useOutletContext } from 'react-router';
 import type { InventoryRepositories, InventoryRepository } from '@/data/inventory-repository';
 import type { Configuration, Firearm } from '@/lib/firearms';
 import type { Ammunition, Archivable, Range } from '@/lib/inventory';
+import type { Target } from '@/lib/targets';
 import { useCurrentUser } from './use-auth';
 import type { CollectionState } from './use-collection';
 import { useToast } from './use-toast';
@@ -31,6 +32,7 @@ export interface InventoryOutletContext extends SheetOutletContext {
   configurations: CollectionState<Configuration>;
   ammunition: CollectionState<Ammunition>;
   ranges: CollectionState<Range>;
+  targets: CollectionState<Target>;
 }
 
 export function useInventoryOutlet(): InventoryOutletContext {

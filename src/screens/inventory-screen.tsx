@@ -1,4 +1,4 @@
-import { Boxes, Construction, Crosshair, Layers, MapPin, Plus, Search } from 'lucide-react';
+import { Boxes, Crosshair, Goal, Layers, MapPin, Plus, Search } from 'lucide-react';
 import { useState } from 'react';
 import {
   Navigate,
@@ -8,13 +8,13 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router';
-import { EmptyState } from '@/components/empty-state';
 import { FirearmCards } from '@/components/firearm-cards';
 import { Input } from '@/components/input';
 import { InventoryItems } from '@/components/inventory-items';
 import { LinkButton } from '@/components/link-button';
 import { ModificationTags } from '@/components/modification-tags';
 import { tabPanelProps, Tabs, type TabItem } from '@/components/tabs';
+import { TargetCards } from '@/components/target-cards';
 import { useCollection, type CollectionState } from '@/hooks/use-collection';
 import { useFirearmModifications } from '@/hooks/use-firearm-modifications';
 import {
@@ -44,6 +44,7 @@ import {
   type Archivable,
   type InventoryCategory,
 } from '@/lib/inventory';
+import { targetName, targetSummary } from '@/lib/targets';
 import styles from './inventory-screen.module.css';
 
 const TABS_ID = 'inventory';
@@ -57,12 +58,13 @@ const CATEGORY_LABELS: Record<InventoryCategory, string> = {
   blancos: 'Blancos',
 };
 
-/** Botón primario de cada categoría. Las que todavía no tienen ABM no lo muestran. */
-const NEW_LABELS: Partial<Record<InventoryCategory, string>> = {
+/** Botón primario de cada categoría. */
+const NEW_LABELS: Record<InventoryCategory, string> = {
   armas: 'Nueva arma',
   configuraciones: 'Nueva configuración',
   municiones: 'Nueva munición',
   poligonos: 'Nuevo polígono',
+  blancos: 'Nuevo blanco',
 };
 
 const CONFIGURATION_MESSAGES = {
@@ -72,6 +74,7 @@ const CONFIGURATION_MESSAGES = {
 
 const AMMUNITION_MESSAGES = { archived: 'Munición archivada', restored: 'Munición restaurada' };
 const RANGE_MESSAGES = { archived: 'Polígono archivado', restored: 'Polígono restaurado' };
+const TARGET_MESSAGES = { archived: 'Blanco archivado', restored: 'Blanco restaurado' };
 
 function count<T extends Archivable>(state: CollectionState<T>, pick: (items: T[]) => T[]) {
   return state.status === 'ready' ? pick(state.items).length : undefined;
@@ -95,8 +98,10 @@ export function InventoryScreen() {
   );
   const ammunition = useCollection(repositories.ammunition);
   const ranges = useCollection(repositories.ranges);
+  const targets = useCollection(repositories.targets);
   const ammunitionActions = useArchiveActions(repositories.ammunition, AMMUNITION_MESSAGES);
   const rangeActions = useArchiveActions(repositories.ranges, RANGE_MESSAGES);
+  const targetActions = useArchiveActions(repositories.targets, TARGET_MESSAGES);
   const configurationActions = useArchiveActions(
     repositories.configurations,
     CONFIGURATION_MESSAGES,
@@ -106,21 +111,21 @@ export function InventoryScreen() {
 
   const showArchived = searchParams.get(ARCHIVED_PARAM) === '1';
   const listPath = `/inventario/${category}${search}`;
-  const states: Partial<Record<InventoryCategory, CollectionState<Archivable>>> = {
+  const states: Record<InventoryCategory, CollectionState<Archivable>> = {
     armas: firearms,
     configuraciones: configurations,
     municiones: ammunition,
     poligonos: ranges,
+    blancos: targets,
   };
   const current = states[category];
-  const archivedCount = current ? (count(current, archivedItems) ?? 0) : 0;
+  const archivedCount = count(current, archivedItems) ?? 0;
   const newLabel = NEW_LABELS[category];
   // La búsqueda solo está en desktop (W06).
   const searchText = isDesktop ? query : '';
 
   const tabs: ReadonlyArray<TabItem<InventoryCategory>> = INVENTORY_CATEGORIES.map((value) => {
-    const state = states[value];
-    return { value, label: CATEGORY_LABELS[value], count: state && count(state, activeItems) };
+    return { value, label: CATEGORY_LABELS[value], count: count(states[value], activeItems) };
   });
 
   function itemPath(path: string) {
@@ -158,6 +163,7 @@ export function InventoryScreen() {
     configurations,
     ammunition,
     ranges,
+    targets,
     listPath,
   };
 
@@ -184,7 +190,7 @@ export function InventoryScreen() {
       <header className={styles.header}>
         <h1 className={`display ${styles.title}`}>Inventario</h1>
         <div className={styles.headerActions}>
-          {isDesktop && current && (
+          {isDesktop && (
             <div className={styles.search}>
               <Search aria-hidden="true" size={20} className={styles.searchIcon} />
               <Input
@@ -197,7 +203,7 @@ export function InventoryScreen() {
               />
             </div>
           )}
-          {newLabel && newButton(newLabel)}
+          {newButton(newLabel)}
         </div>
       </header>
 
@@ -210,7 +216,7 @@ export function InventoryScreen() {
           onChange={(next) => navigate({ pathname: `/inventario/${next}`, search })}
           className={styles.tabs}
         />
-        {current && (archivedCount > 0 || showArchived) && (
+        {(archivedCount > 0 || showArchived) && (
           <label className={styles.archivedToggle}>
             <input
               type="checkbox"
@@ -346,11 +352,28 @@ export function InventoryScreen() {
             onRestore={rangeActions.restore}
           />
         )}
-        {!current && (
-          <EmptyState
-            icon={<Construction />}
-            title="En construcción"
-            text="Esta categoría llega en los próximos pasos."
+        {category === 'blancos' && (
+          <InventoryItems
+            aria-label="Blancos"
+            state={targets}
+            name={targetName}
+            searchFields={(item) => [item.name, targetSummary(item)]}
+            showArchived={showArchived}
+            query={searchText}
+            empty={{
+              icon: <Goal />,
+              title: 'Sin blancos',
+              text: 'Cargá los blancos que usás con sus zonas de puntaje para analizar tus rondas.',
+              action: newButton('Nuevo blanco'),
+            }}
+            render={(items) => (
+              <TargetCards
+                aria-label="Blancos"
+                targets={items}
+                editTo={(item) => itemPath(`${item.id}/editar`)}
+                onRestore={targetActions.restore}
+              />
+            )}
           />
         )}
       </div>

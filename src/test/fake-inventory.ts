@@ -14,6 +14,7 @@ import type {
   SessionUsage,
 } from '@/lib/firearms';
 import type { Ammunition, AmmunitionInput, Archivable, Range, RangeInput } from '@/lib/inventory';
+import type { Target, TargetInput } from '@/lib/targets';
 
 /** Doble de una colección del inventario en memoria, con avisos en vivo como `onSnapshot`. */
 function createFakeCollection<T extends Archivable, I extends object>(
@@ -87,6 +88,45 @@ export const ALAMOS: Range = {
   name: 'Club de Tiro Los Álamos',
   address: 'Ruta 2 km 40',
   archived: false,
+};
+
+export const ISSF: Target = {
+  id: 'issf',
+  name: 'ISSF Pistola Precisión',
+  photo: null,
+  scoring: 'rings',
+  referenceSizeMm: 500,
+  zones: Array.from({ length: 10 }, (_, index) => ({
+    score: 10 - index,
+    diameterMm: 50 * (index + 1),
+  })),
+  archived: false,
+};
+
+export const IPSC_CLASSIC: Target = {
+  id: 'ipsc-classic',
+  name: 'IPSC Classic',
+  photo: 'users/ana/targets/ipsc-classic/a.jpg',
+  scoring: 'none',
+  referenceSizeMm: 460,
+  zones: [],
+  archived: false,
+};
+
+export const B8: Target = {
+  id: 'b8',
+  name: 'NRA B-8',
+  photo: null,
+  scoring: 'rings',
+  referenceSizeMm: 140,
+  zones: [
+    { score: 10, diameterMm: 34 },
+    { score: 9, diameterMm: 55 },
+    { score: 8, diameterMm: 80 },
+    { score: 7, diameterMm: 105 },
+    { score: 6, diameterMm: 140 },
+  ],
+  archived: true,
 };
 
 export const GLOCK: Firearm = {
@@ -179,6 +219,7 @@ export function createFakeInventory({
   configurations = [IPSC, NIGHT],
   ammunition = [MAGTECH, CCI, SELLIER],
   ranges = [NORTE, ALAMOS],
+  targets = [ISSF, IPSC_CLASSIC, B8],
   usage = USAGE,
 }: {
   firearms?: Firearm[];
@@ -186,6 +227,7 @@ export function createFakeInventory({
   configurations?: Configuration[];
   ammunition?: Ammunition[];
   ranges?: Range[];
+  targets?: Target[];
   usage?: SessionUsage[];
 } = {}) {
   const firearmCollection = createFakeCollection<Firearm, FirearmInput>(firearms, 'firearm');
@@ -210,6 +252,7 @@ export function createFakeInventory({
   );
   const ammo = createFakeCollection<Ammunition, AmmunitionInput>(ammunition, 'ammo');
   const rangeCollection = createFakeCollection<Range, RangeInput>(ranges, 'range');
+  const targetCollection = createFakeCollection<Target, TargetInput>(targets, 'target');
   const usageSource = {
     subscribe: vi.fn<UsageSource['subscribe']>((_uid, onItems) => {
       onItems([...usage]);
@@ -223,6 +266,7 @@ export function createFakeInventory({
     configurations: configurationCollection.repository,
     ammunition: ammo.repository,
     ranges: rangeCollection.repository,
+    targets: targetCollection.repository,
     usage: usageSource,
   } satisfies InventoryRepositories;
   return {
@@ -232,5 +276,6 @@ export function createFakeInventory({
     configurations: configurationCollection.items,
     ammunition: ammo.items,
     ranges: rangeCollection.items,
+    targets: targetCollection.items,
   };
 }
