@@ -90,7 +90,7 @@ No hay código todavía; todo es nuevo. `docs/arquitectura.md` no existe y se cr
 - [x] **5. Fotos**
   - Qué: `PhotoPicker` (cámara / galería / arrastrar), `PhotoGallery`, `image-compression.ts`, subida a Storage y guardado de la ruta en Firestore.
   - Verificación: test de cálculo de dimensiones de la compresión; test de que solo se guarda la ruta; prueba manual de cámara en el celular.
-- [ ] **6. Inventario: municiones, polígonos y archivado**
+- [x] **6. Inventario: municiones, polígonos y archivado**
   - Qué: M08/W06 con categorías y contadores; ABM de munición y polígonos en sheet/diálogo; archivar, "Ver archivadas" y restaurar (patrón común para todas las entidades).
   - Verificación: tests de que un archivado no aparece en listas ni selects pero sí con "Ver archivadas", y que se puede restaurar.
 - [ ] **7. Inventario: armas, modificaciones y configuraciones**

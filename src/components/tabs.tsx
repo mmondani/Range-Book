@@ -77,6 +77,8 @@ export function Tabs<T extends string>({
             onKeyDown={handleKeyDown}
           >
             {tab.label}
+            {/* El espacio separa el contador en el nombre accesible ("Munición 2"). */}
+            {tab.count !== undefined && ' '}
             {tab.count !== undefined && (
               <span className={cx(styles.count, 'num')}>{tab.count}</span>
             )}

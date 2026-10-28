@@ -10,7 +10,11 @@ export interface AppLayoutProps {
   user?: SidebarUser | null;
 }
 
-/** Barra inferior en mobile y sidebar en desktop. Al cambiar de ruta, el foco va al `<h1>`. */
+/**
+ * Barra inferior en mobile y sidebar en desktop. Al cambiar de pantalla, el foco va al `<h1>`. Si
+ * la ruta cambia pero la pantalla sigue siendo la misma (abrir o cerrar un sheet, cambiar de
+ * pestaña), el foco no se mueve.
+ */
 export function AppLayout({ user }: AppLayoutProps) {
   const currentUser = useCurrentUser();
   const sidebarUser: SidebarUser | null =
@@ -22,15 +26,16 @@ export function AppLayout({ user }: AppLayoutProps) {
     });
   const { pathname } = useLocation();
   const mainRef = useRef<HTMLElement>(null);
-  const firstRender = useRef(true);
+  const lastHeading = useRef<{ node: HTMLElement | null; text: string | null }>(undefined);
 
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
-    const heading = mainRef.current?.querySelector<HTMLElement>('h1');
-    if (!heading) return;
+    const heading = mainRef.current?.querySelector<HTMLElement>('h1') ?? null;
+    const text = heading?.textContent ?? null;
+    const last = lastHeading.current;
+    lastHeading.current = { node: heading, text };
+    // React puede reusar el mismo `<h1>` entre pantallas: también se compara el texto.
+    const sameScreen = last?.node === heading && last.text === text;
+    if (!last || sameScreen || !heading) return;
     heading.tabIndex = -1;
     heading.focus();
   }, [pathname]);

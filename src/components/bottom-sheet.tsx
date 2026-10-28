@@ -12,8 +12,11 @@ export interface BottomSheetProps {
   title: string;
   eyebrow?: string;
   children: ReactNode;
-  /** Acciones fijas abajo (por ejemplo, Cancelar / Guardar). */
-  footer?: ReactNode;
+  /**
+   * Acciones fijas abajo (por ejemplo, Cancelar / Guardar). Como función recibe `requestClose`,
+   * que pide confirmación si hay cambios, igual que el botón cerrar.
+   */
+  footer?: ReactNode | ((requestClose: () => void) => ReactNode);
   /** Si hay cambios sin guardar, cerrar pide confirmación. */
   dirty?: boolean;
 }
@@ -66,7 +69,11 @@ export function BottomSheet({
           </IconButton>
         </header>
         <div className={styles.body}>{children}</div>
-        {footer && <div className={styles.footer}>{footer}</div>}
+        {footer && (
+          <div className={styles.footer}>
+            {typeof footer === 'function' ? footer(requestClose) : footer}
+          </div>
+        )}
       </section>
       <ConfirmDialog
         open={confirming}

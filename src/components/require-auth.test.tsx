@@ -46,9 +46,9 @@ describe('RequireAuth', () => {
   });
 
   it('con una sesión guardada y autorizada entra directo, con el usuario en el sidebar', async () => {
-    renderAt('/inventario', { initialUser: ANA });
+    renderAt('/rendimiento', { initialUser: ANA });
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Inventario' }),
+      await screen.findByRole('heading', { level: 1, name: 'Rendimiento' }),
     ).toBeInTheDocument();
     expect(screen.getByText('ana@example.com')).toBeInTheDocument();
   });

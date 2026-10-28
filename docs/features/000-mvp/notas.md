@@ -75,7 +75,35 @@
 - `pnpm deploy` ahora también despliega `storage` (reglas). `range-book` pasó al plan **Blaze** y el bucket `range-book.firebasestorage.app` se creó en **`us-east1`**: es una de las tres regiones con uso gratuito, y la latencia extra frente a São Paulo (~100–150 ms por pedido) no se nota porque las fotos se cachean. Firestore sigue en `southamerica-east1`; las reglas de Storage lo consultan igual. Las reglas ya están desplegadas.
 - **La prueba manual de la cámara en el celular pasa al paso 7.** En producción no hay todavía ninguna pantalla con `PhotoPicker` (`/componentes` es solo de desarrollo) y el login con Google no acepta la IP local del dev server. En el formulario de arma se prueba de punta a punta: cámara, compresión, subida a Storage y ruta en Firestore. Si la primera subida falla con `403`, revisar que la cuenta de servicio de Storage tenga permiso para leer Firestore (reglas entre servicios).
 
+### Paso 6 — Inventario: municiones, polígonos y archivado
+- **Un solo repositorio genérico** (`src/data/inventory-repository.ts`) en lugar de un archivo por entidad: `InventoryRepository<T, I>` con `subscribe`, `create`, `update` y `setArchived` (no hay `delete`). `InventoryRepositories` agrupa `ammunition` y `ranges`; los pasos 7 y 8 suman el resto. `App` recibe `inventory` (por defecto los de Firebase); los tests usan `src/test/fake-inventory.ts`.
+- **Archivos extra** que no figuraban en la tabla del plan:
+  - `src/lib/inventory.ts`: categorías y su segmento de URL, tipos, `inventoryList` (activos y, si se piden, archivados al final), `selectableItems` (para los selects de sesión y ronda: solo activos, salvo el ya elegido), `matchesSearch` (sin mayúsculas ni acentos), parseo, limpieza y validación.
+  - Hooks: `useCollection` (suscripción genérica), `use-inventory.ts` (contexto, `useCloseSheet`, `useArchiveActions`), `useInventorySheet`, `useItemForm` y `useIsDesktop` / `useMediaQuery`.
+  - Componentes: `DataTable` (sin orden por columnas todavía; llega con Rendimiento), `InventoryItems` (lista en mobile, tabla en desktop, con sus estados), `InventorySheet` e `InventoryProvider`.
+  - Pantallas: `InventoryScreen`, `InventoryItemRoute`, `AmmunitionSheet` y `RangeSheet`.
+- **Rutas de los sheets:** `/inventario/municiones/nueva`, `/inventario/poligonos/nuevo` y `/inventario/{categoria}/:id/editar`, como rutas hijas de la lista (no estaban en la tabla de `pantallas.md`; aplica la regla de que los sheets tienen URL propia). Al cerrar o guardar, si el sheet se abrió desde la lista se vuelve atrás en el historial (así "atrás" no lo reabre); si se entró directo por URL, se reemplaza la entrada. Un id que no existe vuelve a la lista. `/inventario` redirige a `/inventario/armas`.
+- **Armas, Configuraciones y Blancos** muestran "En construcción", sin contador ni botón primario, hasta los pasos 7 y 8.
+- **Desvíos de la maqueta:**
+  - Las filas tienen un lápiz "Editar …" también en mobile (la maqueta mobile tenía "⋮ Acciones de …"): el sistema de diseño no tiene menú de acciones. "Archivar" está dentro del sheet de edición.
+  - "Mostrar archivados (n)" es un checkbox en los dos tamaños (en mobile la maqueta tenía el chip "Ver archivadas (1)" al final de la lista) y solo aparece si hay archivados. Los archivados se listan al final, atenuados, con el badge "Archivado" y el botón "Restaurar". El estado va en la query string (`?archivados=1`), así se conserva al abrir y cerrar sheets y al cambiar de categoría.
+  - El botón primario usa el texto completo también en mobile ("Nueva munición" en lugar de "Nueva").
+  - La columna "Sesiones" de la tabla de polígonos queda para el paso 9, cuando existan las sesiones.
+  - La búsqueda está solo en desktop, como en W06, y filtra la categoría actual.
+  - Mobile muestra una lista dentro de una tarjeta y desktop (≥ 1024 px) una tabla. Se elige con `useIsDesktop` (`matchMedia`) porque cambia la estructura y no solo el estilo.
+- **Archivar no pide confirmación** porque se puede revertir: muestra un toast con "Deshacer". Restaurar también avisa con un toast. Un archivado no se edita desde la lista (primero se restaura); si se entra por URL a su edición, se puede editar pero no archivar de nuevo.
+- **Validación:** munición con marca y modelo obligatorios; polígono con nombre obligatorio; descripción y dirección opcionales. Se valida al guardar (son formularios cortos; M04 validará al salir del campo), el foco va al primer error y cada error se borra al corregir su campo. Se guarda sin espacios de más.
+- **Reglas más estrictas que lo pedido:** `ammunition` y `ranges` validan campos, tipos, longitudes (100 para nombres, 500 para descripción y dirección, iguales a `src/lib/inventory.ts`), nombre no vacío, y no se pueden borrar. El comodín genérico ya no deja escribir esas dos colecciones.
+- **Cambios en componentes existentes:**
+  - `BottomSheet`: `footer` también acepta una función que recibe `requestClose`, para que "Cancelar" pida confirmación si hay cambios, igual que el botón cerrar.
+  - `Tabs`: un espacio antes del contador, para que el nombre accesible sea "Munición 2" y no "Munición2".
+  - `AppLayout`: si la ruta cambia pero la pantalla sigue siendo la misma (abrir o cerrar un sheet, cambiar de pestaña), el foco no salta al `<h1>`. Compara el nodo y el texto del `<h1>`, porque React puede reusar el mismo nodo entre pantallas.
+  - `src/test/match-media.ts` responde también al corte de desktop (`setDesktop`).
+  - El test de `RequireAuth` que entraba a `/inventario` ahora entra a `/rendimiento`: Inventario necesita providers que ese test no monta.
+
 ## Pendientes
+- **Guardar sin conexión (paso 13).** `create` y `update` esperan la confirmación del servidor de Firestore: sin conexión el sheet quedaría en "guardando". Revisarlo junto con la persistencia offline (no esperar la promesa o cerrar al escribir en la caché local).
+- El paso 6 no tuvo revisión visual contra la maqueta en el navegador (solo tests). Revisarla en los dos temas, en 375 px y 1280 px.
 - `pnpm` ignoró el script de instalación de `protobufjs` (dependencia de `firebase-tools`). Los emuladores funcionan igual; si aparece algún problema, correr `pnpm approve-builds`.
 - Al apagar los emuladores, el runtime de reglas de Storage imprime un `NullPointerException` de Java. Es inofensivo (el script sale con código 0).
 

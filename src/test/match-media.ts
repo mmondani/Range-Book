@@ -1,34 +1,50 @@
-// jsdom no implementa matchMedia. Este doble responde a `prefers-color-scheme: light` y permite
-// simular el cambio del tema del sistema.
+// jsdom no implementa matchMedia. Este doble responde a `prefers-color-scheme: light` y al corte de
+// desktop (`min-width: 1024px`), y permite simular sus cambios.
 
 type Listener = (event: MediaQueryListEvent) => void;
 
-let prefersLight = false;
-const listeners = new Set<Listener>();
+const SYSTEM_LIGHT = '(prefers-color-scheme: light)';
+const DESKTOP = '(min-width: 1024px)';
 
-export function setSystemPrefersLight(value: boolean) {
-  prefersLight = value;
-  listeners.forEach((listener) =>
-    listener({ matches: value, media: '(prefers-color-scheme: light)' } as MediaQueryListEvent),
+const matches = new Map<string, boolean>();
+const listeners = new Map<string, Set<Listener>>();
+
+function listenersOf(query: string) {
+  let set = listeners.get(query);
+  if (!set) listeners.set(query, (set = new Set()));
+  return set;
+}
+
+function set(query: string, value: boolean) {
+  matches.set(query, value);
+  listenersOf(query).forEach((listener) =>
+    listener({ matches: value, media: query } as MediaQueryListEvent),
   );
 }
 
-window.matchMedia = (query: string): MediaQueryList => {
-  const isLightQuery = query === '(prefers-color-scheme: light)';
-  return {
+export function setSystemPrefersLight(value: boolean) {
+  set(SYSTEM_LIGHT, value);
+}
+
+/** Simula una pantalla de 1024 px o más. */
+export function setDesktop(value: boolean) {
+  set(DESKTOP, value);
+}
+
+window.matchMedia = (query: string): MediaQueryList =>
+  ({
     get matches() {
-      return isLightQuery && prefersLight;
+      return matches.get(query) ?? false;
     },
     media: query,
     onchange: null,
     addEventListener: (_type: string, listener: Listener) => {
-      if (isLightQuery) listeners.add(listener);
+      listenersOf(query).add(listener);
     },
     removeEventListener: (_type: string, listener: Listener) => {
-      listeners.delete(listener);
+      listenersOf(query).delete(listener);
     },
     addListener: () => undefined,
     removeListener: () => undefined,
     dispatchEvent: () => false,
-  } as unknown as MediaQueryList;
-};
+  }) as unknown as MediaQueryList;

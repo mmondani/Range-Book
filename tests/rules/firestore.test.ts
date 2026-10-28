@@ -15,6 +15,8 @@ import {
 } from './test-environment';
 
 const PROFILE = { displayName: 'Ana Gómez', photoURL: null, units: 'mm', theme: 'dark' };
+const AMMUNITION = { brand: 'CCI', model: 'Standard Velocity', description: '', archived: false };
+const RANGE = { name: 'Club', address: '', archived: false };
 
 let env: RulesTestEnvironment;
 
@@ -75,7 +77,7 @@ describe('users', () => {
     const db = signedIn(env, ALLOWED).firestore();
     await assertSucceeds(getDoc(doc(db, 'users', ALLOWED.uid)));
     await assertSucceeds(getDocs(collection(db, 'users', ALLOWED.uid, 'firearms')));
-    await assertSucceeds(setDoc(doc(db, 'users', ALLOWED.uid, 'ranges', 'club'), { name: 'Club' }));
+    await assertSucceeds(setDoc(doc(db, 'users', ALLOWED.uid, 'ranges', 'club'), RANGE));
     await assertSucceeds(deleteDoc(doc(db, 'users', ALLOWED.uid, 'firearms', 'glock')));
   });
 
@@ -130,5 +132,52 @@ describe('users', () => {
     await assertFails(updateDoc(ref, { theme: 'azul' }));
     await assertFails(updateDoc(ref, { admin: true }));
     await assertFails(updateDoc(doc(db, 'users', OTHER_ALLOWED.uid), { theme: 'light' }));
+  });
+});
+
+describe('inventario: munición y polígonos', () => {
+  const ammo = (db: ReturnType<ReturnType<typeof signedIn>['firestore']>, id = 'cci') =>
+    doc(db, 'users', ALLOWED.uid, 'ammunition', id);
+  const range = (db: ReturnType<ReturnType<typeof signedIn>['firestore']>, id = 'club') =>
+    doc(db, 'users', ALLOWED.uid, 'ranges', id);
+
+  it('se crean y editan con los campos válidos', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    await assertSucceeds(setDoc(ammo(db), AMMUNITION));
+    await assertSucceeds(updateDoc(ammo(db), { description: '40 gr, plomo' }));
+    await assertSucceeds(setDoc(range(db), { ...RANGE, address: 'Ruta 2 km 40' }));
+    await assertSucceeds(getDocs(collection(db, 'users', ALLOWED.uid, 'ammunition')));
+  });
+
+  it('rechaza campos faltantes, vacíos, de otro tipo, demasiado largos o de más', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    await assertFails(setDoc(ammo(db), { ...AMMUNITION, brand: '' }));
+    await assertFails(setDoc(ammo(db), { brand: 'CCI', model: 'SV', archived: false }));
+    await assertFails(setDoc(ammo(db), { ...AMMUNITION, archived: 'no' }));
+    await assertFails(setDoc(ammo(db), { ...AMMUNITION, model: 'x'.repeat(101) }));
+    await assertFails(setDoc(ammo(db), { ...AMMUNITION, price: 10 }));
+    await assertFails(setDoc(range(db), { ...RANGE, name: '' }));
+    await assertFails(setDoc(range(db), { ...RANGE, address: 'x'.repeat(501) }));
+    await assertFails(setDoc(range(db), { name: 'Club', archived: false }));
+  });
+
+  it('se archivan y restauran, pero no se borran', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    await assertSucceeds(setDoc(range(db), RANGE));
+    await assertSucceeds(updateDoc(range(db), { archived: true }));
+    await assertSucceeds(updateDoc(range(db), { archived: false }));
+    await assertFails(deleteDoc(range(db)));
+    await assertSucceeds(setDoc(ammo(db), AMMUNITION));
+    await assertFails(deleteDoc(ammo(db)));
+  });
+
+  it('el usuario A no lee ni escribe el inventario de B', async () => {
+    await env.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'users', OTHER_ALLOWED.uid, 'ranges', 'x'), RANGE);
+    });
+    const db = signedIn(env, ALLOWED).firestore();
+    await assertFails(getDoc(doc(db, 'users', OTHER_ALLOWED.uid, 'ranges', 'x')));
+    await assertFails(getDocs(collection(db, 'users', OTHER_ALLOWED.uid, 'ammunition')));
+    await assertFails(setDoc(doc(db, 'users', OTHER_ALLOWED.uid, 'ammunition', 'y'), AMMUNITION));
   });
 });
