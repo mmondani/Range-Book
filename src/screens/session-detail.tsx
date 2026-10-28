@@ -1,6 +1,6 @@
-import { ChevronLeft, Crosshair, Pencil, Trash2 } from 'lucide-react';
+import { ChevronLeft, Crosshair, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { Navigate, useNavigate, useParams } from 'react-router';
+import { Navigate, Outlet, useNavigate, useParams } from 'react-router';
 import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
@@ -11,26 +11,34 @@ import { IconLink } from '@/components/icon-link';
 import { LinkButton } from '@/components/link-button';
 import { Photo } from '@/components/photo';
 import { PhotoStrip } from '@/components/photo-strip';
+import { RoundRow } from '@/components/round-row';
+import { RoundTable } from '@/components/round-table';
 import { Skeleton } from '@/components/skeleton';
 import { StatTile } from '@/components/stat-tile';
 import { Tag } from '@/components/tag';
 import { TagList } from '@/components/tag-list';
 import { WeatherIcon } from '@/components/weather-icon';
+import { OPENED_FROM_LIST } from '@/hooks/use-inventory';
 import { useIsDesktop } from '@/hooks/use-media-query';
 import { useUnits } from '@/hooks/use-profile';
-import { useDeleteSession, useSessionsOutlet } from '@/hooks/use-sessions';
+import {
+  useDeleteSession,
+  useSessionsOutlet,
+  type SessionDetailOutletContext,
+} from '@/hooks/use-sessions';
 import { cx } from '@/lib/cx';
 import { modificationName } from '@/lib/firearms';
-import { formatDecimal, formatInteger, formatLongDate, formatShortDate } from '@/lib/format';
+import { formatInteger, formatLongDate, formatShortDate } from '@/lib/format';
 import { photoKey, storedPhotos } from '@/lib/photos';
-import { roundScore, sessionLabels, sessionTotals, WEATHER_LABELS } from '@/lib/sessions';
-import { targetName } from '@/lib/targets';
+import { roundItems } from '@/lib/rounds';
+import { sessionLabels, sessionTotals, WEATHER_LABELS } from '@/lib/sessions';
 import { formatLength } from '@/lib/units';
 import styles from './session-detail.module.css';
 
 /**
  * M03 · Detalle de sesión (en desktop, el panel derecho de W02): fotos, configuración y
- * personalizaciones, polígono, clima, munición, totales, rondas y notas.
+ * personalizaciones, polígono, clima, munición, totales, rondas y notas. Las rondas se agregan y
+ * editan en sheets (rutas hijas).
  */
 export function SessionDetail() {
   const { id = '' } = useParams();
@@ -61,7 +69,17 @@ export function SessionDetail() {
   const labels = sessionLabels(session, data.lookups);
   const totals = sessionTotals(session, data.targets);
   const photos = storedPhotos(session.photos);
-  const editPath = `/sesiones/${session.id}/editar`;
+  const detailPath = `/sesiones/${session.id}`;
+  const editPath = `${detailPath}/editar`;
+  const newRoundPath = `${detailPath}/rondas/nueva`;
+  const roundPath = (roundId: string) => `${detailPath}/rondas/${roundId}/editar`;
+  const rounds = roundItems(session, data.targets);
+  const outlet: SessionDetailOutletContext = {
+    session,
+    sessions: data.sessions,
+    targets: data.targets,
+    listPath: detailPath,
+  };
   // En desktop el `<h1>` es "Sesiones", el de la lista.
   const Title = isDesktop ? 'h2' : 'h1';
   const Subtitle = isDesktop ? 'h3' : 'h2';
@@ -204,38 +222,39 @@ export function SessionDetail() {
       )}
 
       <section className={styles.section} aria-labelledby="session-rounds">
-        <Subtitle id="session-rounds" className={cx('display', styles.sectionTitle)}>
-          Rondas <span className={cx('num', styles.count)}>· {totals.rounds}</span>
-        </Subtitle>
-        {session.rounds.length === 0 ? (
+        <div className={styles.sectionHeader}>
+          <Subtitle id="session-rounds" className={cx('display', styles.sectionTitle)}>
+            Rondas <span className={cx('num', styles.count)}>· {totals.rounds}</span>
+          </Subtitle>
+          {isDesktop && (
+            <LinkButton variant="primary" to={newRoundPath} state={OPENED_FROM_LIST}>
+              <Plus aria-hidden="true" size={18} />
+              Agregar ronda
+            </LinkButton>
+          )}
+        </div>
+        {rounds.length === 0 ? (
           <EmptyState
             icon={<Crosshair />}
             title="Todavía no hay rondas"
             text="Se cargan desde acá, a medida que tirás."
             headingLevel={isDesktop ? 3 : 2}
           />
+        ) : isDesktop ? (
+          <Card padded={false} className={styles.table}>
+            <RoundTable
+              items={rounds}
+              units={units}
+              editPath={(item) => roundPath(item.round.id)}
+            />
+          </Card>
         ) : (
-          <ol className={styles.rounds}>
-            {session.rounds.map((round, index) => {
-              const target = data.targets.find((item) => item.id === round.targetId);
-              const value = roundScore(round);
-              return (
-                <li key={round.id}>
-                  <Card className={styles.round}>
-                    <span className={styles.roundTitle}>Ronda {index + 1}</span>
-                    <span className={cx('num', styles.roundData)}>
-                      {formatInteger(round.shots)} disparos
-                      {value !== null && ` · ${formatInteger(value)} pts`} ·{' '}
-                      {formatDecimal(round.distanceM)} m
-                    </span>
-                    <span className={styles.roundTarget}>
-                      {target ? targetName(target) : 'Blanco desconocido'}
-                      {round.comments && ` · ${round.comments}`}
-                    </span>
-                  </Card>
-                </li>
-              );
-            })}
+          <ol className={styles.rounds} aria-label="Rondas">
+            {rounds.map((item) => (
+              <li key={item.round.id}>
+                <RoundRow item={item} units={units} editPath={roundPath(item.round.id)} />
+              </li>
+            ))}
           </ol>
         )}
       </section>
@@ -258,6 +277,17 @@ export function SessionDetail() {
         onCancel={() => setConfirming(false)}
         onConfirm={() => void handleDelete()}
       />
+
+      {!isDesktop && (
+        <div className={styles.addRound}>
+          <LinkButton variant="primary" to={newRoundPath} state={OPENED_FROM_LIST} block>
+            <Plus aria-hidden="true" />
+            Agregar ronda
+          </LinkButton>
+        </div>
+      )}
+
+      <Outlet context={outlet} />
     </article>
   );
 }

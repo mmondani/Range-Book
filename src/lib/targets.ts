@@ -150,6 +150,14 @@ export function targetSummary({ scoring, referenceSizeMm, zones }: TargetInput):
   return `Anillos · Ø ${formatDecimal(referenceSizeMm)} mm · ${count}`;
 }
 
+/** Puntaje de la zona más alta; `null` si el blanco no tiene zonas (no hay máximo). */
+export function maxZoneScore(
+  target: Pick<TargetInput, 'scoring' | 'zones'> | undefined,
+): number | null {
+  if (!target || target.scoring !== 'rings' || target.zones.length === 0) return null;
+  return Math.max(...target.zones.map((zone) => zone.score));
+}
+
 // --- Lectura de Firestore --------------------------------------------------------------------
 
 function positive(value: unknown): number {

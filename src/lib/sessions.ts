@@ -19,7 +19,7 @@ import {
   type Range,
 } from './inventory';
 import { storedPhotos, type PhotoDraft } from './photos';
-import type { Target } from './targets';
+import { maxZoneScore, type Target } from './targets';
 
 /** Máximos que también exigen las reglas de Firestore. */
 export const MAX_SESSION_PHOTOS = 20;
@@ -440,11 +440,6 @@ export interface SessionTotals {
   averagePerShot: number | null;
   /** Promedio del tamaño de grupo de las rondas analizadas. */
   groupSizeMm: number | null;
-}
-
-function maxZoneScore(target: Target | undefined): number | null {
-  if (!target || target.scoring !== 'rings' || target.zones.length === 0) return null;
-  return Math.max(...target.zones.map((zone) => zone.score));
 }
 
 export function sessionTotals(

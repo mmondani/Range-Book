@@ -1,4 +1,4 @@
-import { Archive } from 'lucide-react';
+import { Archive, Trash2 } from 'lucide-react';
 import { useEffect, useId, useRef, type FormEvent, type ReactNode } from 'react';
 import { BottomSheet } from './bottom-sheet';
 import { Button } from './button';
@@ -15,11 +15,13 @@ export interface InventorySheetProps {
   onSubmit: () => void;
   /** Solo al editar: archivar el elemento (por ejemplo, "Archivar munición"). */
   archive?: { label: string; onArchive: () => void; loading: boolean };
+  /** Solo al editar algo que se elimina en lugar de archivarse (por ejemplo, "Eliminar ronda"). */
+  remove?: { label: string; onRemove: () => void };
   /** Cambia en cada intento de guardar con errores: el foco va al primer campo inválido. */
   errorAttempt: number;
 }
 
-/** Alta y edición de un elemento del inventario en un sheet (diálogo en desktop). */
+/** Alta y edición de un elemento (del inventario o una ronda) en un sheet (diálogo en desktop). */
 export function InventorySheet({
   title,
   eyebrow,
@@ -30,6 +32,7 @@ export function InventorySheet({
   onClose,
   onSubmit,
   archive,
+  remove,
   errorAttempt,
 }: InventorySheetProps) {
   const formId = useId();
@@ -75,6 +78,17 @@ export function InventorySheet({
           >
             <Archive aria-hidden="true" size={18} />
             {archive.label}
+          </Button>
+        )}
+        {remove && (
+          <Button
+            variant="danger"
+            className={styles.archive}
+            disabled={saving}
+            onClick={remove.onRemove}
+          >
+            <Trash2 aria-hidden="true" size={18} />
+            {remove.label}
           </Button>
         )}
       </form>

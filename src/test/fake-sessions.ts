@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
 import type { SessionRepository } from '@/data/session-repository';
+import type { RoundFields } from '@/lib/rounds';
 import type { Round, Session, SessionFields } from '@/lib/sessions';
 
 export const ROUND_1: Round = {
@@ -83,6 +84,12 @@ export function createFakeSessions(
   let next = 0;
   const listeners = new Set<(items: Session[]) => void>();
   const emit = () => listeners.forEach((listener) => listener([...items]));
+  const setRounds = (sessionId: string, change: (rounds: Round[]) => Round[]) => {
+    items = items.map((item) =>
+      item.id === sessionId ? { ...item, rounds: change(item.rounds) } : item,
+    );
+    emit();
+  };
 
   const repository = {
     subscribe: vi.fn<SessionRepository['subscribe']>((_uid, onItems) => {
@@ -107,6 +114,45 @@ export function createFakeSessions(
         undo: async () => {
           if (removed) items = [...items, removed];
           emit();
+        },
+      };
+    }),
+    saveRound: vi.fn(
+      async (
+        _uid: string,
+        sessionId: string,
+        roundId: string,
+        fields: RoundFields,
+        keepAnalysis: boolean,
+      ) => {
+        setRounds(sessionId, (rounds) =>
+          rounds.some((round) => round.id === roundId)
+            ? rounds.map((round) =>
+                round.id === roundId
+                  ? {
+                      ...round,
+                      ...fields,
+                      ...(keepAnalysis ? {} : { score: null, analysis: null }),
+                    }
+                  : round,
+              )
+            : [...rounds, { id: roundId, ...fields, score: null, analysis: null }],
+        );
+      },
+    ),
+    removeRound: vi.fn(async (_uid: string, sessionId: string, roundId: string) => {
+      const rounds = items.find((item) => item.id === sessionId)?.rounds ?? [];
+      const index = rounds.findIndex((round) => round.id === roundId);
+      const removed = rounds[index];
+      setRounds(sessionId, (current) => current.filter((round) => round.id !== roundId));
+      return {
+        undo: async () => {
+          if (!removed) return;
+          setRounds(sessionId, (current) => {
+            const next = [...current];
+            next.splice(index, 0, removed);
+            return next;
+          });
         },
       };
     }),

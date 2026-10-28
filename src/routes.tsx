@@ -9,6 +9,7 @@ import { InventoryScreen } from '@/screens/inventory-screen';
 import { LoginScreen } from '@/screens/login-screen';
 import { PlaceholderScreen } from '@/screens/placeholder-screen';
 import { ProfileScreen } from '@/screens/profile-screen';
+import { RoundItemRoute } from '@/screens/round-item-route';
 import { SessionDetail } from '@/screens/session-detail';
 import { SessionFormScreen } from '@/screens/session-form-screen';
 import { SessionsScreen } from '@/screens/sessions-screen';
@@ -29,7 +30,20 @@ export const routes: RouteObject[] = [
         // Mobile: la lista o el detalle. Desktop: los dos a la vez (W02).
         path: 'sesiones',
         element: <SessionsScreen />,
-        children: [{ path: ':id', element: <SessionDetail /> }],
+        children: [
+          {
+            path: ':id',
+            element: <SessionDetail />,
+            // Mobile: la barra "Agregar ronda" reemplaza a la de navegación.
+            handle: FULL_SCREEN,
+            // Alta y edición de rondas en sheet, con URL propia: "atrás" los cierra.
+            children: [
+              { path: 'rondas/nueva', element: <RoundItemRoute segment="nueva" /> },
+              { path: 'rondas/:roundId/editar', element: <RoundItemRoute segment="editar" /> },
+              { path: '*', element: <Navigate to=".." replace /> },
+            ],
+          },
+        ],
       },
       // Formulario de pantalla completa. `sesiones/nueva` le gana a `sesiones/:id`.
       { path: 'sesiones/nueva', element: <SessionFormScreen />, handle: FULL_SCREEN },

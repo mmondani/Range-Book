@@ -113,6 +113,8 @@ describe('SessionsScreen', () => {
         create: async () => {},
         update: async () => {},
         remove: async () => ({ undo: async () => {} }),
+        saveRound: async () => {},
+        removeRound: async () => ({ undo: async () => {} }),
       },
     });
     // Primero se resuelve la sesión de Firebase.
