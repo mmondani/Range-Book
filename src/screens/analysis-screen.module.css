@@ -92,12 +92,10 @@
 
 /* Las muestras usan los mismos colores fijos que las superposiciones de la foto. */
 .legendImpact {
-  width: 10px;
-  height: 10px;
-  border: 2px solid #fff;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #ff6a1a;
   border-radius: 50%;
-  background: #ff6a1a;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
 }
 
 .legendMpi {

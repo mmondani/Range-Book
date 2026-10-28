@@ -146,20 +146,23 @@
 
 .impact {
   position: absolute;
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   padding: 0;
-  border: 2px solid #fff;
+  /* Solo el contorno, para que se vea el agujero; un filo oscuro de cada lado lo separa del papel. */
+  border: 2px solid var(--impact);
   border-radius: 50%;
-  background: var(--impact);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+  background: transparent;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.6);
   transform: translate(-50%, -50%) scale(calc(1 / var(--zoom)));
   pointer-events: none;
 }
 
 /* Modo Quitar: rojos, con un área táctil más grande que el punto. */
 .removable {
-  background: var(--impact-remove);
+  border-color: var(--impact-remove);
   cursor: pointer;
   pointer-events: auto;
 }
@@ -278,7 +281,7 @@
 
 @media (min-width: 1024px) {
   .impact {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
   }
 }
