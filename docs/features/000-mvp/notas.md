@@ -129,7 +129,6 @@
 - **Reglas:** `firearms`, `firearms/{id}/modifications` y `configurations` validan campos, tipos, longitudes y límites (iguales a `src/lib/firearms.ts`), no se pueden borrar, y una configuración tiene que apuntar a un arma existente del mismo usuario. El test de reglas que borraba un arma ahora borra una sesión.
 
 ## Pendientes
-- **Prueba manual de la cámara en el celular** (pasada del paso 5): queda lista en el formulario de arma, después de desplegar.
 - El paso 7 tampoco tuvo revisión visual en el navegador (solo tests): revisar M09 / W07 / M10 y las pestañas Armas y Configuraciones en los dos temas, en 375 px y 1280 px.
 - **Guardar sin conexión (paso 13).** `create` y `update` esperan la confirmación del servidor de Firestore: sin conexión el sheet quedaría en "guardando". Revisarlo junto con la persistencia offline (no esperar la promesa o cerrar al escribir en la caché local).
 - El paso 6 no tuvo revisión visual contra la maqueta en el navegador (solo tests). Revisarla en los dos temas, en 375 px y 1280 px.
@@ -137,4 +136,6 @@
 - Al apagar los emuladores, el runtime de reglas de Storage imprime un `NullPointerException` de Java. Es inofensivo (el script sale con código 0).
 
 ## Aprendizajes
+- **Cámara en el celular (pasada del paso 5):** probada en producción con el formulario de arma después del paso 7; la foto se saca, se comprime, se sube y el arma se guarda.
+- **Reglas de Storage con `firestore.exists` en producción.** Las reglas que consultan Firestore necesitan que la cuenta de servicio de Storage (`service-<número>@gcp-sa-firebasestorage.iam.gserviceaccount.com`) tenga el rol `roles/firebaserules.firestoreServiceAgent`. `firebase deploy` lo ofrece con una pregunta, pero **solo en una terminal interactiva**: desplegado sin TTY (como desde Claude Code) se saltea en silencio y las subidas fallan con `storage/unauthorized`. Apareció en el paso 7 con la primera foto real (guardar un arma con foto fallaba). Además, la verificación solo corre cuando `storage.rules` cambia: con las reglas ya publicadas, volver a desplegar no la dispara. Se arregla dando el rol a mano en IAM (Google Cloud Console → IAM → "Incluir asignaciones de roles proporcionadas por Google").
 - El script de despliegue se corre con `pnpm run deploy`: `pnpm deploy` es un comando propio de pnpm (para workspaces) y falla con `ERR_PNPM_CANNOT_DEPLOY`.
