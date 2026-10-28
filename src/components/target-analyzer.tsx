@@ -8,17 +8,23 @@ import {
   type PointerEvent,
   type ReactNode,
 } from 'react';
+import { useIsDesktop } from '@/hooks/use-media-query';
 import { usePhotoSrc } from '@/hooks/use-photos';
 import type { ImageSize, Pixel, PixelEllipse } from '@/lib/calibration';
 import { cx } from '@/lib/cx';
 import type { PhotoDraft } from '@/lib/photos';
 import {
-  FULL_VIEW,
+  canPan,
+  clampView,
+  fitContent,
+  fullView,
+  initialView,
   isZoomed,
   MAX_ZOOM,
   panView,
   pinchView,
   zoomAt,
+  type ContentSize,
   type ViewPoint,
   type ZoomView,
 } from '@/lib/zoom';
@@ -38,6 +44,10 @@ const ZOOM_STEP = 2;
 /** Sensibilidad del zoom con Ctrl + rueda (o pellizco en el trackpad). */
 const WHEEL_ZOOM_SPEED = 0.01;
 const CENTER: ViewPoint = { x: 0.5, y: 0.5 };
+const NO_CONTENT: ContentSize = { width: 1, height: 1 };
+
+/** Proporción del recuadro (ancho / alto): apenas más alto que ancho en el celular, cuadrado en desktop. */
+export const FRAME_RATIO = { mobile: 5 / 6, desktop: 1 };
 
 /**
  * Gesto en curso sobre la foto: arrastre de un marcador (`pending` mientras espera un posible
@@ -107,10 +117,11 @@ function viewPointIn(element: HTMLElement, clientX: number, clientY: number) {
  * Foto del blanco con sus superposiciones: marcadores y anillos de la calibración, impactos, PMI
  * y grupo. Las coordenadas son píxeles de la foto; los colores no cambian con el tema.
  *
- * El zoom es propio, dentro del recuadro (la página no se mueve): dos dedos acercan, alejan y
- * desplazan; con la foto ampliada, un dedo o el mouse la desplazan (salvo al arrastrar un
- * marcador); Ctrl + rueda acerca donde está el cursor y la rueda desplaza. Los marcadores y los
- * trazos mantienen su tamaño en pantalla.
+ * El recuadro tiene proporción fija y la foto arranca cubriéndolo, centrada; "Ver la foto entera"
+ * la muestra completa. El zoom es propio, dentro del recuadro (la página no se mueve): dos dedos
+ * acercan, alejan y desplazan; si la foto es más grande que el recuadro, un dedo o el mouse la
+ * desplazan (salvo al arrastrar un marcador); Ctrl + rueda acerca donde está el cursor y la rueda
+ * desplaza. Los marcadores y los trazos mantienen su tamaño en pantalla.
  */
 export function TargetAnalyzer({
   photo,
@@ -134,8 +145,15 @@ export function TargetAnalyzer({
   className,
 }: TargetAnalyzerProps) {
   const src = usePhotoSrc(photo);
-  const [view, setView] = useState<ZoomView>(FULL_VIEW);
+  const frameRatio = useIsDesktop() ? FRAME_RATIO.desktop : FRAME_RATIO.mobile;
+  // La foto entera dentro del recuadro; hasta conocer su tamaño, ocupa todo el recuadro.
+  const content = size ? fitContent(size.width / size.height, frameRatio) : NO_CONTENT;
+  // Sin gestos todavía, la vista inicial: la foto cubre el recuadro, centrada. Se ajusta en cada
+  // render por si cambia el recuadro (por ejemplo, al pasar de celular a desktop).
+  const [userView, setView] = useState<ZoomView | null>(null);
+  const view = clampView(userView ?? initialView(content), content);
   const zoomed = isZoomed(view);
+  const pannable = canPan(view, content);
 
   const frameRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLButtonElement>(null);
@@ -143,16 +161,16 @@ export function TargetAnalyzer({
   const zoomControlsRef = useRef<HTMLDivElement>(null);
   const extraControlsRef = useRef<HTMLDivElement>(null);
   // La vista actual para el listener de la rueda, que no se vuelve a registrar.
-  const viewRef = useRef(view);
+  const viewRef = useRef({ view, content });
   useEffect(() => {
-    viewRef.current = view;
+    viewRef.current = { view, content };
   });
 
   // Punteros apoyados (en coordenadas de pantalla), gesto en curso y cómo empezó.
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const gesture = useRef<Gesture>('idle');
   const start = useRef<{ view: ZoomView; points: { x: number; y: number }[] }>({
-    view: FULL_VIEW,
+    view: fullView(NO_CONTENT),
     points: [],
   });
   // Último punto del marcador que se arrastra y espera antes de empezar a arrastrarlo.
@@ -168,23 +186,25 @@ export function TargetAnalyzer({
     const frame = frameRef.current;
     if (!frame) return;
     function handleWheel(event: WheelEvent) {
-      const current = viewRef.current;
+      const { view: current, content: size } = viewRef.current;
       const lines = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16 : 1;
       if (event.ctrlKey) {
         event.preventDefault();
         const at = viewPointIn(frame!, event.clientX, event.clientY);
-        if (at) setView(zoomAt(current, Math.exp(-event.deltaY * lines * WHEEL_ZOOM_SPEED), at));
+        const factor = Math.exp(-event.deltaY * lines * WHEEL_ZOOM_SPEED);
+        if (at) setView(zoomAt(current, factor, at, size));
         return;
       }
-      if (!isZoomed(current)) return;
+      if (!canPan(current, size)) return;
       event.preventDefault();
       const rect = frame!.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
       setView(
         panView(
           current,
-          (-event.deltaX * lines) / (rect.width * current.scale),
-          (-event.deltaY * lines) / (rect.height * current.scale),
+          (-event.deltaX * lines) / rect.width,
+          (-event.deltaY * lines) / rect.height,
+          size,
         ),
       );
     }
@@ -297,7 +317,7 @@ export function TargetAnalyzer({
         const from = [viewPointIn(frame, a0.x, a0.y), viewPointIn(frame, b0.x, b0.y)];
         const to = [viewPointIn(frame, a.x, a.y), viewPointIn(frame, b.x, b.y)];
         if (!from[0] || !from[1] || !to[0] || !to[1]) return;
-        setView(pinchView(start.current.view, [from[0], from[1]], [to[0], to[1]]));
+        setView(pinchView(start.current.view, [from[0], from[1]], [to[0], to[1]], content));
         return;
       }
       case 'pending':
@@ -310,7 +330,7 @@ export function TargetAnalyzer({
       }
       case 'press': {
         const origin = start.current.points[0];
-        if (!origin || !isZoomed(start.current.view)) return;
+        if (!origin || !canPan(start.current.view, content)) return;
         const moved = Math.hypot(event.clientX - origin.x, event.clientY - origin.y);
         if (moved < PAN_THRESHOLD_PX) return;
         gesture.current = 'pan';
@@ -333,6 +353,7 @@ export function TargetAnalyzer({
         start.current.view,
         (event.clientX - origin.x) / rect.width,
         (event.clientY - origin.y) / rect.height,
+        content,
       ),
     );
   }
@@ -361,18 +382,27 @@ export function TargetAnalyzer({
     gesture.current = pointers.current.size > 0 ? 'done' : 'idle';
   }
 
-  const contentStyle = {
-    transform: `translate(${percent(view.x)}, ${percent(view.y)}) scale(${round(view.scale)})`,
-    '--zoom': view.scale,
-  } as CSSProperties;
+  // El desplazamiento de `translate` es relativo al tamaño de la foto, no al del recuadro.
+  const contentStyle = (
+    size
+      ? {
+          width: percent(content.width),
+          height: percent(content.height),
+          transform: `translate(${percent(view.x / content.width)}, ${percent(
+            view.y / content.height,
+          )}) scale(${round(view.scale)})`,
+          '--zoom': view.scale,
+        }
+      : {}
+  ) as CSSProperties;
 
   return (
     <div
       ref={frameRef}
       role="group"
       aria-label="Visor de la foto"
-      className={cx(styles.frame, (onPointMove || zoomed) && styles.locked, className)}
-      style={size ? { aspectRatio: `${size.width} / ${size.height}` } : undefined}
+      className={cx(styles.frame, (onPointMove || pannable) && styles.locked, className)}
+      style={{ aspectRatio: String(frameRatio) }}
       aria-busy={src.status === 'loading' || Boolean(busy) || undefined}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -476,7 +506,7 @@ export function TargetAnalyzer({
             className={styles.zoomButton}
             aria-label="Acercar"
             disabled={view.scale >= MAX_ZOOM}
-            onClick={() => setView(zoomAt(view, ZOOM_STEP, CENTER))}
+            onClick={() => setView(zoomAt(view, ZOOM_STEP, CENTER, content))}
           >
             <ZoomIn aria-hidden="true" />
           </button>
@@ -485,7 +515,7 @@ export function TargetAnalyzer({
             className={styles.zoomButton}
             aria-label="Alejar"
             disabled={!zoomed}
-            onClick={() => setView(zoomAt(view, 1 / ZOOM_STEP, CENTER))}
+            onClick={() => setView(zoomAt(view, 1 / ZOOM_STEP, CENTER, content))}
           >
             <ZoomOut aria-hidden="true" />
           </button>
@@ -494,7 +524,7 @@ export function TargetAnalyzer({
               type="button"
               className={styles.zoomButton}
               aria-label="Ver la foto entera"
-              onClick={() => setView(FULL_VIEW)}
+              onClick={() => setView(fullView(content))}
             >
               <Maximize2 aria-hidden="true" />
             </button>

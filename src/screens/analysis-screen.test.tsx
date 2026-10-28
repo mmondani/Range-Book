@@ -173,13 +173,23 @@ describe('M06 · Análisis con un análisis guardado', () => {
     await screen.findByRole('heading', { name: 'Análisis · Ronda 1' });
     const photo = await screen.findByRole('img', { name: 'Foto del blanco de la ronda 1' });
     const content = photo.parentElement!;
+    const viewer = screen.getByRole('group', { name: 'Visor de la foto' });
+
+    // El recuadro es 5:6 en el celular. La foto (cuadrada) arranca cubriéndolo, centrada: a 1,2×
+    // de la foto entera, con un 10 % de cada costado afuera.
+    expect(viewer).toHaveStyle({ aspectRatio: String(5 / 6) });
+    expect(content).toHaveStyle({ transform: 'translate(-10%, 0%) scale(1.2)' });
+
+    // Entera: ocupa todo el ancho y 5/6 del alto, centrada.
+    await userEvent.click(screen.getByRole('button', { name: 'Ver la foto entera' }));
+    expect(content).toHaveStyle({ transform: 'translate(0%, 10%) scale(1)' });
     expect(screen.getByRole('button', { name: 'Alejar' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Ver la foto entera' })).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Acercar' }));
-    expect(content).toHaveStyle({ transform: 'translate(-50%, -50%) scale(2)' });
+    expect(content).toHaveStyle({ transform: 'translate(-50%, -40%) scale(2)' });
 
     // Con la foto ampliada, arrastrar la desplaza y no agrega un impacto.
-    const viewer = screen.getByRole('group', { name: 'Visor de la foto' });
     vi.spyOn(viewer, 'getBoundingClientRect').mockReturnValue({
       left: 0,
       top: 0,
@@ -192,14 +202,13 @@ describe('M06 · Análisis con un análisis guardado', () => {
     fireEvent.pointerMove(surface, { ...mouse, clientX: 600, clientY: 450 });
     fireEvent.pointerUp(surface, { ...mouse, clientX: 600, clientY: 450 });
     fireEvent.click(surface, { clientX: 600, clientY: 450, detail: 1 });
-    expect(content).toHaveStyle({ transform: 'translate(-40%, -55%) scale(2)' });
+    expect(content).toHaveStyle({ transform: 'translate(-40%, -46%) scale(2)' });
     expect(
       screen.getAllByRole('status').find((item) => item.textContent?.includes('impactos marcados')),
     ).toHaveTextContent('3 impactos marcados');
 
     await userEvent.click(screen.getByRole('button', { name: 'Ver la foto entera' }));
-    expect(content).toHaveStyle({ transform: 'translate(0%, 0%) scale(1)' });
-    expect(screen.queryByRole('button', { name: 'Ver la foto entera' })).not.toBeInTheDocument();
+    expect(content).toHaveStyle({ transform: 'translate(0%, 10%) scale(1)' });
   });
 
   it('salir con cambios sin guardar pide confirmación', async () => {
@@ -449,7 +458,8 @@ describe('M06 · Análisis nuevo', () => {
     const content = screen.getByRole('img', {
       name: 'Foto del blanco de la ronda 2',
     }).parentElement!;
-    expect(content).toHaveStyle({ transform: 'translate(-50%, -50%) scale(2)' });
+    // De 1,2× a 2,4×, con el centro de la foto quieto entre los dedos.
+    expect(content).toHaveStyle({ transform: 'translate(-70%, -60%) scale(2.4)' });
     expect(screen.getByRole('radio', { name: 'Centro' })).toBeChecked();
   });
 

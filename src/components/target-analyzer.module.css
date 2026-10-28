@@ -10,7 +10,6 @@
 
   position: relative;
   width: 100%;
-  min-height: 200px;
   overflow: hidden;
   border-radius: var(--radius-card);
   background: var(--paper);
@@ -28,19 +27,27 @@
   touch-action: none;
 }
 
-/* La foto y sus superposiciones, con el zoom. `--zoom` deja los marcadores a tamaño fijo. */
+/*
+ * La foto y sus superposiciones, con el zoom: su tamaño (la foto entera) y su transformación van
+ * en línea. `--zoom` deja los marcadores a tamaño fijo.
+ */
 .content {
   --zoom: 1;
 
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 100%;
   transform-origin: 0 0;
 }
 
+/* Hasta conocer su tamaño, la foto se ve entera en el recuadro. */
 .image {
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: contain;
 }
 
 .error {
