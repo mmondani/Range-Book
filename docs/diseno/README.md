@@ -6,7 +6,7 @@ Recursos de UI de la app. Es la fuente de verdad del diseño y refleja lo que es
 |---|---|
 | [design-system.md](./design-system.md) | Tokens (color, tipografía, espaciado, movimiento), íconos, layout responsive, componentes y mínimos de accesibilidad |
 | [pantallas.md](./pantallas.md) | Rutas, especificación y estados de cada pantalla, métricas del análisis, comportamiento PWA y preguntas abiertas |
-| [maqueta/index.html](./maqueta/index.html) | Maqueta navegable en HTML estático: 13 pantallas mobile (`maqueta/mobile/`) y 8 web (`maqueta/web/`) |
+| [maqueta/index.html](./maqueta/index.html) | Maqueta navegable en HTML estático: 14 pantallas mobile (`maqueta/mobile/`, incluida "Sesiones sin conexión") y 8 web (`maqueta/web/`) |
 | `maqueta/assets/` | `frame.css` (marco de la maqueta), `app.js` (interacciones genéricas), `viewer.css` y `viewer.js` (visor de la foto del blanco, con zoom), `calibration.js` (calibración de la foto) y `analyzer.js` (analizador de impactos de referencia) |
 
 ## Cómo ver la maqueta

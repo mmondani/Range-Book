@@ -50,7 +50,13 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
         <option>CZ Shadow 2 · Stock</option>
         <option>Ruger 10/22 · Precisión</option>
       </select>
-      <span class="help">Elegí un arma base o una configuración (arma + modificaciones).</span>
+      <span class="help">Un arma base (Stock) o una de sus configuraciones (arma + modificaciones).</span>
+    </div>
+
+    <div class="field">
+      <label for="municion">Munición <span class="req">*</span></label>
+      <select id="municion" class="input" aria-describedby="mun-help"><option>Magtech 9mm FMJ 115gr</option><option>Sellier &amp; Bellot 9mm 124gr</option><option>CCI Standard .22LR</option></select>
+      <span id="mun-help" class="help">La de tu última sesión con esta arma.</span>
     </div>
 
     <div class="field">
@@ -84,11 +90,6 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
         <button type="button" role="radio" aria-checked="false" class="chip"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M16 17H7"></path><path d="M17 21H9"></path></svg>Niebla</button>
         <button type="button" role="radio" aria-checked="false" class="chip"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.8 19.6A2 2 0 1 0 14 16H2"></path><path d="M17.5 8a2.5 2.5 0 1 1 2 4H2"></path><path d="M9.8 4.4A2 2 0 1 1 11 8H2"></path></svg>Ventoso</button>
       </div>
-    </div>
-
-    <div class="field">
-      <label for="municion">Munición <span class="req">*</span></label>
-      <select id="municion" class="input"><option>Magtech 9mm FMJ 115gr</option><option>Sellier &amp; Bellot 9mm 124gr</option><option>CCI Standard .22LR</option></select>
     </div>
 
     <div class="field">

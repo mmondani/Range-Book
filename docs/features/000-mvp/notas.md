@@ -256,7 +256,41 @@
 - `firebase.json` suma `no-cache` para `/sw.js` y `/manifest.webmanifest`.
 - **Lighthouse ya no tiene la categoría PWA** (se quitó en Lighthouse 12). La instalabilidad se verifica en Chrome → DevTools → Application → Manifest.
 
+### Paso 14 — Deploy y cierre
+- **El proyecto de Firebase ya existía** (se adelantó entre los pasos 3 y 4; plan Blaze desde el paso 5) y la app se desplegó después de cada paso. En este paso no hubo que crear nada: el último despliegue es el del paso 13.
+- **Criterios de aceptación** (los enunciados de `requerimientos.md`, según la tabla de cobertura del plan). Al cierre pasan `pnpm test` (511 tests), `pnpm test:rules` (33), `pnpm lint` y `pnpm build`.
+
+  | Criterio | Estado | Cómo se verificó |
+  |---|---|---|
+  | Web usable en celular y PC; PWA en celular | Cumplido | Tests de layout; instalada y probada sin conexión en el celular (paso 13). La revisión visual en 375 / 1280 px de varias pantallas sigue pendiente (ver Pendientes) |
+  | Login con Google y solo emails autorizados | Cumplido | Tests de reglas y de la pantalla de login; en producción |
+  | Cada usuario solo ve sus datos | Cumplido | Tests de reglas de Firestore y Storage |
+  | Fotos en Storage, referencia en Firestore | Cumplido | Tests de `photos.ts` y `upload-queue.ts`; en producción (paso 7) |
+  | Perfil: unidades, tema (oscuro por defecto) y cerrar sesión | Cumplido | Tests de `units.ts`, `useTheme` y de la pantalla |
+  | ABM con archivado y restauración | Cumplido | Tests de pantalla del inventario |
+  | Armas, modificaciones y configuraciones (armas virtuales) | Cumplido | Tests de `firearms.ts` y de los formularios |
+  | Tiros acumulados por arma | Cumplido | Tests de `firearms.ts` |
+  | Blancos con zonas y tamaño de referencia | Cumplido | Tests de `target-zones.ts` y `targets.ts` |
+  | Sesión con todos sus campos y snapshot de personalizaciones | Cumplido | Tests de `sessions.ts` y del formulario |
+  | Rondas con blanco, distancia, disparos, puntaje, foto y comentarios | Cumplido | Tests de `rounds.ts` y del sheet |
+  | Detección automática y manual; agregar y quitar impactos | Cumplido, con reserva | Tests con imágenes sintéticas; falta probar la detección con fotos reales |
+  | Puntaje, grupo (mm y MOA), PMI y distancia al centro | Cumplido | Tests de `metrics.ts` con casos calculados a mano |
+  | El análisis propone el puntaje y el usuario lo confirma | Cumplido | Test de pantalla de la confirmación |
+  | Rendimiento con filtros por configuración, munición, blanco, distancia, etc. | Cumplido | Tests de `performance.ts` y de la pantalla |
+- **Documentación:** se creó `docs/arquitectura.md` y cinco ADRs en `docs/decisiones/`: Firebase desde el cliente (0001), rondas embebidas (0002), snapshots del historial (0003), análisis en el cliente (0004) y uso sin conexión (0005).
+- **`docs/diseno/` al día:** `pantallas.md` y `design-system.md` reflejan lo implementado (los desvíos anotados en cada paso de estas notas, incluidos los del paso 13). En la maqueta:
+  - Inventario (M08): lápiz "Editar …" en lugar de "⋮", checkbox "Mostrar archivados (1)", textos completos del botón primario y tarjetas de blancos que abren M12.
+  - Detalle de arma (M09 / W07): "‹ Armas", "Archivar arma" en el encabezado, sin "Agregar foto", lápiz en las modificaciones (sin archivar por fila) y checkboxes de modificaciones y configuraciones archivadas.
+  - Detalle de sesión (M03): botón "Eliminar sesión" en lugar de "⋮" y fecha corregida (el 25/10/2026 es domingo).
+  - Formulario de sesión (M04): munición junto al arma, con su ayuda.
+  - Ronda (M05): eyebrow con la fecha, aviso de distancia y disparos precargados y "Máximo" en el puntaje.
+  - Rendimiento (M07 / W05): orden de los filtros (con Polígono en mobile), "La más usada (25 m)", formato de los KPIs y títulos de los gráficos.
+  - Perfil (M11): versión `0.1.0`.
+  - Pantalla nueva **M02b "Sesiones sin conexión"** (`mobile/sesiones-sin-conexion.html`) con el banner.
+  - **Solo en el texto de `pantallas.md`, sin redibujar:** M10 y M12 como sheets (la maqueta los sigue mostrando como página), el campo de tamaño de referencia de M12 arriba, el resumen del mes y la búsqueda de M02, el aviso de borrador recuperado de M04, el sheet de instrucciones de iOS de M11 y el toast de versión nueva. Son variaciones de patrones que la maqueta ya muestra en otras pantallas.
+
 ## Pendientes
+- **Para la próxima iteración (resumen):** revisión visual en el navegador de los pasos 6 a 12 en los dos temas y en 375 / 1280 px; detección de impactos y centro con fotos reales; arrastrar impactos; restaurar el scroll de la lista de sesiones; borrar de Storage las fotos huérfanas (sin conexión, o si se cierra la app antes de que venza "Deshacer"); avisar los errores de sincronización; mostrar cuántas fotos faltan subir. El detalle de cada uno sigue abajo.
 - Las fotos quitadas o de sesiones eliminadas sin conexión no se borran de Storage (`deleteObject` falla y se ignora): quedan huérfanas. Se podría encolar también los borrados.
 - Un error de una escritura que se dio por guardada sin conexión (por ejemplo, de permisos al sincronizar) solo queda en la consola; el usuario no se entera.
 - No se muestra cuántas fotos quedan pendientes de subir.
@@ -275,6 +309,9 @@
 - Al apagar los emuladores, el runtime de reglas de Storage imprime un `NullPointerException` de Java. Es inofensivo (el script sale con código 0).
 
 ## Aprendizajes
+- **Desplegar desde temprano valió la pena.** Adelantar el proyecto de Firebase al paso 3 dejó probar en el entorno real lo que los emuladores no cubren (login con redirect en iOS, permisos de IAM de Storage, CORS del bucket, cámara del celular) a medida que aparecía, y no todo junto al final.
+- **Llevar el diseño a `docs/diseno/` al cierre de cada paso**, y no al final de la iteración: en el paso 11 se hizo así y salió prolijo; el resto quedó para el cierre y obligó a reconstruir los desvíos desde estas notas.
+- **La revisión visual en el navegador se fue postergando** en casi todos los pasos (solo tests). Conviene incluirla en la verificación de cada paso con la extensión de Chrome conectada, o pedirle al usuario una pasada corta.
 - **PWA y offline (paso 13):** probado por el usuario en producción después del despliegue; funciona bien (instalación, uso sin conexión y sincronización al volver).
 - **Cámara en el celular (pasada del paso 5):** probada en producción con el formulario de arma después del paso 7; la foto se saca, se comprime, se sube y el arma se guarda.
 - **Reglas de Storage con `firestore.exists` en producción.** Las reglas que consultan Firestore necesitan que la cuenta de servicio de Storage (`service-<número>@gcp-sa-firebasestorage.iam.gserviceaccount.com`) tenga el rol `roles/firebaserules.firestoreServiceAgent`. `firebase deploy` lo ofrece con una pregunta, pero **solo en una terminal interactiva**: desplegado sin TTY (como desde Claude Code) se saltea en silencio y las subidas fallan con `storage/unauthorized`. Apareció en el paso 7 con la primera foto real (guardar un arma con foto fallaba). Además, la verificación solo corre cuando `storage.rules` cambia: con las reglas ya publicadas, volver a desplegar no la dispara. Se arregla dando el rol a mano en IAM (Google Cloud Console → IAM → "Incluir asignaciones de roles proporcionadas por Google").

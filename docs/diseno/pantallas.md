@@ -1,6 +1,6 @@
 # Pantallas — RangeBook
 
-**Estado:** Borrador para revisión
+**Estado:** Implementado en la iteración 000 (MVP)
 **Requerimientos:** [requerimientos del MVP](../features/000-mvp/requerimientos.md) · **Métricas:** [shooting_metrics.md](../features/000-mvp/shooting_metrics.md) · **Sistema de diseño:** [design-system.md](./design-system.md)
 **Maqueta:** [`maqueta/index.html`](./maqueta/index.html): HTML estático; se abre con doble clic en el navegador.
 
@@ -15,18 +15,21 @@
 | `/sesiones` | M02 | W02 (lista + detalle) | `mobile/sesiones.html`, `web/sesiones.html` |
 | `/sesiones/nueva`, `/sesiones/:id/editar` | M04 | W03 | `mobile/sesion-form.html`, `web/sesion-form.html` |
 | `/sesiones/:id` | M03 | W02 (panel derecho) | `mobile/sesion-detalle.html` |
-| `/sesiones/:id/rondas/nueva`, `…/rondas/:rid/editar` | M05 (sheet sobre M03) | diálogo | `mobile/ronda-form.html` |
+| `/sesiones/:id/rondas/nueva`, `…/rondas/:rid/editar` | M05 (sheet sobre M03) | diálogo sobre W02 | `mobile/ronda-form.html` |
 | `/sesiones/:id/rondas/:rid/analisis` | M06 (calibración y análisis) | W04 | `mobile/analisis-calibracion.html`, `mobile/analisis.html`, `web/analisis-calibracion.html`, `web/analisis.html` |
 | `/rendimiento` (filtros en la query string) | M07 | W05 | `mobile/rendimiento.html`, `web/rendimiento.html` |
-| `/inventario/:categoria` (`armas`, `configuraciones`, `municiones`, `poligonos`, `blancos`) | M08 | W06 | `mobile/inventario.html`, `web/inventario.html` |
-| `/inventario/armas/nueva`, `/inventario/armas/:id/editar` | M10 | diálogo / página | `mobile/arma-form.html` |
-| `/inventario/armas/:id` | M09 | W07 | `mobile/arma-detalle.html`, `web/arma-detalle.html` |
+| `/inventario/:categoria` (`armas`, `configuraciones`, `municiones`, `poligonos`, `blancos`); `/inventario` va a `armas` | M08 | W06 | `mobile/inventario.html`, `web/inventario.html` |
+| `/inventario/municiones/nueva`, `/inventario/poligonos/nuevo`, `/inventario/configuraciones/nueva`, `/inventario/:categoria/:id/editar` | sheet sobre M08 | diálogo | — |
+| `/inventario/armas/nueva`, `/inventario/armas/:id/editar` | M10 (sheet) | diálogo | `mobile/arma-form.html` |
+| `/inventario/armas/:id` (+ `modificaciones/nueva`, `modificaciones/:id/editar`, `configuraciones/nueva`, `configuraciones/:id/editar`) | M09 | W07 | `mobile/arma-detalle.html`, `web/arma-detalle.html` |
 | `/inventario/blancos/nuevo`, `/inventario/blancos/:id/editar` | M12 | diálogo | `mobile/blanco-form.html` |
 | `/perfil` | M11 | columna de 640 px | `mobile/perfil.html` |
 
 - Todas las rutas, menos `/login`, requieren sesión **y** que el email esté en la colección de autorizados.
-- Los sheets y diálogos tienen su propia URL, así el botón "atrás" del sistema los cierra.
-- Al volver a una lista se conservan el scroll y los filtros.
+- Los sheets y diálogos tienen su propia URL, así el botón "atrás" del sistema los cierra. Al cerrar o guardar, si se abrieron desde la lista se vuelve atrás en el historial; si se entró directo por URL, se reemplaza la entrada. La única excepción son las instrucciones de instalación en iOS (M11), que son solo informativas.
+- Al volver a una lista se conservan los filtros (van en la query string). El scroll todavía no se restaura.
+- No hay menús "⋮": las acciones (editar, archivar, eliminar) son botones visibles o están dentro del sheet de edición.
+- Las páginas completas con su propia barra de acción (M03, M04, M06) ocultan la barra inferior en mobile.
 
 ## Pantallas
 
@@ -36,31 +39,38 @@
 - Si el usuario autenticado no está autorizado, se cierra la sesión de Firebase y se muestra la alerta.
 
 ### M02 · Sesiones (inicio) / W02 · Sesiones lista + detalle
-- Header: título, buscar y filtrar.
-- Resumen del mes: sesiones, disparos y promedio por tiro.
+- Header: título, buscar y filtrar. En mobile, "Buscar" y "Filtrar" abren el campo y los chips de arma debajo del resumen. La búsqueda (`?q=`) y el filtro por arma (`?arma=`) van en la query string.
+- Resumen del mes (solo mobile): sesiones, disparos y promedio por tiro. Desktop muestra "N en total".
 - Lista agrupada por mes con `SessionCard`. La sesión de hoy se destaca.
 - Mobile: FAB **Nueva sesión**. Desktop: botón primario en el sidebar; búsqueda y chips de arma arriba de la lista; detalle de la sesión seleccionada a la derecha, con la tabla de rondas (foto, ronda y blanco, distancia, disparos, puntaje, grupo, comentarios, estado del análisis y acciones "Ver análisis" / "Analizar blanco" y editar). Un clic en cualquier parte de la fila (salvo sus links y botones) lleva al análisis; la fila se resalta al pasar el mouse.
 - **Estados:** vacío ("Todavía no registraste sesiones" + Nueva sesión) · cargando (skeletons) · sin resultados de búsqueda.
 
 ### M03 · Detalle de sesión
-- Galería de fotos del polígono arriba, con volver, editar y menú (eliminar).
+- Fotos del polígono arriba (`PhotoStrip`: se desliza de a una, con "1 / 3 fotos"), con los botones volver, editar y **eliminar** encima. Sin fotos, los botones quedan arriba sin fondo. En desktop, "Editar" y "Eliminar" van en el encabezado y las fotos en una grilla.
 - Fecha, configuración (título) y chips de personalizaciones.
-- Datos: polígono, clima, munición.
+- Datos: polígono, clima y munición en una tarjeta; los totales, en otra fila.
 - Totales: disparos, puntaje (obtenido / máximo) y tamaño de grupo promedio de las rondas analizadas.
 - **Rondas:** `RoundRow` con miniatura (la foto de la ronda o el dibujo del blanco), "disparos · puntaje · grupo", "blanco · **distancia** · comentarios", estado *Analizada* o *Sin analizar* y el link "Ver análisis" / "Analizar blanco". **Toda la tarjeta lleva al análisis**; el lápiz "Editar ronda N" abre M05.
 - Notas.
-- Barra fija: **Agregar ronda**.
+- Barra fija: **Agregar ronda** (reemplaza a la barra inferior). En desktop, "Agregar ronda" va en el encabezado de la sección.
 - Eliminar la sesión pide confirmación y ofrece "Deshacer" en un toast.
 
 ### M04 / W03 · Nueva / editar sesión
-- Campos: **Arma / configuración*** (select con armas base y configuraciones) · **Personalizaciones** (chips precargados desde la configuración; se pueden quitar y agregar) · **Fecha*** (hoy por defecto) · **Polígono*** (el último usado por defecto) · **Clima** (radio con chips: Soleado, Nublado, Lluvioso, Niebla, Ventoso) · **Munición*** (la última usada con esa arma) · **Fotos del polígono** (cámara / galería, varias) · **Notas**.
+- Campos: **Arma / configuración*** (un select con un grupo por arma: "Stock" y sus configuraciones activas; no se precarga) · **Munición*** (junto al arma, porque su default depende de ella: la de la última sesión con esa arma) · **Personalizaciones** (chips precargados desde la configuración; se pueden quitar, y "Agregar" despliega debajo los chips de las modificaciones activas que faltan) · **Fecha*** (hoy por defecto; no futura) · **Polígono*** (el de la última sesión) · **Clima** (opcional; chips Soleado, Nublado, Lluvioso, Niebla, Ventoso; tocar el elegido lo desmarca) · **Fotos del polígono** (cámara / galería, hasta 20) · **Notas** (hasta 2000 caracteres).
+- Si el último polígono o munición se archivó, se propone el anterior que siga activo.
 - Al guardar, la sesión copia las personalizaciones elegidas (**snapshot**: marca y modelo de cada modificación). Si después se edita o archiva la configuración o una modificación, el historial de la sesión no cambia.
 - Las rondas **no** se cargan acá: se agregan desde el detalle, a medida que se tira. Así la sesión se crea en segundos al llegar al polígono.
 - Validación al salir del campo. Al guardar con errores, foco en el primer campo inválido.
-- Cerrar con cambios sin guardar pide confirmación. Guardar borrador local (autosave).
+- Salir con cambios sin guardar (cerrar, Cancelar, "atrás" u otra sección) pide confirmación.
+- Borrador local mientras haya cambios: al volver se recupera con el aviso "Recuperamos los cambios que no guardaste" y el botón "Descartar borrador". Las fotos todavía sin subir no entran en el borrador.
+- Barra fija **Guardar sesión** (reemplaza a la barra inferior).
 
 ### M05 · Agregar ronda (sheet)
-- Campos: **Blanco*** (del ABM; el último usado por defecto) · **Distancia*** en metros (se precarga con la de la ronda anterior) · **Disparos*** (stepper; por defecto, el valor de la ronda anterior) · **Puntaje** (numérico) · **Foto del blanco** (cámara / galería) · **Comentarios**.
+- Eyebrow: la fecha de la sesión. Campos: **Blanco*** (del ABM; el último usado que siga activo) · **Distancia*** en metros (hasta 2000; coma o punto decimal) · **Disparos*** (stepper, 1 a 999) · **Puntaje** (entero, opcional; la ayuda muestra el máximo posible) · **Foto del blanco** (cámara / galería) · **Comentarios** (hasta 500).
+- La "ronda anterior" es la última de la sesión o, si no tiene, la última de la sesión más reciente: de ella salen la distancia y los disparos (sin rondas anteriores: sin distancia y 10 disparos). En el alta, un aviso dice que se precargaron.
+- Si la ronda tiene un puntaje confirmado por el análisis, la ayuda del campo "Puntaje" lo menciona; el campo sigue siendo el cargado a mano.
+- Si una ronda analizada cambia de foto o de blanco, se avisa debajo de la foto que al guardar se descarta su análisis.
+- Al editar: **Eliminar ronda** (con confirmación y "Deshacer"). Una sesión admite hasta 100 rondas.
 - Al editar una ronda con foto guardada y sin cambios sin guardar, debajo de la foto aparece el link "Analizar impactos" / "Ver análisis" (el análisis es sobre la foto guardada).
 - Si la ronda se analiza, el análisis **propone** el puntaje calculado y el usuario lo confirma (ver M06). Sin confirmación se conserva el puntaje cargado a mano.
 - Acciones: Cancelar / **Guardar ronda**. Al guardar una ronda **nueva con foto** se pasa a su análisis (reemplaza al sheet en el historial: "Volver" desde el análisis lleva al detalle); sin foto, o al editar, vuelve al detalle.
@@ -107,52 +117,59 @@ Página completa (también en desktop, sin la lista de sesiones). Al entrar, la 
 - **Fuera del MVP** (sección 8, "Then add"): heatmaps, CEP, tendencias por impacto. También desvío estándar, detección de *flyers* y orden de los disparos. El modelo de impactos en mm ya los permite más adelante.
 
 ### M07 / W05 · Rendimiento
-- Filtros: **configuración** (cada arma virtual por separado; el arma base sin modificaciones es su propia configuración "Stock"), munición, blanco, **distancia**, polígono y período. En mobile son chips que abren un sheet; en desktop, selects.
-- KPIs: promedio por tiro, tamaño de grupo, desvío del PMI y disparos. Cada uno con su delta contra el período anterior.
-- Gráficos: puntaje promedio por sesión (línea) y tamaño de grupo por sesión (barras, "menor es mejor"). Mezclar distancias distorsiona el tamaño de grupo en mm: por defecto se filtra por la distancia más usada (o se compara en MOA).
-- Mobile: comparación por munición (barras horizontales). Desktop: tabla por sesión, ordenable, con distancia y "Exportar CSV".
-- **Estados:** sin análisis todavía (EmptyState: "Analizá tus blancos para ver la evolución") · pocos datos (menos de 2 sesiones: solo KPIs).
+- Filtros, en este orden: **configuración** (cada arma virtual por separado; el arma base sin modificaciones es su propia configuración "Stock"), munición, **distancia**, blanco, polígono y período. En mobile son chips (resaltados si el filtro está aplicado) que abren un sheet con las opciones (`?filtro=`, "atrás" lo cierra); en desktop, selects. Todo va en la query string; un filtro con su valor por defecto no aparece.
+- Cada filtro ofrece solo lo que aparece en alguna sesión (archivados incluidos). Por defecto: últimos 90 días y la **distancia más usada** ("La más usada (25 m)"). "Todas" mezcla distancias, y entonces el grupo y el PMI se comparan en **MOA**.
+- KPIs: **promedio por tiro** y **tamaño de grupo** con delta contra el período anterior ("▲ 0,5 (mejor)", en verde o rojo según si mejoró; "Igual que el período anterior"; sin delta en "Todo"). **Desvío del PMI** con su tendencia ("Tendencia hacia las 7 h") y **disparos** con "N sesiones · N rondas". Medidas con un decimal (`46,0 mm`); promedio por tiro con uno (`9,1`).
+- Gráficos (un punto por sesión): puntaje promedio (línea, escala ajustada a los valores) y tamaño de grupo (barras desde 0, "menor es mejor"). Los títulos dicen la distancia y la unidad ("Por sesión · a 25 m", "Tamaño de grupo (mm)"). Se destaca el último punto con su valor; al tocar o pasar el mouse, el elegido, con valor y fecha.
+- Mobile: comparación por munición (barras horizontales, solo con dos municiones o más; la mejor ocupa todo el ancho). Desktop: tabla por sesión ordenable (Fecha, Disparos, Prom./tiro, Grupo, Desvío PMI; la fecha y la fila llevan al detalle) y "Exportar CSV" (`;`, coma decimal, con polígono, rondas y dirección del PMI).
+- **Estados:** sin análisis todavía (EmptyState "Analizá tus blancos para ver la evolución" + "Ir a sesiones") · pocos datos (menos de 2 sesiones: solo KPIs y "Con dos sesiones o más vas a ver la evolución en gráficos") · sin datos para los filtros ("Limpiar filtros" o "Ver todo el historial").
 
 ### M08 / W06 · Inventario
 - Categorías: **Armas · Configuraciones · Munición · Polígonos · Blancos**, con su contador. En mobile son chips; en desktop, tabs.
-- El botón primario cambia según la categoría ("Nueva arma", "Nueva configuración", …).
+- El botón primario cambia según la categoría y usa el texto completo también en mobile ("Nueva arma", "Nueva munición", …). La búsqueda está solo en desktop y filtra la categoría actual.
+- Mobile muestra una lista dentro de una tarjeta; desktop, una tabla. Cada fila tiene un lápiz "Editar …"; **Archivar** está dentro del sheet de edición.
 - Armas: tarjeta con foto, marca y modelo, calibre, cantidad de modificaciones y tiros acumulados.
 - Configuraciones: nombre, arma base, modificaciones y sesiones.
-- Munición (marca, modelo, descripción) y Polígonos (nombre, dirección): listas o tablas con acciones. **Alta y edición en sheet o diálogo** (formularios cortos, mismo patrón que M05).
-- Blancos: foto, nombre y resumen de la geometría ("Anillos · Ø 500 mm · 10 zonas" o "Sin zonas · puntaje manual"). Alta y edición en M12.
-- **Archivar en lugar de borrar:** armas, modificaciones, configuraciones, municiones, polígonos y blancos no se borran, se archivan. Un elemento archivado no aparece en los selects de sesión y ronda ni en las listas, pero sigue visible en el historial y en Rendimiento. Se ve con "Mostrar archivados" (web) o "Ver archivadas" (mobile), y desde ahí se puede restaurar.
+- Munición (marca*, modelo*, descripción) y Polígonos (nombre*, dirección): listas o tablas. **Alta y edición en sheet o diálogo** (formularios cortos, mismo patrón que M05; se validan al guardar).
+- Blancos: grilla de tarjetas con foto (o el dibujo de sus anillos), nombre y resumen de la geometría ("Anillos · Ø 500 mm · 10 zonas" o "Sin zonas · puntaje manual"). La tarjeta abre la edición (M12).
+- **Archivar en lugar de borrar:** armas, modificaciones, configuraciones, municiones, polígonos y blancos no se borran, se archivan. Un elemento archivado no aparece en los selects de sesión y ronda ni en las listas, pero sigue visible en el historial y en Rendimiento. Se ve con el checkbox "Mostrar archivados (n)" (en los dos tamaños, solo si hay archivados; `?archivados=1`): se listan al final, atenuados, con el badge "Archivado" y el botón "Restaurar". Archivar no pide confirmación: muestra un toast con "Deshacer".
 - Las sesiones y las rondas sí se eliminan (con confirmación y "Deshacer"), porque nada las referencia.
 
 ### M09 / W07 · Detalle de arma
-- Galería (portada y miniaturas, agregar foto), marca y modelo, calibre.
+- Galería (portada y miniaturas; las fotos se agregan y ordenan desde Editar), marca y modelo, calibre.
+- Encabezado con **Editar** y **Archivar** (o **Restaurar**, con el badge "Archivada") en los dos tamaños. Mobile tiene "‹ Armas"; desktop, la ruta Inventario / Armas / arma.
 - **Tiros acumulados** = tiros previos al registro + suma de los disparos de las sesiones.
 - Datos de compra.
-- **Modificaciones**: lista con marca, modelo y comentarios. Alta, edición y archivo en sheet.
-- Acción **Archivar** para el arma (no hay borrado).
-- **Configuraciones** (armas virtuales): nombre, modificaciones incluidas y sesiones. "Nueva configuración" abre un sheet con el nombre y checkboxes de las modificaciones del arma.
+- **Modificaciones**: lista con marca, modelo y comentarios, con un lápiz por fila. Alta, edición y archivo en sheet. "Mostrar modificaciones archivadas" y "Mostrar configuraciones archivadas" son checkboxes separados.
+- **Configuraciones** (armas virtuales): nombre, modificaciones incluidas y sesiones. "Nueva configuración" abre un sheet con el nombre y checkboxes de las modificaciones activas del arma (al menos una; el nombre no puede ser "Stock" ni repetir el de otra configuración activa del arma).
 
 ### M10 · Alta / edición de arma
-- Fotos (varias; la primera es la portada) · **Marca*** · **Modelo*** · **Calibre*** (con sugerencias) · Fecha de compra · Lugar de compra · Tiros previos al registro.
+- Sheet en mobile, diálogo en desktop, como el resto del inventario. Al crear un arma, se abre su detalle.
+- Fotos (hasta 20; la primera es la portada) · **Marca*** · **Modelo*** · **Calibre*** (con sugerencias) · Fecha de compra (no futura) · Lugar de compra · Tiros previos al registro (0 a 10.000.000).
+- Al editar: **Archivar arma**.
 - La maqueta muestra un error de validación en "Modelo" como ejemplo del patrón.
 
 ### M11 · Perfil
 - Avatar (foto de Google), nombre, email y resumen (sesiones, disparos, armas).
 - Preferencias: **unidades** (mm / pulgadas) · **tema**: Oscuro (por defecto), Claro o Sistema. Se aplica al instante y se guarda en el perfil (ver `design-system.md` → Color).
-- Aplicación: **Instalar en el dispositivo** (aparece solo si llega `beforeinstallprompt`; en iOS, instrucciones para "Agregar a inicio") · versión.
+- Aplicación: **Instalar en el dispositivo** (solo si la app no está instalada; con `beforeinstallprompt` abre el diálogo del navegador; en iOS abre el sheet "Instalar en el iPhone" con los pasos Compartir → "Agregar a inicio" → "Agregar") · versión (`0.1.0`).
+- Cerrar sesión no pide confirmación.
 - **Cerrar sesión**, separado del resto y en color de peligro.
 
 ### M12 · Alta / edición de blanco
+- Sheet en mobile, diálogo en desktop. Acciones Cancelar / **Guardar blanco**; al editar, **Archivar blanco**.
 - **Nombre*** · **Foto** (cámara / galería).
 - **Puntuación**: *Anillos concéntricos* o *Sin zonas*.
-- **Tamaño de referencia*** en mm: diámetro de la zona exterior (anillos) o ancho del blanco (sin zonas).
-- Solo para anillos: **zonas de puntaje** (puntaje + diámetro en mm por fila, agregar y quitar), con **Generar** para crear N anillos uniformes a partir del diámetro, y **vista previa** dibujada.
-- Validación: diámetros únicos y crecientes a medida que baja el puntaje; ninguna zona más grande que el tamaño de referencia.
+- **Tamaño de referencia*** en mm (campo propio, arriba): diámetro de la zona exterior (anillos) o ancho del blanco (sin zonas). Acepta coma o punto decimal.
+- Solo para anillos: **zonas de puntaje** (puntaje + diámetro en mm por fila, agregar y quitar; las etiquetas usan el número de fila: "Puntaje de la zona 2"), con "Cantidad de zonas" + **Generar** (reemplaza las filas por N anillos uniformes; el central vale N) y la **vista previa** dibujada al lado.
+- Validación: puntajes y diámetros únicos, diámetros crecientes a medida que baja el puntaje (el error va en la fila que no crece) y ninguna zona más grande que el tamaño de referencia. Hasta 50 zonas.
 
 ## Comportamiento PWA
 
-- Manifest: `name: RangeBook`, `theme_color: #0B0D0F`, `background_color: #0B0D0F`, `display: standalone` e íconos con la diana naranja.
-- Sin conexión: banner "Sin conexión — los cambios se guardan y se sincronizan al volver" (persistencia offline de Firestore). Las fotos pendientes de subir a Storage quedan en una cola.
-- Fotos: comprimir en el cliente antes de subirlas a **Firebase Storage** (por ejemplo, lado mayor de 2000 px y JPEG/WebP al 80 %). En Firestore se guarda la ruta en Storage. Las reglas de Storage restringen cada archivo a su dueño, igual que Firestore.
+- Manifest: `name: RangeBook`, `theme_color: #0B0D0F`, `background_color: #0B0D0F`, `display: standalone`, orientación vertical e íconos con la diana del logo sobre naranja (192, 512, *maskable* y `apple-touch-icon`). El `theme-color` de la página sigue al tema.
+- **Sin conexión:** banner "**Sin conexión** — los cambios se guardan y se sincronizan al volver" arriba del contenido (no fijo), en tono de advertencia con el ícono `wifi-off` (ver `maqueta/mobile/sesiones-sin-conexion.html`). Los formularios guardan igual (Firestore offline) y las fotos quedan en una cola en el dispositivo hasta que vuelve la conexión; mientras tanto se ven y se analizan.
+- **Versión nueva:** toast "Hay una versión nueva" con la acción "Actualizar". Si no se acepta, se aplica al cerrar la app.
+- Fotos: se comprimen en el cliente (lado mayor de 2000 px, JPEG al 80 %, sin EXIF) antes de subirlas a **Firebase Storage**. En Firestore se guarda la ruta. Las reglas de Storage restringen cada archivo a su dueño, igual que Firestore.
 
 ## Decisiones tomadas
 

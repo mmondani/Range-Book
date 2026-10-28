@@ -66,7 +66,7 @@ Reglas:
 
 - Todos los números llevan `font-variant-numeric: tabular-nums` (clase `.num`).
 - Formato de números en `es-AR`: separador de miles `.` y decimal `,` (`Intl.NumberFormat('es-AR')`).
-- Carga: Google Fonts con `display=swap`. Se pueden autoalojar para que funcione offline en la PWA.
+- Carga: Google Fonts con `display=swap`. El service worker las guarda en caché, así se ven también sin conexión.
 
 ### Espaciado, radios y elevación
 
@@ -85,9 +85,9 @@ Reglas:
 ## Íconos
 
 - Set: **Lucide** (`lucide-react`), trazo 2 px y 24 px (18 px en chips y botones chicos). Es el set que se dibujó en la maqueta.
-- Mapeo: Sesiones `Crosshair`, Rendimiento `TrendingUp`, Inventario `Package`, Perfil `User`, Cámara `Camera`, Galería `Image`, Modificación `Wrench`, Configuración `Layers`, Detectar `WandSparkles`, Agregar impacto `CirclePlus`, Quitar impacto `CircleMinus`, Deshacer `Undo2`, Recalibrar la foto `Crosshair`, Acercar `ZoomIn`, Alejar `ZoomOut`, Ver la foto entera `Maximize2`, Editar `Pencil`, Polígono `MapPin`. Clima: `Sun`, `Cloud`, `CloudRain`, `CloudFog`, `Wind`.
+- Mapeo: Sesiones `Crosshair`, Rendimiento `TrendingUp`, Inventario `Package`, Perfil `User`, Cámara `Camera`, Galería `Image`, Modificación `Wrench`, Configuración `Layers`, Detectar `WandSparkles`, Agregar impacto `CirclePlus`, Quitar impacto `CircleMinus`, Deshacer `Undo2`, Recalibrar la foto `Crosshair`, Acercar `ZoomIn`, Alejar `ZoomOut`, Ver la foto entera `Maximize2`, Editar `Pencil`, Polígono `MapPin`, Eliminar `Trash2`, Sin conexión `WifiOff`, Instalar `Download`, Compartir (iOS) `Share`, Versión `Info`, Cerrar sesión `LogOut`. Clima: `Sun`, `Cloud`, `CloudRain`, `CloudFog`, `Wind`.
 - Un ícono decorativo junto a un texto lleva `aria-hidden`. Un botón que solo tiene ícono lleva `aria-label`.
-- Logo provisorio: diana con cruz dentro de un cuadrado redondeado naranja (se ve en Login y en el sidebar).
+- Logo provisorio: diana con cruz dentro de un cuadrado redondeado naranja (se ve en Login y en el sidebar). Es también el ícono de la PWA y el favicon (`public/icons/`, generados con `scripts/generate-icons.ps1`).
 
 ## Layout responsive
 
@@ -106,27 +106,38 @@ Reglas:
 |---|---|---|
 | `Button` | `primary`, `secondary`, `ghost`, `danger`; `md` (44 px) y `lg` (48–52 px); `loading`, `disabled` | `loading` desactiva el botón y muestra un spinner. `disabled` usa opacidad .45 |
 | `IconButton` | 40–44 px; sobre foto con fondo `rgba(11,13,15,.75)` | `aria-label` obligatorio. Los botones de zoom del visor son redondos, de 40 px |
+| `LinkButton`, `IconLink`, `CardLink` | Links con el aspecto de `Button`, `IconButton` y `Card` | Para navegar se usa un link, no un botón |
 | `Fab` | Extendido (ícono + texto), 56 px | Solo en la lista de sesiones (mobile) |
 | `Chip` | `filter` (con caret), `selectable` (`.on`), `removable` (con ✕ de 32 px), `add` (borde punteado) | Los grupos de chips se acomodan en varias líneas, sin scroll horizontal |
-| `Badge` | `success`, `warning`, `accent`, `neutral` | Con texto siempre |
+| `Badge` | `success`, `warning`, `accent`, `neutral` | Con texto siempre. Estados: "Hoy", "Archivado", *Analizada* / *Sin analizar* (`RoundStatus`) |
+| `Tag`, `TagList` | Etiqueta chica (calibre, modificaciones) | Sin interacción |
+| `Avatar` | Foto de Google o iniciales | Si la foto no carga, iniciales |
+| `Alert` | `danger`, `warning`; título, texto y acción opcional | `role="alert"`. Login no autorizado, error de red, detección fallida, borrador recuperado |
+| `OfflineBanner` | Tono de advertencia, compacto: ícono `WifiOff` + "**Sin conexión** — los cambios se guardan y se sincronizan al volver" | Arriba del contenido de todas las pantallas mientras no hay conexión; `role="status"` |
 | `Card` | Base y `interactive` (hover en el borde) | La tarjeta clickeable es un `<a>`; si además tiene otra acción (por ejemplo, editar), su link principal se estira sobre ella (`::after`) y la otra acción queda por encima |
 | `StatTile` | Eyebrow + número display + unidad + delta o ayuda; tamaños `md` y `sm` (26 px, para tres por fila en mobile) | Usado en totales de sesión, KPIs y métricas |
 | `Field` | Label + control + ayuda + error | Asterisco naranja si es obligatorio. El error va debajo del campo, con `aria-describedby` y `role="alert"` |
 | `Input`, `Select`, `Textarea`, `DateInput` | Alto 48 px en mobile y 44 px en desktop | Controles nativos (`type="date"`, `inputmode="numeric"`, `datalist` para calibre) |
 | `Stepper` | − valor + | Para cantidad de disparos |
 | `SegmentedControl` | 2–3 opciones | Unidades, tema |
-| `Tabs` | Mobile: chips seleccionables; desktop: tabs subrayados | Inventario |
+| `Tabs` | Mobile: chips seleccionables; desktop: tabs subrayados | Inventario. El contador va separado por un espacio, para el nombre accesible |
+| `WeatherPicker` | Chips de clima con ícono; tocar el elegido lo desmarca | M04 |
+| `ModificationPicker`, `ModificationChecklist` | Chips de personalizaciones con quitar y "Agregar" (despliega las que faltan); checkboxes de modificaciones | M04 y sheet de configuración |
 | `ZoneEditor` | Filas puntaje + diámetro, Generar anillos uniformes, vista previa | Alta de blanco (M12) |
 | `PhotoPicker` | Botones Cámara / Galería, miniaturas con quitar, portada | Cámara: `<input type=file accept=image/* capture=environment>`. Galería: igual pero sin `capture`. En desktop, zona para arrastrar archivos |
 | `PhotoGallery` | Imagen principal + miniaturas, contador "1 / 3" | Imágenes con `aspect-ratio` reservado |
-| `BottomSheet` / `Dialog` | Sheet en mobile y diálogo centrado en desktop | Agarrador, botón cerrar, scrim .7. Pide confirmación si hay cambios sin guardar |
+| `PhotoStrip` | Fotos a todo el ancho que se deslizan de a una, con "1 / 3 fotos" y botones encima | Encabezado de M03 en mobile |
+| `Photo` | Foto guardada o pendiente de subir; placeholder rayado mientras carga e ícono si falla | Base de las anteriores |
+| `BottomSheet` / `Dialog` | Sheet en mobile y diálogo centrado en desktop (un solo componente, resuelto con CSS) | Agarrador, botón cerrar, scrim .7. Pide confirmación si hay cambios sin guardar. Las acciones del pie reciben `requestClose`, así "Cancelar" también confirma |
+| `InventorySheet`, `FilterSheet` | Sheet de alta y edición del inventario (con "Archivar …" o "Eliminar …"); opciones de un filtro de Rendimiento como chips | — |
 | `ConfirmDialog` | Destructivo | Para eliminar cualquier entidad |
-| `Toast` | Éxito o error, con "Deshacer" opcional | `aria-live="polite"`, se cierra solo a los 4 s |
+| `Toast` | Éxito o error, con una acción opcional ("Deshacer", "Actualizar") | `aria-live="polite"`, se cierra solo a los 4 s. Uno a la vez |
 | `EmptyState` | Ícono + texto + acción | Para listas vacías y gráficos sin datos |
 | `Skeleton` | Tarjetas, filas, gráficos | Si la carga tarda más de 300 ms |
-| `SessionCard` | Fecha en bloque, configuración, polígono · munición, clima, rondas / disparos / promedio | Variante "Hoy" con borde y badge de acento |
+| `SessionCard` | Fecha en bloque, configuración, polígono · munición, clima, rondas / disparos / promedio | Variante "Hoy" con borde y badge de acento. En W02 es una fila compacta |
+| `FirearmCards`, `ConfigurationCard`, `TargetCards`, `InventoryItems` | Tarjetas de armas, configuraciones y blancos; lista (mobile) o tabla (desktop) del inventario, con sus estados (cargando, error, vacío, sin resultados, todo archivado) y archivados atenuados con "Restaurar" | — |
 | `RoundRow` | Miniatura del blanco, ronda, disparos · puntaje · grupo, blanco · distancia · comentarios, estado de análisis, link "Ver análisis" / "Analizar blanco" y lápiz "Editar" | Toda la tarjeta lleva al análisis. En desktop es una fila de tabla (`RoundTable`), que también lleva al análisis con un clic |
-| `TargetThumb` | Blanco dibujado o foto con impactos | — |
+| `TargetThumb` | Foto del blanco o dibujo de sus anillos (silueta de cartón para los blancos sin zonas) | — |
 | `TargetAnalyzer` | Visor de la foto: recuadro 5:6 (mobile) o 1:1 (desktop), la foto arranca cubriéndolo y centrada; zoom propio (botones Acercar / Alejar / Ver la foto entera abajo a la derecha, dos dedos, Ctrl + rueda) y desplazamiento; controles propios arriba a la izquierda (`controls`); impactos (anillo naranja de 2 px sin relleno, 18 px en mobile y 20 px en desktop, con un filo oscuro de cada lado; rojo en Quitar), PMI (cruz azul), grupo (punteado naranja), anillos de calibración y marcadores (verde); overlay de progreso | Marcadores y trazos mantienen su tamaño con cualquier zoom. Arrastre de marcadores con los punteros (con el dedo, a los 100 ms; un segundo dedo es zoom). Ver `pantallas.md` → Análisis |
 | `MarkerPicker` | Botones sobre la foto (40 px, redondeados): Centro / Anillo / Forma o Centro / Punto A / Punto B; activo con borde verde, ✓ en los ya ubicados | `radiogroup` "Qué ajustar", navegable con las flechas |
 | `CalibrationPanel` | Tarjeta "Calibrar la foto": explicación, instrucción del punto activo, aviso del centro automático, "Volver a círculos", anillo marcado o distancia A–B, error | — |
@@ -135,7 +146,8 @@ Reglas:
 | `MetricTile` | Tamaño de grupo (mm + MOA), desvío del PMI (hora de reloj o "Centrado"), distancia al centro | Una `StatTile` en tarjeta. Unidad en mm o pulgadas, según el perfil |
 | `ImpactTable` | #, zona, X / Y desde el centro, quitar | Solo en desktop; alternativa accesible para quitar impactos |
 | `LineChart`, `BarChart` | Ejes con unidad, último punto destacado, `aria-label` con el resumen | Grilla tenue. Tooltip al tocar o pasar el mouse |
-| `DataTable` | Ordenable (`aria-sort`), scroll horizontal en su contenedor; filas clickeables (`onRowClick`, con resaltado al pasar el mouse) | Rendimiento, inventario, rondas, impactos. La fila clickeable es un atajo para el mouse: la misma acción tiene que estar en un link o botón de la fila |
+| `DataTable` | Ordenable (`aria-sort`, botón en el encabezado), columnas `numeric` (a la derecha, cifras tabulares), scroll horizontal en su contenedor; filas clickeables (`onRowClick`, con resaltado al pasar el mouse) | Rendimiento, inventario, rondas, impactos. La fila clickeable es un atajo para el mouse: la misma acción tiene que estar en un link o botón de la fila |
+| `AmmunitionComparison` | Barras horizontales por munición; la mejor ocupa todo el ancho | Rendimiento en mobile |
 
 ## Accesibilidad (mínimos)
 

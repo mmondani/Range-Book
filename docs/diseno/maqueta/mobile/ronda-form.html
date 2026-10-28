@@ -48,7 +48,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
     <div style="display:flex;justify-content:center;padding:10px 0 0"><span aria-hidden="true" style="width:40px;height:5px;border-radius:3px;background:var(--surface-3)"></span></div>
     <header style="display:flex;align-items:center;justify-content:space-between;padding:8px 8px 8px 20px">
       <div style="display:flex;flex-direction:column">
-        <span class="eyebrow">Glock 17 · 25 oct</span>
+        <span class="eyebrow">Dom 25 oct 2026</span>
         <h2 id="sheet-title" class="display" style="font-size:26px">Nueva ronda · 3</h2>
       </div>
       <a href="sesion-detalle.html" class="icon-btn" aria-label="Cerrar"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></a>
@@ -65,7 +65,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
           <div style="position:relative"><input id="distancia" class="input num" type="text" inputmode="decimal" value="25" style="padding-right:36px" aria-describedby="dist-help"><span aria-hidden="true" style="position:absolute;right:14px;top:12px;color:var(--text-3)">m</span></div>
         </div>
       </div>
-      <span id="dist-help" class="help" style="margin-top:-10px">Se precarga con la distancia de la ronda anterior.</span>
+      <span id="dist-help" class="help" style="margin-top:-10px">Distancia y disparos precargados de la ronda anterior.</span>
 
       <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
         <div class="field">
@@ -78,7 +78,8 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
         </div>
         <div class="field">
           <label for="puntaje">Puntaje</label>
-          <input id="puntaje" class="input num" type="text" inputmode="numeric" value="138" style="font-size:20px;font-weight:600">
+          <input id="puntaje" class="input num" type="text" inputmode="numeric" value="138" aria-describedby="score-help" style="font-size:20px;font-weight:600">
+          <span id="score-help" class="help">Máximo: 150.</span>
         </div>
       </div>
 

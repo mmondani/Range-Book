@@ -38,20 +38,21 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
     <div role="group" aria-label="Filtros" style="display:flex;flex-wrap:wrap;gap:8px">
       <button class="chip on">Configuración: <b>Glock 17 · IPSC</b><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
       <button class="chip">Munición: <b>Todas</b><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
-      <button class="chip on">Distancia: <b>25 m</b><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+      <button class="chip">Distancia: <b>La más usada (25 m)</b><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
       <button class="chip on">Blanco: <b>ISSF Precisión</b><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
-      <button class="chip">Período: <b>90 días</b><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+      <button class="chip">Polígono: <b>Todos</b><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+      <button class="chip">Período: <b>Últimos 90 días</b><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
     </div>
 
     <section aria-label="Indicadores" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
-      <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Prom./tiro</span><span class="display num" style="font-size:32px;color:var(--accent)">9,12</span><span class="delta">▲ 0,9 vs. período anterior</span></div>
-      <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Tamaño de grupo</span><span class="display num" style="font-size:32px">46 <span style="font-size:16px;color:var(--text-3)">mm</span></span><span class="delta">▼ 26 mm (mejor)</span></div>
-      <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Disparos</span><span class="display num" style="font-size:32px">1.240</span><span style="font-size:13px;color:var(--text-3)">en 10 sesiones</span></div>
-      <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Desvío PMI</span><span class="display num" style="font-size:32px">14 <span style="font-size:16px;color:var(--text-3)">mm</span></span><span style="font-size:13px;color:var(--text-3)">Tendencia a las 7 h</span></div>
+      <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Prom./tiro</span><span class="display num" style="font-size:32px;color:var(--accent)">9,1</span><span class="delta">▲ 0,9 (mejor)</span></div>
+      <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Tamaño de grupo</span><span class="display num" style="font-size:32px">46,0 <span style="font-size:16px;color:var(--text-3)">mm</span></span><span class="delta">▼ 26,0 mm (mejor)</span></div>
+      <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Disparos</span><span class="display num" style="font-size:32px">1.240</span><span style="font-size:13px;color:var(--text-3)">10 sesiones · 82 rondas</span></div>
+      <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Desvío PMI</span><span class="display num" style="font-size:32px">14,0 <span style="font-size:16px;color:var(--text-3)">mm</span></span><span style="font-size:13px;color:var(--text-3)">Tendencia hacia las 7 h</span></div>
     </section>
 
     <section class="card" style="padding:16px;display:flex;flex-direction:column;gap:8px">
-      <div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="font-size:17px;font-weight:600">Puntaje promedio por tiro</h2><span style="font-size:13px;color:var(--text-3)">por sesión</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="font-size:17px;font-weight:600">Puntaje promedio por tiro</h2><span style="font-size:13px;color:var(--text-3)">Por sesión · a 25 m</span></div>
       <svg viewBox="0 0 326 160" role="img" aria-label="Puntaje promedio por tiro en las últimas 10 sesiones: sube de 8,1 a 9,3" style="width:100%;height:auto">
         <line x1="24" y1="10" x2="326" y2="10" style="stroke:var(--surface-3)"></line>
         <line x1="24" y1="58" x2="326" y2="58" style="stroke:var(--surface-3)"></line>
@@ -64,7 +65,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
     </section>
 
     <section class="card" style="padding:16px;display:flex;flex-direction:column;gap:8px">
-      <div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="font-size:17px;font-weight:600">Tamaño de grupo (mm)</h2><span style="font-size:13px;color:var(--text-3)">menor es mejor</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><h2 style="font-size:17px;font-weight:600">Tamaño de grupo (mm)</h2><span style="font-size:13px;color:var(--text-3)">Por sesión · a 25 m · menor es mejor</span></div>
       <svg viewBox="0 0 326 160" role="img" aria-label="Tamaño de grupo por sesión en milímetros: baja de 72 a 46" style="width:100%;height:auto">
         <line x1="24" y1="130" x2="326" y2="130" style="stroke:var(--axis)"></line>
         <line x1="24" y1="70" x2="326" y2="70" style="stroke:var(--surface-3)"></line>

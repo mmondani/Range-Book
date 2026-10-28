@@ -1,6 +1,6 @@
 # Plan — 000 MVP
 
-**Estado:** Aprobado
+**Estado:** Terminado
 **Requerimientos:** [./requerimientos.md](./requerimientos.md)
 **Diseño:** [design-system.md](../../diseno/design-system.md) · [pantallas.md](../../diseno/pantallas.md) · [maqueta](../../diseno/maqueta/index.html)
 
@@ -114,7 +114,7 @@ No hay código todavía; todo es nuevo. `docs/arquitectura.md` no existe y se cr
 - [x] **13. PWA y offline**
   - Qué: manifest, íconos, service worker, `theme-color` según tema, botón "Instalar" (con `beforeinstallprompt`; instrucciones en iOS), persistencia offline de Firestore, banner "Sin conexión", cola de fotos pendientes.
   - Verificación: Lighthouse PWA instalable; prueba manual en modo avión: crear una sesión con foto y ver que se sincroniza al volver la conexión; test de `upload-queue.ts`.
-- [ ] **14. Deploy y cierre**
+- [x] **14. Deploy y cierre**
   - Qué: crear el proyecto de Firebase (plan Blaze, app web, Auth con Google, Firestore, Storage) y cargar el primer email autorizado; deploy de reglas, índices y hosting. Verificación de criterios, `docs/arquitectura.md`, ADRs y `notas.md`.
   - Verificación: app accesible en la URL de Hosting desde el celular y la PC.
 
@@ -164,8 +164,8 @@ No hay código todavía; todo es nuevo. `docs/arquitectura.md` no existe y se cr
 - Ninguna.
 
 ## Al terminar
-- [ ] Todos los criterios de aceptación verificados
-- [ ] Tests y lint pasan
-- [ ] `docs/arquitectura.md` actualizado
-- [ ] ADR creado si corresponde
-- [ ] `notas.md` completado
+- [x] Todos los criterios de aceptación verificados
+- [x] Tests y lint pasan
+- [x] `docs/arquitectura.md` actualizado
+- [x] ADR creado si corresponde
+- [x] `notas.md` completado
