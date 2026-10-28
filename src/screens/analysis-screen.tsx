@@ -10,6 +10,7 @@ import { EmptyState } from '@/components/empty-state';
 import { IconButton } from '@/components/icon-button';
 import { ImpactTable } from '@/components/impact-table';
 import { LinkButton } from '@/components/link-button';
+import { MarkerPicker } from '@/components/marker-picker';
 import { MetricTile } from '@/components/metric-tile';
 import { ScoreTile } from '@/components/score-tile';
 import { Skeleton } from '@/components/skeleton';
@@ -568,6 +569,16 @@ function RoundAnalyzer({
               onRemoveImpact={!calibrating && mode === 'remove' ? handleRemove : undefined}
               mpi={mpi}
               group={group}
+              controls={
+                calibrating && (
+                  <MarkerPicker
+                    scoring={analyzed.scoring}
+                    draft={draft}
+                    active={active}
+                    onActive={setActive}
+                  />
+                )
+              }
               busy={
                 detection === 'detecting'
                   ? 'Detectando impactos…'
@@ -604,7 +615,6 @@ function RoundAnalyzer({
                 zones={analyzed.zones}
                 draft={draft}
                 active={active}
-                onActive={setActive}
                 autoCenter={autoDraft !== undefined && draft.center === autoDraft.center}
                 onChange={(changes) => {
                   touched.current = true;

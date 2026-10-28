@@ -192,6 +192,20 @@
   height: 2px;
 }
 
+/* Controles propios de la pantalla (arriba a la izquierda) y zoom (abajo a la derecha). */
+.controls {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  right: var(--space-2);
+  display: flex;
+  pointer-events: none;
+}
+
+.controls > * {
+  pointer-events: auto;
+}
+
 .zoomControls {
   position: absolute;
   right: var(--space-2);

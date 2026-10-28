@@ -1,10 +1,5 @@
 import { useId } from 'react';
-import {
-  calibrationMarkers,
-  MARKER_LABELS,
-  type CalibrationDraft,
-  type CalibrationMarker,
-} from '@/lib/calibration';
+import type { CalibrationDraft, CalibrationMarker } from '@/lib/calibration';
 import { cx } from '@/lib/cx';
 import { formatDecimal } from '@/lib/format';
 import type { TargetZone } from '@/lib/target-zones';
@@ -12,7 +7,6 @@ import type { TargetScoring } from '@/lib/targets';
 import { Card } from './card';
 import { Field } from './field';
 import { Input } from './input';
-import { SegmentedControl } from './segmented-control';
 import { Select } from './select';
 import styles from './calibration-panel.module.css';
 
@@ -27,9 +21,8 @@ export interface CalibrationPanelProps {
   scoring: TargetScoring;
   zones: readonly TargetZone[];
   draft: CalibrationDraft;
-  /** Marcador que se ubica con el próximo toque sobre la foto. */
+  /** Marcador que se ubica con el próximo toque sobre la foto (se elige sobre la foto). */
   active: CalibrationMarker;
-  onActive: (marker: CalibrationMarker) => void;
   onChange: (changes: Partial<CalibrationDraft>) => void;
   /** El centro del borrador se ubicó solo: se avisa que hay que revisarlo. */
   autoCenter?: boolean;
@@ -47,7 +40,6 @@ export function CalibrationPanel({
   zones,
   draft,
   active,
-  onActive,
   onChange,
   autoCenter,
   error,
@@ -64,18 +56,10 @@ export function CalibrationPanel({
         {scoring === 'rings'
           ? 'Para medir en mm, ubicá sobre la foto el centro del blanco y un punto sobre un anillo.'
           : 'Para medir en mm, ubicá sobre la foto el centro del blanco y dos puntos a una distancia conocida.'}{' '}
-        Para ajustar un punto, mantené apretado y arrastralo; para verlo de cerca, acercá la foto
-        con dos dedos o con los botones de zoom. La foto tiene que estar sacada de frente.
+        Con los botones de arriba de la foto elegís qué punto ubicar. Para ajustarlo, mantené
+        apretado y arrastralo; para verlo de cerca, acercá la foto con dos dedos o con los botones
+        de zoom. La foto tiene que estar sacada de frente.
       </p>
-      <SegmentedControl
-        aria-label="Punto a ubicar"
-        options={calibrationMarkers(scoring).map((marker) => ({
-          value: marker,
-          label: `${MARKER_LABELS[marker]}${draft[marker] ? ' ✓' : ''}`,
-        }))}
-        value={active}
-        onChange={onActive}
-      />
       <p role="status" className={styles.instruction}>
         {INSTRUCTIONS[active]}
       </p>

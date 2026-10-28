@@ -101,7 +101,7 @@ describe('M05 · Agregar ronda', () => {
     );
     expect(await screen.findByText('Ronda agregada')).toBeInTheDocument();
     await waitFor(() => expect(router.state.location.pathname).toBe(DETAIL));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(screen.getByRole('heading', { name: 'Rondas · 3' })).toBeInTheDocument();
     expect(rounds().getAllByRole('listitem')[2]).toHaveTextContent(
       'Ronda 3Sin analizar14 disparos · 128 pts',

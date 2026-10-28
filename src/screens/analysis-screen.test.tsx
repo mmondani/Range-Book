@@ -171,9 +171,8 @@ describe('M06 · Análisis con un análisis guardado', () => {
   it('el zoom es dentro de la foto: botones, y con la foto ampliada se desplaza sin marcar', async () => {
     renderSessions(analysisPath(ROUND_1.id));
     await screen.findByRole('heading', { name: 'Análisis · Ronda 1' });
-    const content = screen.getByRole('img', {
-      name: 'Foto del blanco de la ronda 1',
-    }).parentElement!;
+    const photo = await screen.findByRole('img', { name: 'Foto del blanco de la ronda 1' });
+    const content = photo.parentElement!;
     expect(screen.getByRole('button', { name: 'Alejar' })).toBeDisabled();
 
     await userEvent.click(screen.getByRole('button', { name: 'Acercar' }));
@@ -452,6 +451,23 @@ describe('M06 · Análisis nuevo', () => {
     }).parentElement!;
     expect(content).toHaveStyle({ transform: 'translate(-50%, -50%) scale(2)' });
     expect(screen.getByRole('radio', { name: 'Centro' })).toBeChecked();
+  });
+
+  it('el punto a ubicar se elige sobre la foto, también para corregir uno ya ubicado', async () => {
+    renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
+    await loadPhoto(2);
+    const viewer = screen.getByRole('group', { name: 'Visor de la foto' });
+    const picker = within(viewer).getByRole('radiogroup', { name: 'Punto a ubicar' });
+    const panel = screen.getByRole('region', { name: 'Calibrar la foto' });
+    expect(within(panel).queryByRole('radiogroup')).not.toBeInTheDocument();
+
+    tapPhoto('Ubicar centro en el punto indicado', 480, 480);
+    expect(within(picker).getByRole('radio', { name: 'Anillo' })).toBeChecked();
+    await userEvent.click(within(picker).getByRole('radio', { name: 'Centro ✓' }));
+    expect(within(panel).getByRole('status')).toHaveTextContent('Tocá el centro del blanco.');
+    tapPhoto('Ubicar centro en el punto indicado', 500, 500);
+    // Con el anillo todavía sin ubicar, pasa a él.
+    expect(within(picker).getByRole('radio', { name: 'Anillo' })).toBeChecked();
   });
 
   it('no deja continuar sin ubicar el punto sobre el anillo', async () => {

@@ -6,6 +6,7 @@ import {
   type CSSProperties,
   type MouseEvent,
   type PointerEvent,
+  type ReactNode,
 } from 'react';
 import { usePhotoSrc } from '@/hooks/use-photos';
 import type { ImageSize, Pixel } from '@/lib/calibration';
@@ -84,6 +85,8 @@ export interface TargetAnalyzerProps {
   mpi?: Pixel | null;
   /** Círculo de grupo, punteado, alrededor del PMI. */
   group?: { center: Pixel; radius: number } | null;
+  /** Controles propios sobre la foto, arriba a la izquierda (por ejemplo, el punto a ubicar). */
+  controls?: ReactNode;
   /** Texto del overlay de progreso (por ejemplo, "Detectando impactos…"). */
   busy?: string;
   className?: string;
@@ -125,6 +128,7 @@ export function TargetAnalyzer({
   onRemoveImpact,
   mpi,
   group,
+  controls,
   busy,
   className,
 }: TargetAnalyzerProps) {
@@ -134,7 +138,9 @@ export function TargetAnalyzer({
 
   const frameRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLButtonElement>(null);
-  const controlsRef = useRef<HTMLDivElement>(null);
+  // Los botones sobre la foto (zoom y los propios) no inician gestos.
+  const zoomControlsRef = useRef<HTMLDivElement>(null);
+  const extraControlsRef = useRef<HTMLDivElement>(null);
   // La vista actual para el listener de la rueda, que no se vuelve a registrar.
   const viewRef = useRef(view);
   useEffect(() => {
@@ -232,7 +238,10 @@ export function TargetAnalyzer({
   }
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
-    if (controlsRef.current?.contains(event.target as Node)) return;
+    const target = event.target as Node;
+    if (zoomControlsRef.current?.contains(target) || extraControlsRef.current?.contains(target)) {
+      return;
+    }
     // El primer dedo de un gesto nuevo: si se perdió algún `pointerup`, no queda colgado.
     if (event.isPrimary) pointers.current.clear();
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -473,7 +482,7 @@ export function TargetAnalyzer({
       </div>
 
       {size && (
-        <div ref={controlsRef} className={styles.zoomControls}>
+        <div ref={zoomControlsRef} className={styles.zoomControls}>
           <button
             type="button"
             className={styles.zoomButton}
@@ -502,6 +511,12 @@ export function TargetAnalyzer({
               <Maximize2 aria-hidden="true" />
             </button>
           )}
+        </div>
+      )}
+
+      {size && controls && (
+        <div ref={extraControlsRef} className={styles.controls}>
+          {controls}
         </div>
       )}
 
