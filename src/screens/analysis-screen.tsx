@@ -218,6 +218,13 @@ function RoundAnalyzer({
 
   // --- Calibración -----------------------------------------------------------------------------
 
+  /** Mientras se arrastra, el marcador activo sigue al dedo sin pasar al siguiente. */
+  function moveMarker(pixel: Pixel) {
+    touched.current = true;
+    setDraft({ ...draft, [active]: pixel });
+    setCalibrationError(undefined);
+  }
+
   function placeMarker(pixel: Pixel) {
     touched.current = true;
     const next = { ...draft, [active]: pixel };
@@ -541,6 +548,7 @@ function RoundAnalyzer({
                     : undefined
               }
               onPoint={handlePoint}
+              onPointMove={calibrating ? moveMarker : undefined}
               markers={markers}
               rings={rings}
               line={line}

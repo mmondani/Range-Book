@@ -1,5 +1,5 @@
 import { LoaderCircle } from 'lucide-react';
-import type { CSSProperties, MouseEvent } from 'react';
+import { useRef, type CSSProperties, type MouseEvent, type PointerEvent } from 'react';
 import { usePhotoSrc } from '@/hooks/use-photos';
 import type { ImageSize, Pixel } from '@/lib/calibration';
 import { cx } from '@/lib/cx';
@@ -26,6 +26,11 @@ export interface TargetAnalyzerProps {
   /** Qué hace tocar la foto (nombre accesible). Sin él, tocar la foto no hace nada. */
   pointLabel?: string;
   onPoint: (pixel: Pixel) => void;
+  /**
+   * Si está, el punto se puede arrastrar: mientras se mantiene apretado sigue al dedo o al mouse
+   * (`onPointMove`) y al soltar se fija (`onPoint`).
+   */
+  onPointMove?: (pixel: Pixel) => void;
   markers?: readonly AnalyzerMarker[];
   /** Anillos calibrados, para comparar con los de la foto. */
   rings?: readonly { key: string; center: Pixel; radius: number }[];
@@ -55,6 +60,7 @@ export function TargetAnalyzer({
   onSize,
   pointLabel,
   onPoint,
+  onPointMove,
   markers = [],
   rings = [],
   line,
@@ -73,15 +79,57 @@ export function TargetAnalyzer({
       ? { left: `${(pixel.x / size.width) * 100}%`, top: `${(pixel.y / size.height) * 100}%` }
       : {};
 
-  function handlePoint(event: MouseEvent<HTMLButtonElement>) {
-    // Con el teclado no hay un punto que ubicar (`detail` es 0).
-    if (!size || event.detail === 0) return;
+  // Arrastre en curso y si el último toque ya se fijó al soltar (el `click` que sigue se ignora).
+  const dragging = useRef(false);
+  const placed = useRef(false);
+
+  /** Punto de la foto bajo el puntero, dentro de sus bordes (al arrastrar se puede salir). */
+  function pixelAt(event: MouseEvent<HTMLButtonElement>): Pixel | undefined {
+    if (!size) return undefined;
     const rect = event.currentTarget.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return;
-    onPoint({
-      x: ((event.clientX - rect.left) / rect.width) * size.width,
-      y: ((event.clientY - rect.top) / rect.height) * size.height,
-    });
+    if (rect.width === 0 || rect.height === 0) return undefined;
+    const clamp = (value: number) => Math.min(1, Math.max(0, value));
+    return {
+      x: clamp((event.clientX - rect.left) / rect.width) * size.width,
+      y: clamp((event.clientY - rect.top) / rect.height) * size.height,
+    };
+  }
+
+  function handlePoint(event: MouseEvent<HTMLButtonElement>) {
+    if (placed.current) {
+      placed.current = false;
+      return;
+    }
+    // Con el teclado no hay un punto que ubicar (`detail` es 0).
+    if (event.detail === 0) return;
+    const pixel = pixelAt(event);
+    if (pixel) onPoint(pixel);
+  }
+
+  function handlePointerDown(event: PointerEvent<HTMLButtonElement>) {
+    placed.current = false;
+    if (!onPointMove || event.button !== 0) return;
+    const pixel = pixelAt(event);
+    if (!pixel) return;
+    // Los movimientos siguen llegando aunque el dedo salga de la foto (jsdom no lo implementa).
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    dragging.current = true;
+    onPointMove(pixel);
+  }
+
+  function handlePointerMove(event: PointerEvent<HTMLButtonElement>) {
+    if (!dragging.current || !onPointMove) return;
+    const pixel = pixelAt(event);
+    if (pixel) onPointMove(pixel);
+  }
+
+  function handlePointerUp(event: PointerEvent<HTMLButtonElement>) {
+    if (!dragging.current) return;
+    dragging.current = false;
+    const pixel = pixelAt(event);
+    if (!pixel) return;
+    placed.current = true;
+    onPoint(pixel);
   }
 
   return (
@@ -142,10 +190,16 @@ export function TargetAnalyzer({
 
           <button
             type="button"
-            className={styles.surface}
+            className={cx(styles.surface, onPointMove && styles.draggable)}
             aria-label={pointLabel ?? 'Foto del blanco'}
             disabled={!pointLabel}
             onClick={handlePoint}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={() => {
+              dragging.current = false;
+            }}
           />
 
           {markers.map((marker) => (

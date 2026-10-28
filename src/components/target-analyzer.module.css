@@ -64,6 +64,11 @@
   cursor: crosshair;
 }
 
+/* Al arrastrar un punto, un dedo no desplaza la página; el zoom con dos dedos sigue andando. */
+.draggable {
+  touch-action: pinch-zoom;
+}
+
 .surface:disabled {
   cursor: default;
 }

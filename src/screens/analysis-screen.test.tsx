@@ -49,8 +49,8 @@ async function loadPhoto(roundNumber: number) {
   fireEvent.load(image);
 }
 
-/** Toca la foto en el píxel (x, y). */
-function tapPhoto(name: string | RegExp, x: number, y: number) {
+/** La superficie de la foto, que se ve a 1000 × 1000 px de pantalla. */
+function photoSurface(name: string | RegExp) {
   const surface = screen.getByRole('button', { name });
   vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({
     left: 0,
@@ -58,7 +58,12 @@ function tapPhoto(name: string | RegExp, x: number, y: number) {
     width: 1000,
     height: 1000,
   } as DOMRect);
-  fireEvent.click(surface, { clientX: x, clientY: y, detail: 1 });
+  return surface;
+}
+
+/** Toca la foto en el píxel (x, y). */
+function tapPhoto(name: string | RegExp, x: number, y: number) {
+  fireEvent.click(photoSurface(name), { clientX: x, clientY: y, detail: 1 });
 }
 
 /** Calibra con el anillo exterior del ISSF (500 mm) a 250 px del centro: 1 mm por px. */
@@ -286,6 +291,48 @@ describe('M06 · Análisis nuevo', () => {
 
     tapPhoto('Ubicar centro en el punto indicado', 500, 500);
     expect(screen.getByRole('radio', { name: 'Anillo' })).toBeChecked();
+  });
+
+  it('al mantener apretado, el marcador sigue al dedo y se fija al soltar', async () => {
+    const { sessions } = renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
+    await loadPhoto(2);
+
+    const center = photoSurface('Ubicar centro en el punto indicado');
+    fireEvent.pointerDown(center, { clientX: 400, clientY: 420, button: 0, pointerId: 1 });
+    // El centro ya está ubicado pero sigue activo mientras no se suelte.
+    expect(screen.getByRole('radio', { name: 'Centro ✓' })).toBeChecked();
+    fireEvent.pointerMove(center, { clientX: 480, clientY: 490, pointerId: 1 });
+    expect(screen.getByRole('radio', { name: 'Centro ✓' })).toBeChecked();
+    fireEvent.pointerUp(center, { clientX: 500, clientY: 500, pointerId: 1 });
+    // El click que sigue al soltar no ubica el anillo en el mismo lugar.
+    fireEvent.click(center, { clientX: 500, clientY: 500, detail: 1 });
+    expect(screen.getByRole('radio', { name: 'Anillo' })).toBeChecked();
+
+    // Fuera de la foto, el punto queda en el borde.
+    const edge = photoSurface('Ubicar anillo en el punto indicado');
+    fireEvent.pointerDown(edge, { clientX: 700, clientY: 500, button: 0, pointerId: 1 });
+    fireEvent.pointerMove(edge, { clientX: 1200, clientY: 500, pointerId: 1 });
+    fireEvent.pointerMove(edge, { clientX: 750, clientY: 500, pointerId: 1 });
+    fireEvent.pointerUp(edge, { clientX: 750, clientY: 500, pointerId: 1 });
+    fireEvent.click(edge, { clientX: 750, clientY: 500, detail: 1 });
+    await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+
+    tapPhoto('Agregar impacto en el punto indicado', 500, 490);
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar análisis' }));
+    expect(sessions.saveAnalysis).toHaveBeenCalledWith(
+      ANA.uid,
+      TODAY_SESSION.id,
+      ROUND_2.id,
+      expect.objectContaining({
+        analysis: expect.objectContaining({
+          calibration: expect.objectContaining({
+            center: { x: 500, y: 500 },
+            edge: { x: 750, y: 500 },
+          }),
+          impacts: [{ x: 0, y: 10 }],
+        }),
+      }),
+    );
   });
 
   it('no deja continuar sin ubicar el punto sobre el anillo', async () => {
