@@ -10,7 +10,8 @@ export interface StatTileProps {
   help?: ReactNode;
   /** Colorea la ayuda como delta positivo o negativo (además del texto). */
   trend?: 'up' | 'down';
-  size?: 'md' | 'lg';
+  /** `sm` para que entren tres por fila en mobile. */
+  size?: 'sm' | 'md' | 'lg';
   accent?: boolean;
   className?: string;
 }
@@ -27,7 +28,7 @@ export function StatTile({
 }: StatTileProps) {
   return (
     <div
-      className={cx(styles.tile, size === 'lg' && styles.lg, accent && styles.accent, className)}
+      className={cx(styles.tile, size !== 'md' && styles[size], accent && styles.accent, className)}
     >
       <span className="eyebrow">{label}</span>
       <span className={styles.value}>

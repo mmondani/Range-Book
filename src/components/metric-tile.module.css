@@ -1,0 +1,9 @@
+.tile {
+  padding: var(--space-3);
+}
+
+@media (min-width: 1024px) {
+  .tile {
+    padding: var(--space-3) 14px;
+  }
+}

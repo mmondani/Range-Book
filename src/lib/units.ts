@@ -40,12 +40,16 @@ export function toMm(value: number, units: Units): number {
   return units === 'in' ? inchesToMm(value) : value;
 }
 
-/** Medida en mm formateada en la unidad elegida, con formato `es-AR`: `25,4 mm`, `1,00 in`. */
-export function formatLength(mm: number, units: Units): string {
+/** Número de una medida en mm, en la unidad elegida y con formato `es-AR`: `25,4`, `1,00`. */
+export function formatLengthValue(mm: number, units: Units): string {
   const decimals = UNIT_DECIMALS[units];
-  const value = new Intl.NumberFormat('es-AR', {
+  return new Intl.NumberFormat('es-AR', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(fromMm(mm, units));
-  return `${value} ${UNIT_SYMBOLS[units]}`;
+}
+
+/** Medida en mm formateada en la unidad elegida, con formato `es-AR`: `25,4 mm`, `1,00 in`. */
+export function formatLength(mm: number, units: Units): string {
+  return `${formatLengthValue(mm, units)} ${UNIT_SYMBOLS[units]}`;
 }

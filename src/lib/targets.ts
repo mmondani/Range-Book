@@ -152,7 +152,7 @@ export function targetSummary({ scoring, referenceSizeMm, zones }: TargetInput):
 
 /** Puntaje de la zona más alta; `null` si el blanco no tiene zonas (no hay máximo). */
 export function maxZoneScore(
-  target: Pick<TargetInput, 'scoring' | 'zones'> | undefined,
+  target: { scoring: TargetScoring; zones: readonly TargetZone[] } | undefined,
 ): number | null {
   if (!target || target.scoring !== 'rings' || target.zones.length === 0) return null;
   return Math.max(...target.zones.map((zone) => zone.score));

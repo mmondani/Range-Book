@@ -40,6 +40,17 @@
   overflow-wrap: anywhere;
 }
 
+.analysis {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 4px;
+  min-height: 32px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
 .edit {
   flex-shrink: 0;
   align-self: flex-start;

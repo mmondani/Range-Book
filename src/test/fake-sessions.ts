@@ -1,7 +1,45 @@
 import { vi } from 'vitest';
 import type { SessionRepository } from '@/data/session-repository';
+import type { AnalysisResult, RoundAnalysis } from '@/lib/analysis';
 import type { RoundFields } from '@/lib/rounds';
 import type { Round, Session, SessionFields } from '@/lib/sessions';
+
+/**
+ * Análisis de ROUND_1 sobre el ISSF (Ø 500 mm, foto de 1000 × 1000 px con el anillo exterior a
+ * 250 px del centro: 1 mm por px). Tres impactos: dos de 10 y uno de 9, con un grupo de 46 mm.
+ */
+export const ROUND_1_ANALYSIS: RoundAnalysis = {
+  calibration: {
+    kind: 'ring',
+    width: 1000,
+    height: 1000,
+    center: { x: 500, y: 500 },
+    edge: { x: 750, y: 500 },
+    diameterMm: 500,
+  },
+  impacts: [
+    { x: 0, y: 10 },
+    { x: 0, y: -36 },
+    { x: -20, y: -13 },
+  ],
+  metrics: {
+    impacts: 3,
+    score: 29,
+    maxScore: 30,
+    averageScore: 29 / 3,
+    distribution: [
+      { score: 10, count: 2 },
+      { score: 9, count: 1 },
+    ],
+    groupSizeMm: 46,
+    groupSizeMoa: 46 / (25 * 0.2909),
+    mpi: { x: -20 / 3, y: -13 },
+    mpiOffsetMm: Math.hypot(20 / 3, 13),
+    mpiClock: 7,
+    meanDistanceMm: (10 + 36 + Math.hypot(20, 13)) / 3,
+  },
+  scoreConfirmed: false,
+};
 
 export const ROUND_1: Round = {
   id: 'r1',
@@ -12,7 +50,7 @@ export const ROUND_1: Round = {
   score: null,
   photo: 'users/ana/rounds/r1/a.jpg',
   comments: 'Buen control del gatillo',
-  analysis: { groupSizeMm: 46 },
+  analysis: ROUND_1_ANALYSIS,
 };
 
 export const ROUND_2: Round = {
@@ -137,6 +175,17 @@ export function createFakeSessions(
                   : round,
               )
             : [...rounds, { id: roundId, ...fields, score: null, analysis: null }],
+        );
+      },
+    ),
+    saveAnalysis: vi.fn(
+      async (_uid: string, sessionId: string, roundId: string, result: AnalysisResult) => {
+        setRounds(sessionId, (rounds) =>
+          rounds.map((round) =>
+            round.id === roundId
+              ? { ...round, analysis: result.analysis, score: result.score }
+              : round,
+          ),
         );
       },
     ),

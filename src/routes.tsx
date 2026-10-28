@@ -1,5 +1,6 @@
 import { Navigate, type RouteObject } from 'react-router';
 import { AppLayout, type LayoutHandle } from '@/components/app-layout';
+import { AnalysisScreen } from '@/screens/analysis-screen';
 import { RequireAuth } from '@/components/require-auth';
 import { ComponentCatalog } from '@/screens/component-catalog';
 import { FirearmItemRoute } from '@/screens/firearm-item-route';
@@ -48,6 +49,12 @@ export const routes: RouteObject[] = [
       // Formulario de pantalla completa. `sesiones/nueva` le gana a `sesiones/:id`.
       { path: 'sesiones/nueva', element: <SessionFormScreen />, handle: FULL_SCREEN },
       { path: 'sesiones/:id/editar', element: <SessionFormScreen />, handle: FULL_SCREEN },
+      // Análisis de pantalla completa (también en desktop, sin la lista de sesiones).
+      {
+        path: 'sesiones/:id/rondas/:roundId/analisis',
+        element: <AnalysisScreen />,
+        handle: FULL_SCREEN,
+      },
       { path: 'rendimiento', element: <PlaceholderScreen title="Rendimiento" /> },
       { path: 'inventario', element: <Navigate to="/inventario/armas" replace /> },
       {

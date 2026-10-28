@@ -1,0 +1,83 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px var(--space-4);
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.end {
+  align-items: flex-end;
+}
+
+.score {
+  font-size: 44px;
+  color: var(--accent);
+}
+
+.max {
+  font-size: 20px;
+  color: var(--text-3);
+}
+
+.average {
+  font-size: 28px;
+}
+
+.distribution {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.zone {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.zone b {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+@media (min-width: 1024px) {
+  .card {
+    gap: var(--space-3);
+    padding: var(--space-4) 18px;
+  }
+
+  .score {
+    font-size: 52px;
+  }
+
+  .max {
+    font-size: 22px;
+  }
+
+  .average {
+    font-size: 32px;
+  }
+}

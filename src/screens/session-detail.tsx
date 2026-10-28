@@ -73,6 +73,7 @@ export function SessionDetail() {
   const editPath = `${detailPath}/editar`;
   const newRoundPath = `${detailPath}/rondas/nueva`;
   const roundPath = (roundId: string) => `${detailPath}/rondas/${roundId}/editar`;
+  const analysisPath = (roundId: string) => `${detailPath}/rondas/${roundId}/analisis`;
   const rounds = roundItems(session, data.targets);
   const outlet: SessionDetailOutletContext = {
     session,
@@ -246,13 +247,19 @@ export function SessionDetail() {
               items={rounds}
               units={units}
               editPath={(item) => roundPath(item.round.id)}
+              analysisPath={(item) => analysisPath(item.round.id)}
             />
           </Card>
         ) : (
           <ol className={styles.rounds} aria-label="Rondas">
             {rounds.map((item) => (
               <li key={item.round.id}>
-                <RoundRow item={item} units={units} editPath={roundPath(item.round.id)} />
+                <RoundRow
+                  item={item}
+                  units={units}
+                  editPath={roundPath(item.round.id)}
+                  analysisPath={analysisPath(item.round.id)}
+                />
               </li>
             ))}
           </ol>

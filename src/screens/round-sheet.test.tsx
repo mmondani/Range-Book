@@ -37,6 +37,12 @@ describe('Rondas en el detalle de la sesión', () => {
       'href',
       '/sesiones/hoy/rondas/r1/editar',
     );
+    expect(
+      within(first!).getByRole('link', { name: 'Ver análisis de la ronda 1' }),
+    ).toHaveAttribute('href', '/sesiones/hoy/rondas/r1/analisis');
+    expect(
+      within(second!).getByRole('link', { name: 'Analizar blanco de la ronda 2' }),
+    ).toHaveAttribute('href', '/sesiones/hoy/rondas/r2/analisis');
   });
 
   it('en desktop es una tabla, con "Agregar ronda" en el encabezado', async () => {
@@ -47,6 +53,9 @@ describe('Rondas en el detalle de la sesión', () => {
     expect(rows).toHaveLength(3);
     expect(rows[1]).toHaveTextContent('1 · ISSF Pistola Precisión25 m1513646,0 mm');
     expect(rows[2]).toHaveTextContent('Sin analizar');
+    expect(
+      within(rows[2]!).getByRole('link', { name: 'Analizar blanco de la ronda 2' }),
+    ).toHaveAttribute('href', '/sesiones/hoy/rondas/r2/analisis');
     expect(screen.getByRole('link', { name: 'Agregar ronda' })).toHaveAttribute(
       'href',
       '/sesiones/hoy/rondas/nueva',
@@ -160,6 +169,20 @@ describe('M05 · Editar ronda', () => {
       true,
     );
     expect(await screen.findByText('Cambios guardados')).toBeInTheDocument();
+  });
+
+  it('con la foto guardada, lleva al análisis; con cambios sin guardar, no', async () => {
+    const { dialog, router } = await openRound(1);
+    const sheetView = within(dialog);
+    const link = sheetView.getByRole('link', { name: 'Ver análisis' });
+    expect(link).toHaveAttribute('href', '/sesiones/hoy/rondas/r1/analisis');
+    await userEvent.type(sheetView.getByRole('textbox', { name: 'Comentarios' }), '!');
+    expect(sheetView.queryByRole('link', { name: 'Ver análisis' })).not.toBeInTheDocument();
+    await userEvent.clear(sheetView.getByRole('textbox', { name: 'Comentarios' }));
+    await userEvent.type(sheetView.getByRole('textbox', { name: 'Comentarios' }), ROUND_1.comments);
+    await userEvent.click(sheetView.getByRole('link', { name: 'Ver análisis' }));
+    expect(router.state.location.pathname).toBe('/sesiones/hoy/rondas/r1/analisis');
+    expect(await screen.findByRole('heading', { name: 'Análisis · Ronda 1' })).toBeInTheDocument();
   });
 
   it('quitar la foto de una ronda analizada descarta el análisis y borra la foto', async () => {

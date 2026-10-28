@@ -1,0 +1,59 @@
+.toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-2);
+  font: 600 15px var(--font-body);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-state),
+    color var(--dur-state);
+}
+
+.button:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.button svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.on {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+@media (min-width: 1024px) {
+  .toolbar {
+    flex-wrap: wrap;
+    background: var(--surface-2);
+  }
+
+  .button {
+    flex: none;
+    min-height: 40px;
+  }
+}

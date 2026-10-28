@@ -6,6 +6,7 @@ import type { RoundItem } from '@/lib/rounds';
 import { formatLength, type Units } from '@/lib/units';
 import { DataTable, type DataTableColumn } from './data-table';
 import { IconLink } from './icon-link';
+import { LinkButton } from './link-button';
 import { RoundStatus } from './round-status';
 import { TargetThumb } from './target-thumb';
 import styles from './round-table.module.css';
@@ -14,10 +15,11 @@ export interface RoundTableProps {
   items: readonly RoundItem[];
   units: Units;
   editPath: (item: RoundItem) => string;
+  analysisPath: (item: RoundItem) => string;
 }
 
 /** Rondas del detalle de la sesión en desktop (W02): `RoundRow` como fila de tabla. */
-export function RoundTable({ items, units, editPath }: RoundTableProps) {
+export function RoundTable({ items, units, editPath, analysisPath }: RoundTableProps) {
   const columns: DataTableColumn<RoundItem>[] = [
     {
       key: 'photo',
@@ -58,12 +60,10 @@ export function RoundTable({ items, units, editPath }: RoundTableProps) {
     {
       key: 'group',
       header: 'Grupo',
-      cell: ({ round }) =>
-        round.analysis?.groupSizeMm == null ? (
-          '—'
-        ) : (
-          <span className="num">{formatLength(round.analysis.groupSizeMm, units)}</span>
-        ),
+      cell: ({ round }) => {
+        const group = round.analysis?.metrics.groupSizeMm;
+        return group == null ? '—' : <span className="num">{formatLength(group, units)}</span>;
+      },
     },
     {
       key: 'comments',
@@ -81,15 +81,28 @@ export function RoundTable({ items, units, editPath }: RoundTableProps) {
       header: 'Acciones',
       hideHeader: true,
       kind: 'actions',
-      cell: (item) => (
-        <IconLink
-          to={editPath(item)}
-          state={OPENED_FROM_LIST}
-          aria-label={`Editar ronda ${item.number}`}
-        >
-          <Pencil aria-hidden="true" size={20} />
-        </IconLink>
-      ),
+      cell: (item) => {
+        const label = item.analyzed ? 'Ver análisis' : 'Analizar blanco';
+        return (
+          <span className={styles.actions}>
+            <LinkButton
+              variant="ghost"
+              to={analysisPath(item)}
+              aria-label={`${label} de la ronda ${item.number}`}
+              className={styles.analysis}
+            >
+              {label}
+            </LinkButton>
+            <IconLink
+              to={editPath(item)}
+              state={OPENED_FROM_LIST}
+              aria-label={`Editar ronda ${item.number}`}
+            >
+              <Pencil aria-hidden="true" size={20} />
+            </IconLink>
+          </span>
+        );
+      },
     },
   ];
 

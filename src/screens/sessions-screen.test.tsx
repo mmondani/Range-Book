@@ -114,6 +114,7 @@ describe('SessionsScreen', () => {
         update: async () => {},
         remove: async () => ({ undo: async () => {} }),
         saveRound: async () => {},
+        saveAnalysis: async () => {},
         removeRound: async () => ({ undo: async () => {} }),
       },
     });

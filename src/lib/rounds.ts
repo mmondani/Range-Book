@@ -1,3 +1,4 @@
+import type { AnalysisResult } from './analysis';
 import { formatDecimal, parseDecimal } from './format';
 import { selectableItems, type FieldErrors } from './inventory';
 import { storedPhotos, type PhotoDraft } from './photos';
@@ -214,6 +215,19 @@ export function saveRawRound(
   const index = rounds.findIndex((round) => round.id === id);
   if (index === -1) return [...rounds, { id, ...fields, score: null, analysis: null }];
   return rounds.map((round, i) => (i === index ? { ...round, ...fields, ...reset } : round));
+}
+
+/**
+ * Guarda el análisis de la ronda y el puntaje calculado (`null` si no se confirmó: queda el
+ * cargado a mano). `undefined` si la ronda ya no existe.
+ */
+export function saveRawAnalysis(
+  rounds: readonly RawRound[],
+  id: string,
+  { analysis, score }: AnalysisResult,
+): RawRound[] | undefined {
+  if (!rounds.some((round) => round.id === id)) return undefined;
+  return rounds.map((round) => (round.id === id ? { ...round, analysis, score } : round));
 }
 
 /** Saca la ronda y devuelve dónde estaba, para poder deshacerlo. */

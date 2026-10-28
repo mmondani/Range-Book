@@ -7,10 +7,12 @@ import {
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
+import type { AnalysisResult } from '@/lib/analysis';
 import {
   rawRounds,
   removeRawRound,
   restoreRawRound,
+  saveRawAnalysis,
   saveRawRound,
   type RawRound,
   type RoundFields,
@@ -44,6 +46,13 @@ export interface SessionRepository {
     roundId: string,
     fields: RoundFields,
     keepAnalysis: boolean,
+  ): Promise<void>;
+  /** Guarda el análisis de una ronda y su puntaje calculado (si se confirmó). */
+  saveAnalysis(
+    uid: string,
+    sessionId: string,
+    roundId: string,
+    result: AnalysisResult,
   ): Promise<void>;
   /** Elimina una ronda y devuelve cómo deshacerlo: la vuelve a poner en su lugar, tal cual era. */
   removeRound(
@@ -103,6 +112,13 @@ export const firebaseSessionRepository: SessionRepository = {
     return changeRounds(uid, sessionId, (rounds) =>
       saveRawRound(rounds, roundId, fields, keepAnalysis),
     );
+  },
+  saveAnalysis(uid, sessionId, roundId, result) {
+    return changeRounds(uid, sessionId, (rounds) => {
+      const next = saveRawAnalysis(rounds, roundId, result);
+      if (!next) throw new Error('La ronda no existe');
+      return next;
+    });
   },
   async removeRound(uid, sessionId, roundId) {
     let removed: ReturnType<typeof removeRawRound>['removed'];

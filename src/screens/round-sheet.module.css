@@ -23,3 +23,15 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
+
+.analyze {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 4px;
+  min-height: 32px;
+  margin-top: calc(-1 * var(--space-2));
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}

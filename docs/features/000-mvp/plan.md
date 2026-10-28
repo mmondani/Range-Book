@@ -105,7 +105,7 @@ No hay código todavía; todo es nuevo. `docs/arquitectura.md` no existe y se cr
 - [x] **10. Rondas**
   - Qué: M05 como sheet con URL propia (diálogo en desktop): blanco, distancia y disparos precargados de la ronda anterior, puntaje manual, foto, comentarios. `RoundRow` con estado *Analizada / Sin analizar*.
   - Verificación: tests de defaults de la ronda; test de que "atrás" cierra el sheet.
-- [ ] **11. Análisis de blancos**
+- [x] **11. Análisis de blancos**
   - Qué: M06/W04. Calibración de la foto (centro + anillo visible elegido de la lista, o centro + dos puntos con distancia en mm en blancos sin zonas; anillos calibrados dibujados para verificar), `TargetAnalyzer` con modos Detectar / Agregar / Quitar, Deshacer con historial, PMI (cruz azul) y grupo (círculo punteado), aviso de impactos ≠ disparos, tabla de impactos en desktop, `MetricTile`s en vivo, checkbox "Usar el puntaje calculado". Estados: detectando, detección fallida, sin foto, blanco sin zonas. Se guardan impactos en mm y un snapshot de las métricas.
   - Verificación: tests de `metrics.ts` con casos calculados a mano (incluido MOA a varias distancias y horas de reloj del PMI), de `calibration.ts` (escala con distintos anillos de referencia y con dos puntos + distancia) y de `impact-detection.ts` con imágenes sintéticas; tests de pantalla de la confirmación del puntaje (marcado → usa el calculado; desmarcado → conserva el manual).
 - [ ] **12. Rendimiento**

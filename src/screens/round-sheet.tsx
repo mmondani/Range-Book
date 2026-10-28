@@ -1,4 +1,6 @@
+import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Field } from '@/components/field';
 import { Input } from '@/components/input';
@@ -217,6 +219,13 @@ export function RoundSheet({ session, sessions, targets, round, listPath }: Roun
             onChange={(photos) => setField('photos', photos)}
           />
         </Field>
+        {/* Se analiza la foto ya guardada: con cambios sin guardar, primero hay que guardarlos. */}
+        {round?.photo && !form.dirty && (
+          <Link to={`${listPath}/rondas/${round.id}/analisis`} replace className={styles.analyze}>
+            {round.analysis ? 'Ver análisis' : 'Analizar impactos'}
+            <ChevronRight aria-hidden="true" size={18} />
+          </Link>
+        )}
 
         <Field label="Comentarios" error={errors.comments}>
           <Textarea

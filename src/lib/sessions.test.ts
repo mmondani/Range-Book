@@ -1,3 +1,4 @@
+import { parseAnalysis } from './analysis';
 import { describe, expect, it } from 'vitest';
 import type { Configuration, Firearm, Modification } from './firearms';
 import type { Ammunition, Range } from './inventory';
@@ -31,6 +32,9 @@ import {
   type SessionDraft,
 } from './sessions';
 import type { Target } from './targets';
+
+/** Análisis mínimo: solo el tamaño de grupo. */
+const withGroup = (groupSizeMm: number) => parseAnalysis({ metrics: { groupSizeMm } });
 
 const firearm = (id: string, brand: string, model: string, archived = false): Firearm => ({
   id,
@@ -401,8 +405,8 @@ describe('sessionTotals', () => {
     const totals = sessionTotals(
       session({
         rounds: [
-          round({ analysis: { groupSizeMm: 40 } }),
-          round({ id: 'r2', analysis: { groupSizeMm: 52 } }),
+          round({ analysis: withGroup(40) }),
+          round({ id: 'r2', analysis: withGroup(52) }),
           round({ id: 'r3' }),
         ],
       }),
@@ -546,7 +550,7 @@ describe('Firestore', () => {
       score: null,
       photo: 'r.jpg',
       comments: '',
-      analysis: { groupSizeMm: 46 },
+      analysis: withGroup(46),
     });
     expect(parseSession('x', {})).toMatchObject({ date: '', rounds: [], photos: [] });
   });

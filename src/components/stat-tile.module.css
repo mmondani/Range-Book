@@ -15,6 +15,10 @@
   font-size: 30px;
 }
 
+.sm .number {
+  font-size: 26px;
+}
+
 .lg .number {
   font-size: 40px;
 }

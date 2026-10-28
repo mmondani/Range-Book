@@ -1,4 +1,5 @@
-import { Pencil } from 'lucide-react';
+import { ChevronRight, Pencil } from 'lucide-react';
+import { Link } from 'react-router';
 import { OPENED_FROM_LIST } from '@/hooks/use-inventory';
 import { cx } from '@/lib/cx';
 import { formatDecimal, formatInteger } from '@/lib/format';
@@ -15,13 +16,16 @@ export interface RoundRowProps {
   item: RoundItem;
   units: Units;
   editPath: string;
+  analysisPath: string;
 }
 
 /** Ronda en el detalle de la sesión (mobile): blanco, disparos, puntaje, grupo y estado. */
-export function RoundRow({ item, units, editPath }: RoundRowProps) {
+export function RoundRow({ item, units, editPath, analysisPath }: RoundRowProps) {
   const { round, number, target, targetLabel, score, analyzed } = item;
   const [photo] = storedPhotos(round.photo ? [round.photo] : []);
-  const group = round.analysis?.groupSizeMm;
+  const group = round.analysis?.metrics.groupSizeMm;
+  // Se nombra la ronda para que cada link se distinga fuera de contexto.
+  const analysisLabel = analyzed ? 'Ver análisis' : 'Analizar blanco';
   return (
     <Card className={styles.row}>
       <TargetThumb
@@ -45,6 +49,14 @@ export function RoundRow({ item, units, editPath }: RoundRowProps) {
           {targetLabel} · {formatDecimal(round.distanceM)} m
           {round.comments && ` · ${round.comments}`}
         </span>
+        <Link
+          to={analysisPath}
+          aria-label={`${analysisLabel} de la ronda ${number}`}
+          className={styles.analysis}
+        >
+          {analysisLabel}
+          <ChevronRight aria-hidden="true" size={18} />
+        </Link>
       </div>
       <IconLink
         to={editPath}

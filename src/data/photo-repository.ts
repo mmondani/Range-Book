@@ -1,10 +1,15 @@
-import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { deleteObject, getBlob, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import type { PhotoUploader } from '@/lib/photos';
 import { firebase } from './firebase';
 
 export interface PhotoRepository extends PhotoUploader {
   /** URL para mostrar la foto. Se cachea: la ruta de una foto nunca cambia de contenido. */
   url(path: string): Promise<string>;
+  /**
+   * Contenido de la foto, para leer sus píxeles (detección de impactos). Necesita que el bucket
+   * tenga CORS configurado para el dominio de la app.
+   */
+  blob(path: string): Promise<Blob>;
   /** Borra la foto; si ya no existe, no falla. */
   remove(path: string): Promise<void>;
 }
@@ -29,6 +34,10 @@ export const firebasePhotoRepository: PhotoRepository = {
       urls.set(path, url);
     }
     return url;
+  },
+
+  blob(path) {
+    return getBlob(ref(firebase().storage, path));
   },
 
   async remove(path) {

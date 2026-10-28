@@ -12,6 +12,10 @@ export function createFakePhotos({ missing = [] as string[] } = {}) {
       if (missing.includes(path)) throw new Error('storage/object-not-found');
       return `https://storage.test/${path}`;
     }),
+    blob: vi.fn(async (path: string) => {
+      if (missing.includes(path)) throw new Error('storage/object-not-found');
+      return stored.get(path) ?? new Blob(['foto'], { type: 'image/jpeg' });
+    }),
     remove: vi.fn(async (path: string) => {
       stored.delete(path);
     }),

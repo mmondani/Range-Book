@@ -1,3 +1,4 @@
+import { parseAnalysis } from './analysis';
 import { describe, expect, it } from 'vitest';
 import { pendingPhoto, storedPhotos } from './photos';
 import {
@@ -18,6 +19,9 @@ import {
 } from './rounds';
 import type { Round, Session } from './sessions';
 import type { Target } from './targets';
+
+/** Análisis mínimo: solo el tamaño de grupo. */
+const withGroup = (groupSizeMm: number) => parseAnalysis({ metrics: { groupSizeMm } });
 
 const ISSF: Target = {
   id: 'issf',
@@ -229,7 +233,7 @@ describe('discardsAnalysis', () => {
   const analyzed = round({
     photo: 'users/ana/rounds/r1/a.jpg',
     score: 95,
-    analysis: { groupSizeMm: 40 },
+    analysis: withGroup(40),
   });
   const same = { targetId: 'issf', photos: storedPhotos(['users/ana/rounds/r1/a.jpg']) };
 
@@ -302,7 +306,7 @@ describe('roundItems', () => {
     const items = roundItems(
       session({
         rounds: [
-          round({ manualScore: 90, score: 95, analysis: { groupSizeMm: 40 } }),
+          round({ manualScore: 90, score: 95, analysis: withGroup(40) }),
           round({ id: 'r2', targetId: 'otro', manualScore: 80 }),
         ],
       }),

@@ -1,3 +1,4 @@
+import { parseAnalysis, type RoundAnalysis } from './analysis';
 import {
   configurationModifications,
   firearmName,
@@ -44,11 +45,6 @@ export const WEATHER_LABELS: Record<Weather, string> = {
 export interface ModificationSnapshot {
   brand: string;
   model: string;
-}
-
-/** Lo que la sesión necesita del análisis de una ronda (el modelo completo llega en el paso 11). */
-export interface RoundAnalysis {
-  groupSizeMm: number | null;
 }
 
 /** Ronda embebida en la sesión. Se cargan desde el detalle (paso 10). */
@@ -462,7 +458,8 @@ export function sessionTotals(
       const zoneMax = maxZoneScore(byId.get(round.targetId));
       maxScore = maxScore === null || zoneMax === null ? null : maxScore + zoneMax * round.shots;
     }
-    if (round.analysis?.groupSizeMm != null) groups.push(round.analysis.groupSizeMm);
+    const group = round.analysis?.metrics.groupSizeMm;
+    if (group != null) groups.push(group);
   }
 
   return {
@@ -624,8 +621,6 @@ function numberOrNull(value: unknown): number | null {
 
 function parseRound(value: unknown, index: number): Round {
   const data = (value ?? {}) as Record<string, unknown>;
-  const analysis = (data.analysis ?? null) as Record<string, unknown> | null;
-  const metrics = (analysis?.metrics ?? null) as Record<string, unknown> | null;
   return {
     id: typeof data.id === 'string' ? data.id : `ronda-${index + 1}`,
     targetId: text(data.targetId),
@@ -635,10 +630,7 @@ function parseRound(value: unknown, index: number): Round {
     score: numberOrNull(data.score),
     photo: typeof data.photo === 'string' ? data.photo : null,
     comments: text(data.comments),
-    analysis:
-      analysis && typeof analysis === 'object'
-        ? { groupSizeMm: numberOrNull(metrics?.groupSizeMm) }
-        : null,
+    analysis: parseAnalysis(data.analysis),
   };
 }
 
