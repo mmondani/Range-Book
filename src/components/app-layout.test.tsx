@@ -1,7 +1,7 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { AppLayout } from './app-layout';
 
 function renderLayout(path = '/sesiones') {
@@ -57,5 +57,20 @@ describe('AppLayout', () => {
     const [bottomNav] = screen.getAllByRole('navigation', { name: 'Principal' });
     await userEvent.click(within(bottomNav!).getByRole('link', { name: 'Perfil' }));
     expect(screen.getByRole('heading', { level: 1, name: 'Perfil' })).toHaveFocus();
+  });
+
+  it('sin conexión muestra el banner, y lo saca al volver', () => {
+    const onLine = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    renderLayout();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Sin conexión — los cambios se guardan y se sincronizan al volver',
+    );
+
+    onLine.mockReturnValue(true);
+    act(() => {
+      window.dispatchEvent(new Event('online'));
+    });
+    expect(screen.queryByText('Sin conexión')).not.toBeInTheDocument();
+    onLine.mockRestore();
   });
 });

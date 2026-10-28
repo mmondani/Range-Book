@@ -4,6 +4,7 @@ import { useCurrentUser } from '@/hooks/use-auth';
 import { cx } from '@/lib/cx';
 import { BottomNav } from './bottom-nav';
 import styles from './app-layout.module.css';
+import { OfflineBanner } from './offline-banner';
 import { Sidebar, type SidebarUser } from './sidebar';
 
 /** `handle` de una ruta que ocupa toda la pantalla en mobile, con su propia barra de acción. */
@@ -20,7 +21,7 @@ export interface AppLayoutProps {
  * Barra inferior en mobile y sidebar en desktop. Al cambiar de pantalla, el foco va al `<h1>`. Si
  * la ruta cambia pero la pantalla sigue siendo la misma (abrir o cerrar un sheet, cambiar de
  * pestaña), el foco no se mueve. Las rutas con `handle.hideBottomNav` (formularios de pantalla
- * completa) no muestran la barra inferior.
+ * completa) no muestran la barra inferior. Sin conexión, arriba del contenido va `OfflineBanner`.
  */
 export function AppLayout({ user }: AppLayoutProps) {
   const currentUser = useCurrentUser();
@@ -54,6 +55,7 @@ export function AppLayout({ user }: AppLayoutProps) {
     <div className={styles.layout}>
       <Sidebar user={sidebarUser} />
       <main ref={mainRef} className={cx(styles.main, hideBottomNav && styles.noNav)}>
+        <OfflineBanner />
         <Outlet />
       </main>
       {!hideBottomNav && <BottomNav />}

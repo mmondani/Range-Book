@@ -28,6 +28,7 @@ import {
   type Range,
   type RangeInput,
 } from '@/lib/inventory';
+import { settleWrite } from '@/lib/offline-write';
 import { parseTarget, type Target, type TargetInput } from '@/lib/targets';
 import { firebase } from './firebase';
 
@@ -88,14 +89,14 @@ function firestoreCollection<T extends Archivable, I extends object>(
     },
     async create(uid, input, id) {
       const ref = id ? doc(path(uid), id) : doc(path(uid));
-      await setDoc(ref, { ...input, archived: false });
+      await settleWrite(setDoc(ref, { ...input, archived: false }));
       return ref.id;
     },
     update(uid, id, input) {
-      return updateDoc(doc(path(uid), id), { ...input });
+      return settleWrite(updateDoc(doc(path(uid), id), { ...input }));
     },
     setArchived(uid, id, archived) {
-      return updateDoc(doc(path(uid), id), { archived });
+      return settleWrite(updateDoc(doc(path(uid), id), { archived }));
     },
   };
 }

@@ -2,17 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import type { AuthRepository } from '@/data/auth-repository';
 import type { ProfileRepository } from '@/data/profile-repository';
 import { AuthContext, type AuthState } from '@/hooks/use-auth';
-import { chooseSignInMethod, classifyAuthError, STANDALONE_QUERY, type AuthUser } from '@/lib/auth';
+import { chooseSignInMethod, classifyAuthError, type AuthUser } from '@/lib/auth';
+import { isStandalone } from '@/lib/install';
 
 export interface AuthProviderProps {
   auth: AuthRepository;
   profiles: ProfileRepository;
   children: ReactNode;
-}
-
-function isStandalone(): boolean {
-  const iosStandalone = (navigator as Navigator & { standalone?: boolean }).standalone === true;
-  return iosStandalone || (window.matchMedia?.(STANDALONE_QUERY).matches ?? false);
 }
 
 /**

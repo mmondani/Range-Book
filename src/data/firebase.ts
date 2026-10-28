@@ -1,6 +1,12 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { connectAuthEmulator, getAuth, type Auth } from 'firebase/auth';
-import { connectFirestoreEmulator, getFirestore, type Firestore } from 'firebase/firestore';
+import {
+  connectFirestoreEmulator,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  type Firestore,
+} from 'firebase/firestore';
 import { connectStorageEmulator, getStorage, type FirebaseStorage } from 'firebase/storage';
 
 interface FirebaseServices {
@@ -15,6 +21,9 @@ let services: FirebaseServices | undefined;
 /**
  * Inicializa Firebase la primera vez que se usa, así los tests (que usan repositorios
  * simulados) no lo cargan. Con `VITE_USE_EMULATORS=true` se conecta a los emuladores locales.
+ *
+ * Firestore guarda una copia local (IndexedDB, compartida entre pestañas): sin conexión se lee de
+ * ahí y las escrituras quedan en cola hasta que vuelva.
  */
 export function firebase(): FirebaseServices {
   if (services) return services;
@@ -33,8 +42,13 @@ export function firebase(): FirebaseServices {
     appId: env.VITE_FIREBASE_APP_ID,
   });
   const auth = getAuth(app);
-  const db = getFirestore(app);
+  const db = initializeFirestore(app, {
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+  });
   const storage = getStorage(app);
+  // Con mala conexión, una subida falla al minuto y queda en la cola de fotos pendientes, en vez de
+  // reintentar durante 10 minutos (el valor por defecto) con el formulario esperando.
+  storage.maxUploadRetryTime = 60_000;
 
   if (useEmulators) {
     connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });

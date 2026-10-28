@@ -17,6 +17,7 @@ import {
   type RawRound,
   type RoundFields,
 } from '@/lib/rounds';
+import { settleWrite } from '@/lib/offline-write';
 import { parseSession, type Session, type SessionFields } from '@/lib/sessions';
 import { firebase } from './firebase';
 
@@ -77,7 +78,7 @@ async function changeRounds(
   const ref = doc(sessions(uid), sessionId);
   const snapshot = await getDoc(ref);
   if (!snapshot.exists()) throw new Error('La sesión no existe');
-  await updateDoc(ref, { rounds: change(rawRounds(snapshot.data().rounds)) });
+  await settleWrite(updateDoc(ref, { rounds: change(rawRounds(snapshot.data().rounds)) }));
 }
 
 export const firebaseSessionRepository: SessionRepository = {
@@ -92,19 +93,19 @@ export const firebaseSessionRepository: SessionRepository = {
     return doc(sessions(uid)).id;
   },
   create(uid, id, fields) {
-    return setDoc(doc(sessions(uid), id), { ...fields, rounds: [] });
+    return settleWrite(setDoc(doc(sessions(uid), id), { ...fields, rounds: [] }));
   },
   update(uid, id, fields) {
-    return updateDoc(doc(sessions(uid), id), { ...fields });
+    return settleWrite(updateDoc(doc(sessions(uid), id), { ...fields }));
   },
   async remove(uid, id) {
     const ref = doc(sessions(uid), id);
     // Se guarda el documento crudo (con las rondas y su análisis completos) para "Deshacer".
     const data = (await getDoc(ref)).data();
-    await deleteDoc(ref);
+    await settleWrite(deleteDoc(ref));
     return {
       undo: async () => {
-        if (data) await setDoc(ref, data);
+        if (data) await settleWrite(setDoc(ref, data));
       },
     };
   },

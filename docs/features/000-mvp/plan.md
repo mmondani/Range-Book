@@ -111,7 +111,7 @@ No hay código todavía; todo es nuevo. `docs/arquitectura.md` no existe y se cr
 - [x] **12. Rendimiento**
   - Qué: M07/W05 con filtros en la query string (configuración, munición, blanco, distancia, polígono, período), KPIs con delta, gráficos de puntaje promedio y tamaño de grupo por sesión (filtro por la distancia más usada por defecto), comparación por munición (mobile), tabla ordenable + CSV (desktop). Estados sin análisis y pocos datos.
   - Verificación: tests de `performance.ts` (filtros, deltas vs. período anterior, distancia por defecto, CSV).
-- [ ] **13. PWA y offline**
+- [x] **13. PWA y offline**
   - Qué: manifest, íconos, service worker, `theme-color` según tema, botón "Instalar" (con `beforeinstallprompt`; instrucciones en iOS), persistencia offline de Firestore, banner "Sin conexión", cola de fotos pendientes.
   - Verificación: Lighthouse PWA instalable; prueba manual en modo avión: crear una sesión con foto y ver que se sincroniza al volver la conexión; test de `upload-queue.ts`.
 - [ ] **14. Deploy y cierre**

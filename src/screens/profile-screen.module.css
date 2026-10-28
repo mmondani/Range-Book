@@ -78,6 +78,25 @@
   padding: 14px var(--space-4);
 }
 
+.rowButton {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rowButton:hover {
+  background: var(--surface-2);
+}
+
+.installIcon {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
 .rowIcon {
   flex-shrink: 0;
   color: var(--text-2);
@@ -89,6 +108,20 @@
 
 .rowValue {
   color: var(--text-3);
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding-left: 1.25em;
+  line-height: 1.5;
+}
+
+.steps svg {
+  vertical-align: -3px;
+  color: var(--accent);
 }
 
 .screen > :last-child {

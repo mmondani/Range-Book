@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import { AuthProvider } from '@/components/auth-provider';
+import { BackgroundTasks } from '@/components/background-tasks';
 import { InventoryProvider } from '@/components/inventory-provider';
 import { PhotoProvider } from '@/components/photo-provider';
 import { ProfileProvider } from '@/components/profile-provider';
@@ -44,6 +45,7 @@ export function App({
           <InventoryProvider repositories={inventory}>
             <SessionProvider repository={sessions}>
               <ToastProvider>
+                <BackgroundTasks />
                 <RouterProvider router={router} />
               </ToastProvider>
             </SessionProvider>

@@ -1,6 +1,7 @@
-import { Info, LogOut } from 'lucide-react';
+import { ChevronRight, Download, Info, LogOut, Share } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Avatar } from '@/components/avatar';
+import { BottomSheet } from '@/components/bottom-sheet';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Field } from '@/components/field';
@@ -8,6 +9,7 @@ import { SegmentedControl, type SegmentOption } from '@/components/segmented-con
 import { Skeleton } from '@/components/skeleton';
 import { StatTile } from '@/components/stat-tile';
 import { useAuth, useCurrentUser } from '@/hooks/use-auth';
+import { useInstall } from '@/hooks/use-install';
 import { useProfile, useProfileSummary, useUnits, type SummaryState } from '@/hooks/use-profile';
 import { useTheme } from '@/hooks/use-theme';
 import { useToast } from '@/hooks/use-toast';
@@ -40,7 +42,10 @@ function summaryValue(state: SummaryState, key: keyof ProfileSummary): ReactNode
   return <Skeleton shape="text" width={48} />;
 }
 
-/** M11 · Perfil: cuenta, resumen, preferencias (unidades y tema), versión y cerrar sesión. */
+/**
+ * M11 · Perfil: cuenta, resumen, preferencias (unidades y tema), instalar, versión y cerrar
+ * sesión.
+ */
 export function ProfileScreen() {
   const user = useCurrentUser();
   const { signOut } = useAuth();
@@ -50,6 +55,8 @@ export function ProfileScreen() {
   const summary = useProfileSummary();
   const toast = useToast();
   const [signingOut, setSigningOut] = useState(false);
+  const install = useInstall();
+  const [iosHelpOpen, setIosHelpOpen] = useState(false);
 
   const email = user?.email ?? '';
   const name = user?.displayName || profile?.displayName || email;
@@ -58,6 +65,11 @@ export function ProfileScreen() {
     updatePreferences(preferences).catch(() =>
       toast.show({ message: 'No se pudo guardar la preferencia', tone: 'error' }),
     );
+  }
+
+  function handleInstall() {
+    if (install.method === 'ios') setIosHelpOpen(true);
+    else install.prompt().catch(() => {});
   }
 
   async function handleSignOut() {
@@ -118,6 +130,17 @@ export function ProfileScreen() {
           Aplicación
         </h2>
         <Card padded={false}>
+          {install.method && (
+            <button
+              type="button"
+              className={`${styles.row} ${styles.rowButton}`}
+              onClick={handleInstall}
+            >
+              <Download aria-hidden="true" className={styles.installIcon} />
+              <span className={styles.rowLabel}>Instalar en el dispositivo</span>
+              <ChevronRight aria-hidden="true" size={18} className={styles.rowValue} />
+            </button>
+          )}
           <div className={styles.row}>
             <Info aria-hidden="true" className={styles.rowIcon} />
             <span className={styles.rowLabel}>Versión</span>
@@ -130,6 +153,31 @@ export function ProfileScreen() {
         <LogOut aria-hidden="true" size={20} />
         Cerrar sesión
       </Button>
+
+      {/* Solo informativo, sin ruta propia: en iOS no hay botón "atrás" del sistema. */}
+      <BottomSheet
+        open={iosHelpOpen}
+        onClose={() => setIosHelpOpen(false)}
+        title="Instalar en el iPhone"
+        footer={
+          <Button variant="primary" onClick={() => setIosHelpOpen(false)}>
+            Entendido
+          </Button>
+        }
+      >
+        <ol className={styles.steps}>
+          <li>
+            En Safari, tocá <strong>Compartir</strong> <Share aria-hidden="true" size={18} />.
+          </li>
+          <li>
+            Elegí <strong>Agregar a inicio</strong>.
+          </li>
+          <li>
+            Tocá <strong>Agregar</strong>. RangeBook queda en la pantalla de inicio y se abre como
+            una app.
+          </li>
+        </ol>
+      </BottomSheet>
     </div>
   );
 }

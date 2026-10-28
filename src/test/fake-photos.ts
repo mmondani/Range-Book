@@ -19,6 +19,7 @@ export function createFakePhotos({ missing = [] as string[] } = {}) {
     remove: vi.fn(async (path: string) => {
       stored.delete(path);
     }),
+    syncPending: vi.fn(async () => {}),
   };
   return { repository, stored };
 }
