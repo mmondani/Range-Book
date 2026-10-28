@@ -1,10 +1,19 @@
 import { LoaderCircle } from 'lucide-react';
-import { useRef, type CSSProperties, type MouseEvent, type PointerEvent } from 'react';
+import { useEffect, useRef, type CSSProperties, type MouseEvent, type PointerEvent } from 'react';
 import { usePhotoSrc } from '@/hooks/use-photos';
 import type { ImageSize, Pixel } from '@/lib/calibration';
 import { cx } from '@/lib/cx';
 import type { PhotoDraft } from '@/lib/photos';
 import styles from './target-analyzer.module.css';
+
+/**
+ * Con el dedo, el arrastre empieza después de esta espera: si en ese tiempo se apoya un segundo
+ * dedo, el gesto es un zoom y el marcador no se mueve.
+ */
+export const TOUCH_DRAG_DELAY_MS = 100;
+
+/** Gesto en curso sobre la foto. */
+type Gesture = 'idle' | 'pending' | 'dragging' | 'zoom';
 
 /** Marcador de la calibración sobre la foto. */
 export interface AnalyzerMarker {
@@ -31,6 +40,8 @@ export interface TargetAnalyzerProps {
    * (`onPointMove`) y al soltar se fija (`onPoint`).
    */
   onPointMove?: (pixel: Pixel) => void;
+  /** El arrastre se interrumpió (un segundo dedo, el zoom del navegador): el punto vuelve atrás. */
+  onPointCancel?: () => void;
   markers?: readonly AnalyzerMarker[];
   /** Anillos calibrados, para comparar con los de la foto. */
   rings?: readonly { key: string; center: Pixel; radius: number }[];
@@ -61,6 +72,7 @@ export function TargetAnalyzer({
   pointLabel,
   onPoint,
   onPointMove,
+  onPointCancel,
   markers = [],
   rings = [],
   line,
@@ -79,9 +91,14 @@ export function TargetAnalyzer({
       ? { left: `${(pixel.x / size.width) * 100}%`, top: `${(pixel.y / size.height) * 100}%` }
       : {};
 
-  // Arrastre en curso y si el último toque ya se fijó al soltar (el `click` que sigue se ignora).
-  const dragging = useRef(false);
-  const placed = useRef(false);
+  // Punteros apoyados sobre la foto, gesto en curso, último punto y espera antes de arrastrar.
+  const pointers = useRef(new Set<number>());
+  const gesture = useRef<Gesture>('idle');
+  const last = useRef<Pixel>(undefined);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // El `click` que sigue a un arrastre o a un zoom se ignora (ya se resolvió con los punteros).
+  const ignoreClick = useRef(false);
+  useEffect(() => () => clearTimeout(timer.current), []);
 
   /** Punto de la foto bajo el puntero, dentro de sus bordes (al arrastrar se puede salir). */
   function pixelAt(event: MouseEvent<HTMLButtonElement>): Pixel | undefined {
@@ -96,8 +113,8 @@ export function TargetAnalyzer({
   }
 
   function handlePoint(event: MouseEvent<HTMLButtonElement>) {
-    if (placed.current) {
-      placed.current = false;
+    if (ignoreClick.current) {
+      ignoreClick.current = false;
       return;
     }
     // Con el teclado no hay un punto que ubicar (`detail` es 0).
@@ -106,30 +123,74 @@ export function TargetAnalyzer({
     if (pixel) onPoint(pixel);
   }
 
+  /** Corta el arrastre: si el marcador ya se había movido, vuelve atrás. */
+  function interrupt() {
+    clearTimeout(timer.current);
+    if (gesture.current === 'dragging') onPointCancel?.();
+    ignoreClick.current = true;
+  }
+
   function handlePointerDown(event: PointerEvent<HTMLButtonElement>) {
-    placed.current = false;
-    if (!onPointMove || event.button !== 0) return;
+    if (!onPointMove) return;
+    // El primer dedo de un gesto nuevo: si se perdió algún `pointerup`, no queda colgado.
+    if (event.isPrimary) pointers.current.clear();
+    pointers.current.add(event.pointerId);
+    // Un segundo dedo: es un zoom, no un arrastre.
+    if (pointers.current.size > 1) {
+      interrupt();
+      gesture.current = 'zoom';
+      return;
+    }
+    ignoreClick.current = false;
     const pixel = pixelAt(event);
-    if (!pixel) return;
+    if (!pixel || event.button !== 0) return;
     // Los movimientos siguen llegando aunque el dedo salga de la foto (jsdom no lo implementa).
     event.currentTarget.setPointerCapture?.(event.pointerId);
-    dragging.current = true;
-    onPointMove(pixel);
+    last.current = pixel;
+    if (event.pointerType !== 'touch') {
+      gesture.current = 'dragging';
+      onPointMove(pixel);
+      return;
+    }
+    gesture.current = 'pending';
+    timer.current = setTimeout(() => {
+      if (gesture.current !== 'pending' || !last.current) return;
+      gesture.current = 'dragging';
+      onPointMove(last.current);
+    }, TOUCH_DRAG_DELAY_MS);
   }
 
   function handlePointerMove(event: PointerEvent<HTMLButtonElement>) {
-    if (!dragging.current || !onPointMove) return;
+    if (gesture.current !== 'pending' && gesture.current !== 'dragging') return;
     const pixel = pixelAt(event);
-    if (pixel) onPointMove(pixel);
+    if (!pixel) return;
+    last.current = pixel;
+    if (gesture.current === 'dragging') onPointMove?.(pixel);
   }
 
   function handlePointerUp(event: PointerEvent<HTMLButtonElement>) {
-    if (!dragging.current) return;
-    dragging.current = false;
-    const pixel = pixelAt(event);
+    pointers.current.delete(event.pointerId);
+    const current = gesture.current;
+    if (current === 'zoom') {
+      // El zoom termina cuando se levantan todos los dedos; ninguno ubica el punto.
+      if (pointers.current.size === 0) gesture.current = 'idle';
+      return;
+    }
+    if (current !== 'pending' && current !== 'dragging') return;
+    clearTimeout(timer.current);
+    gesture.current = 'idle';
+    // Un toque corto (antes de que empiece el arrastre) también ubica el punto.
+    const pixel = pixelAt(event) ?? last.current;
     if (!pixel) return;
-    placed.current = true;
+    ignoreClick.current = true;
     onPoint(pixel);
+  }
+
+  function handlePointerCancel(event: PointerEvent<HTMLButtonElement>) {
+    pointers.current.delete(event.pointerId);
+    // El navegador tomó el gesto (zoom, desplazamiento).
+    if (gesture.current === 'pending' || gesture.current === 'dragging') interrupt();
+    gesture.current = pointers.current.size > 0 ? 'zoom' : 'idle';
   }
 
   return (
@@ -197,9 +258,7 @@ export function TargetAnalyzer({
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
-            onPointerCancel={() => {
-              dragging.current = false;
-            }}
+            onPointerCancel={handlePointerCancel}
           />
 
           {markers.map((marker) => (

@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { TOUCH_DRAG_DELAY_MS } from '@/components/target-analyzer';
 import type { Session } from '@/lib/sessions';
 import { ANA } from '@/test/fake-auth';
 import { ROUND_1, ROUND_2, TODAY, TODAY_SESSION } from '@/test/fake-sessions';
@@ -48,6 +49,8 @@ async function loadPhoto(roundNumber: number) {
   Object.defineProperty(image, 'naturalHeight', { value: 1000 });
   fireEvent.load(image);
 }
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** La superficie de la foto, que se ve a 1000 × 1000 px de pantalla. */
 function photoSurface(name: string | RegExp) {
@@ -333,6 +336,52 @@ describe('M06 · Análisis nuevo', () => {
         }),
       }),
     );
+  });
+
+  it('con el dedo, un toque corto ubica el punto y dos dedos (zoom) no lo mueven', async () => {
+    renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
+    await loadPhoto(2);
+    const surface = photoSurface('Ubicar centro en el punto indicado');
+    const touch = (id: number, x: number, y: number) => ({
+      clientX: x,
+      clientY: y,
+      button: 0,
+      pointerId: id,
+      pointerType: 'touch',
+      isPrimary: id === 1,
+    });
+
+    // Zoom: el segundo dedo llega antes de que empiece el arrastre.
+    fireEvent.pointerDown(surface, touch(1, 400, 400));
+    fireEvent.pointerDown(surface, touch(2, 600, 600));
+    await wait(TOUCH_DRAG_DELAY_MS + 50);
+    fireEvent.pointerMove(surface, touch(1, 300, 300));
+    fireEvent.pointerUp(surface, touch(2, 650, 650));
+    fireEvent.pointerUp(surface, touch(1, 300, 300));
+    fireEvent.click(surface, { clientX: 300, clientY: 300, detail: 1 });
+    expect(screen.getByRole('radio', { name: 'Centro' })).toBeChecked();
+
+    // Toque corto: ubica el centro y pasa al anillo.
+    fireEvent.pointerDown(surface, touch(1, 500, 500));
+    fireEvent.pointerUp(surface, touch(1, 500, 500));
+    fireEvent.click(surface, { clientX: 500, clientY: 500, detail: 1 });
+    expect(screen.getByRole('radio', { name: 'Anillo' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Centro ✓' })).toBeInTheDocument();
+
+    // Arrastre ya empezado y un segundo dedo tarde: el anillo vuelve a no estar ubicado.
+    const edge = photoSurface('Ubicar anillo en el punto indicado');
+    fireEvent.pointerDown(edge, touch(1, 700, 500));
+    expect(await screen.findByRole('radio', { name: 'Anillo ✓' })).toBeChecked();
+    fireEvent.pointerDown(edge, touch(2, 800, 600));
+    expect(screen.getByRole('radio', { name: 'Anillo' })).toBeChecked();
+    fireEvent.pointerCancel(edge, touch(1, 700, 500));
+    fireEvent.pointerCancel(edge, touch(2, 800, 600));
+
+    // Si el navegador toma el gesto (pointercancel), también vuelve atrás.
+    fireEvent.pointerDown(edge, touch(1, 700, 500));
+    expect(await screen.findByRole('radio', { name: 'Anillo ✓' })).toBeChecked();
+    fireEvent.pointerCancel(edge, touch(1, 700, 500));
+    expect(screen.getByRole('radio', { name: 'Anillo' })).toBeChecked();
   });
 
   it('no deja continuar sin ubicar el punto sobre el anillo', async () => {

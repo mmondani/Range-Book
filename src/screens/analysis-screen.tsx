@@ -174,6 +174,8 @@ function RoundAnalyzer({
   const [locating, setLocating] = useState(false);
   // Si el usuario ya tocó la calibración, el centro encontrado tarde no la pisa.
   const touched = useRef(false);
+  // Borrador de antes de empezar a arrastrar un marcador, para volver si el gesto era un zoom.
+  const dragOrigin = useRef<CalibrationDraft>(undefined);
   const [history, setHistory] = useState(() => impactHistory(initial.impacts));
   const [mode, setMode] = useState<AnalyzerMode>('add');
   const [detection, setDetection] = useState<Detection>('idle');
@@ -221,12 +223,20 @@ function RoundAnalyzer({
   /** Mientras se arrastra, el marcador activo sigue al dedo sin pasar al siguiente. */
   function moveMarker(pixel: Pixel) {
     touched.current = true;
+    dragOrigin.current ??= draft;
     setDraft({ ...draft, [active]: pixel });
     setCalibrationError(undefined);
   }
 
+  /** Arrastre interrumpido por un zoom: el marcador vuelve a donde estaba. */
+  function cancelMarkerMove() {
+    if (dragOrigin.current) setDraft(dragOrigin.current);
+    dragOrigin.current = undefined;
+  }
+
   function placeMarker(pixel: Pixel) {
     touched.current = true;
+    dragOrigin.current = undefined;
     const next = { ...draft, [active]: pixel };
     setDraft(next);
     setCalibrationError(undefined);
@@ -549,6 +559,7 @@ function RoundAnalyzer({
               }
               onPoint={handlePoint}
               onPointMove={calibrating ? moveMarker : undefined}
+              onPointCancel={cancelMarkerMove}
               markers={markers}
               rings={rings}
               line={line}
