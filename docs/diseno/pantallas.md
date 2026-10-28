@@ -16,7 +16,7 @@
 | `/sesiones/nueva`, `/sesiones/:id/editar` | M04 | W03 | `mobile/sesion-form.html`, `web/sesion-form.html` |
 | `/sesiones/:id` | M03 | W02 (panel derecho) | `mobile/sesion-detalle.html` |
 | `/sesiones/:id/rondas/nueva`, `…/rondas/:rid/editar` | M05 (sheet sobre M03) | diálogo | `mobile/ronda-form.html` |
-| `/sesiones/:id/rondas/:rid/analisis` | M06 | W04 | `mobile/analisis.html`, `web/analisis.html` |
+| `/sesiones/:id/rondas/:rid/analisis` | M06 (calibración y análisis) | W04 | `mobile/analisis-calibracion.html`, `mobile/analisis.html`, `web/analisis-calibracion.html`, `web/analisis.html` |
 | `/rendimiento` (filtros en la query string) | M07 | W05 | `mobile/rendimiento.html`, `web/rendimiento.html` |
 | `/inventario/:categoria` (`armas`, `configuraciones`, `municiones`, `poligonos`, `blancos`) | M08 | W06 | `mobile/inventario.html`, `web/inventario.html` |
 | `/inventario/armas/nueva`, `/inventario/armas/:id/editar` | M10 | diálogo / página | `mobile/arma-form.html` |
@@ -39,7 +39,7 @@
 - Header: título, buscar y filtrar.
 - Resumen del mes: sesiones, disparos y promedio por tiro.
 - Lista agrupada por mes con `SessionCard`. La sesión de hoy se destaca.
-- Mobile: FAB **Nueva sesión**. Desktop: botón primario en el sidebar; búsqueda y chips de arma arriba de la lista; detalle de la sesión seleccionada a la derecha, con la tabla de rondas (blanco, distancia, disparos, puntaje, grupo, comentarios).
+- Mobile: FAB **Nueva sesión**. Desktop: botón primario en el sidebar; búsqueda y chips de arma arriba de la lista; detalle de la sesión seleccionada a la derecha, con la tabla de rondas (foto, ronda y blanco, distancia, disparos, puntaje, grupo, comentarios, estado del análisis y acciones "Ver análisis" / "Analizar blanco" y editar). Un clic en cualquier parte de la fila (salvo sus links y botones) lleva al análisis; la fila se resalta al pasar el mouse.
 - **Estados:** vacío ("Todavía no registraste sesiones" + Nueva sesión) · cargando (skeletons) · sin resultados de búsqueda.
 
 ### M03 · Detalle de sesión
@@ -47,7 +47,7 @@
 - Fecha, configuración (título) y chips de personalizaciones.
 - Datos: polígono, clima, munición.
 - Totales: disparos, puntaje (obtenido / máximo) y tamaño de grupo promedio de las rondas analizadas.
-- **Rondas:** `RoundRow` con blanco, **distancia**, disparos y puntaje; estado *Analizada* o *Sin analizar*, y CTA "Analizar blanco".
+- **Rondas:** `RoundRow` con miniatura (la foto de la ronda o el dibujo del blanco), "disparos · puntaje · grupo", "blanco · **distancia** · comentarios", estado *Analizada* o *Sin analizar* y el link "Ver análisis" / "Analizar blanco". **Toda la tarjeta lleva al análisis**; el lápiz "Editar ronda N" abre M05.
 - Notas.
 - Barra fija: **Agregar ronda**.
 - Eliminar la sesión pide confirmación y ofrece "Deshacer" en un toast.
@@ -60,19 +60,39 @@
 - Cerrar con cambios sin guardar pide confirmación. Guardar borrador local (autosave).
 
 ### M05 · Agregar ronda (sheet)
-- Campos: **Blanco*** (del ABM; el último usado por defecto) · **Distancia*** en metros (se precarga con la de la ronda anterior) · **Disparos*** (stepper; por defecto, el valor de la ronda anterior) · **Puntaje** (numérico) · **Foto del blanco** (cámara / galería, con link "Analizar impactos") · **Comentarios**.
+- Campos: **Blanco*** (del ABM; el último usado por defecto) · **Distancia*** en metros (se precarga con la de la ronda anterior) · **Disparos*** (stepper; por defecto, el valor de la ronda anterior) · **Puntaje** (numérico) · **Foto del blanco** (cámara / galería) · **Comentarios**.
+- Al editar una ronda con foto guardada y sin cambios sin guardar, debajo de la foto aparece el link "Analizar impactos" / "Ver análisis" (el análisis es sobre la foto guardada).
 - Si la ronda se analiza, el análisis **propone** el puntaje calculado y el usuario lo confirma (ver M06). Sin confirmación se conserva el puntaje cargado a mano.
-- Acciones: Cancelar / **Guardar ronda**.
+- Acciones: Cancelar / **Guardar ronda**. Al guardar una ronda **nueva con foto** se pasa a su análisis (reemplaza al sheet en el historial: "Volver" desde el análisis lleva al detalle); sin foto, o al editar, vuelve al detalle.
 
 ### M06 / W04 · Análisis de blanco
-- Foto del blanco con impactos superpuestos. El **PMI** se marca con una cruz azul y el **grupo** con un círculo punteado alrededor del PMI.
-- Modos: **Detectar automáticamente** (rehace la detección) · **Agregar** (tocar o hacer clic sobre el blanco) · **Quitar** (tocar un impacto). Además, **Deshacer** con historial.
-- Aviso cuando los impactos marcados no coinciden con los disparos declarados.
-- **Confirmación del puntaje:** al guardar, un checkbox "Usar el puntaje calculado (N) en la ronda" muestra también el puntaje cargado a mano. Viene marcado: guardar así es la confirmación. Si el usuario lo desmarca, se conserva el puntaje cargado a mano.
-- W04 suma una tabla de impactos (#, zona, X/Y en mm desde el centro, quitar), que además es la alternativa accesible para quitar sin precisión de puntero.
-- **Estados:** detectando (overlay con progreso sobre la foto) · detección fallida (aviso + marcado manual) · sin foto (CTA para agregarla) · blanco sin zonas (se oculta el puntaje calculado y se usa el manual).
+Página completa (también en desktop, sin la lista de sesiones). Al entrar, la página arranca arriba. Tiene dos etapas: la calibración de la foto y el análisis de los impactos.
 
-**Métricas del MVP** (sección 8 de `shooting_metrics.md`), calculadas en vivo. Los impactos se guardan en mm respecto del centro del blanco (x a la derecha, y hacia arriba); la escala sale del tamaño de referencia del blanco.
+**Visor de la foto** (`TargetAnalyzer`, igual en las dos etapas)
+- Recuadro de proporción fija: **5:6** en mobile y **1:1** en desktop. La foto arranca cubriendo el recuadro, centrada en su centro; lo que sobra queda afuera y se desplaza.
+- **Zoom propio**, dentro del recuadro (la página no se mueve): botones **Acercar**, **Alejar** y **Ver la foto entera** abajo a la derecha (hasta 10× de la foto entera). En mobile, dos dedos acercan, alejan y desplazan; con la foto más grande que el recuadro, un dedo la desplaza (salvo al calibrar, donde un dedo arrastra el marcador). En desktop, Ctrl + rueda (o el pellizco del trackpad) acerca donde está el cursor y la rueda desplaza. Un toque que se mueve más de 8 px es un desplazamiento: no agrega ni quita impactos.
+- Marcadores, impactos, PMI y trazos mantienen su tamaño en pantalla con cualquier zoom. Los colores de las superposiciones son fijos (ver `design-system.md` → Color).
+
+**1 · Calibración** (`analisis-calibracion.html`): se muestra en un análisis nuevo y con "Recalibrar la foto".
+- **Blanco con anillos:** el **centro** y un punto sobre un **anillo** de diámetro conocido. **Sin zonas:** el centro y dos puntos **A** y **B** a una distancia conocida.
+- **Qué ajustar** (botones sobre la foto, arriba a la izquierda): Centro / Anillo / **Forma** (o Centro / Punto A / Punto B). El activo se ve con borde verde; los ya ubicados llevan ✓. Al ubicar un punto pasa solo al siguiente que falte.
+- **Centro automático:** en un blanco con anillos, al cargar la foto se busca el centro y queda ubicado ("Buscando el centro…" sobre la foto); el activo pasa a "Anillo" y el panel avisa: "El centro se ubicó automáticamente. Si no coincide con el de la foto, elegí «Centro» y tocalo." Si no hay un centro claro, se toca a mano.
+- Cada punto se ubica tocando la foto o **manteniendo apretado y arrastrando**: el marcador sigue al dedo y los anillos verdes se redibujan en vivo. Con el dedo, el arrastre empieza a los 100 ms: si antes se apoya un segundo dedo, el gesto es un zoom y el marcador no se mueve.
+- **Forma** (foto en ángulo): mantener apretado y arrastrar estira o achica los anillos verdes hasta el dedo en esa dirección, conservando la medida perpendicular; se repite en otras direcciones hasta que coincidan. "Volver a círculos" lo deshace. Las medidas siguen a la elipse (puntaje, grupo, PMI y distancias quedan compensados). Compensa ángulos moderados, no la perspectiva fuerte.
+- Panel "Calibrar la foto": la explicación, la instrucción del punto activo, el aviso del centro automático, "Volver a círculos", el select **Anillo marcado** ("8 puntos · Ø 150 mm"; por defecto, el tercero desde el centro) o el campo **Distancia entre A y B** (por defecto, el tamaño de referencia del blanco) y el error si falta algo.
+- Los anillos calibrados (y la línea A–B) se dibujan en verde. Acción primaria: **Continuar**. La primera vez, al continuar se detectan los impactos solos.
+
+**2 · Impactos** (`analisis.html`)
+- Foto del blanco con los impactos superpuestos (anillo naranja sin relleno, para que se vea el agujero). El **PMI** se marca con una cruz azul y el **grupo** con un círculo punteado alrededor del PMI (una elipse, si la calibración tiene forma).
+- Modos: **Detectar automáticamente** (rehace la detección) · **Agregar** (tocar o hacer clic sobre el blanco) · **Quitar** (tocar un impacto; el anillo se ve rojo). Además, **Deshacer** con historial (deshabilitado sin historial).
+- Aviso cuando los impactos marcados no coinciden con los disparos declarados.
+- **Confirmación del puntaje:** un checkbox "Usar el puntaje calculado (N) en la ronda" muestra también el puntaje cargado a mano. En un análisis nuevo viene marcado: guardar así es la confirmación. Al reabrir uno guardado, conserva lo que se eligió. Si el usuario lo desmarca, se conserva el puntaje cargado a mano.
+- "Recalibrar la foto" (debajo de las métricas) vuelve a la calibración; los impactos quedan donde están sobre la foto y cambian sus medidas.
+- W04 suma una tabla de impactos (#, zona, X/Y desde el centro, quitar), que además es la alternativa accesible para quitar sin precisión de puntero.
+- Salir con cambios sin guardar pide confirmación ("¿Descartar el análisis?").
+- **Estados:** buscando el centro y detectando (overlay con progreso sobre la foto) · detección fallida (aviso + marcado manual) · sin foto ("Esta ronda no tiene foto" con "Agregar foto") · blanco sin zonas (en lugar del puntaje calculado, el texto "Este blanco no tiene zonas: el puntaje de la ronda es el cargado a mano.").
+
+**Métricas del MVP** (sección 8 de `shooting_metrics.md`), calculadas en vivo. Los impactos se guardan en mm respecto del centro del blanco (x a la derecha, y hacia arriba); la escala sale de la calibración de la foto (anillo de diámetro conocido, con su forma si la foto está en ángulo, o dos puntos a una distancia conocida).
 
 | Métrica | Definición | Cómo se muestra |
 |---|---|---|

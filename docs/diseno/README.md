@@ -6,8 +6,8 @@ Recursos de UI de la app. Es la fuente de verdad del diseño y refleja lo que es
 |---|---|
 | [design-system.md](./design-system.md) | Tokens (color, tipografía, espaciado, movimiento), íconos, layout responsive, componentes y mínimos de accesibilidad |
 | [pantallas.md](./pantallas.md) | Rutas, especificación y estados de cada pantalla, métricas del análisis, comportamiento PWA y preguntas abiertas |
-| [maqueta/index.html](./maqueta/index.html) | Maqueta navegable en HTML estático: 12 pantallas mobile (`maqueta/mobile/`) y 7 web (`maqueta/web/`) |
-| `maqueta/assets/` | `frame.css` (marco de la maqueta), `app.js` (interacciones genéricas), `analyzer.js` (analizador de blancos de referencia) |
+| [maqueta/index.html](./maqueta/index.html) | Maqueta navegable en HTML estático: 13 pantallas mobile (`maqueta/mobile/`) y 8 web (`maqueta/web/`) |
+| `maqueta/assets/` | `frame.css` (marco de la maqueta), `app.js` (interacciones genéricas), `viewer.css` y `viewer.js` (visor de la foto del blanco, con zoom), `calibration.js` (calibración de la foto) y `analyzer.js` (analizador de impactos de referencia) |
 
 ## Cómo ver la maqueta
 
@@ -20,7 +20,7 @@ Recursos de UI de la app. Es la fuente de verdad del diseño y refleja lo que es
 1. Leer `design-system.md` y llevar los tokens a `src/styles/tokens.css` antes de crear componentes.
 2. Para cada pantalla, leer su sección en `pantallas.md` y abrir el HTML correspondiente (tabla de rutas) como referencia visual: estructura, jerarquía, textos y espaciados.
 3. La maqueta **no** es código para copiar. Usa estilos inline y CSS repetido por página. Hay que reimplementarla como componentes React reutilizables (lista en `design-system.md` → Componentes).
-4. `maqueta/assets/analyzer.js` muestra el cálculo de las métricas y la interacción del analizador. La implementación real va en `src/lib/`, como funciones puras con tests.
+4. `maqueta/assets/analyzer.js` y `calibration.js` muestran el cálculo de las métricas, la calibración y la interacción del analizador. La implementación real va en `src/lib/`, como funciones puras con tests.
 5. Las dependencias que proponen estos documentos (`lucide-react` y, si hace falta, una librería de gráficos) se deciden en `plan.md`, como pide `CLAUDE.md`.
 
 ## Cambios de diseño por iteración

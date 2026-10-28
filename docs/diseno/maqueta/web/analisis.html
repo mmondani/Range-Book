@@ -28,10 +28,6 @@ body{margin:0;background:#0B0D0F}
 .side:hover{background:var(--surface-2);color:var(--text)}
 .side.on{background:var(--accent-soft);color:var(--text)}
 .side.on svg{color:var(--accent)}
-.tgt{position:relative;width:560px;max-width:100%;aspect-ratio:1;border-radius:16px;background:#E9E4D6;overflow:hidden}
-.ring{position:absolute;border-radius:50%}
-.imp{position:absolute;width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid #fff;padding:0;cursor:pointer;box-shadow:0 0 0 1px rgba(0,0,0,.6);transform:translate(-50%,-50%)}
-.imp.rm{background:var(--danger)}
 .dist{display:inline-flex;align-items:baseline;gap:6px;padding:4px 10px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);font-size:14px;color:var(--text-2)}
 .dist b{color:var(--text);font-family:'Barlow Condensed',sans-serif;font-size:18px}
 table{border-collapse:collapse;width:100%}
@@ -43,6 +39,7 @@ td{padding:4px 12px;border-bottom:1px solid var(--border);font-size:14px}
 a{color:var(--accent)}a:hover{color:var(--accent-hover)}
 </style>
 <link rel="stylesheet" href="../assets/frame.css">
+<link rel="stylesheet" href="../assets/viewer.css">
 </head>
 <body class="mk-web">
 <div class="rb" style="min-height:100vh;display:flex;flex-wrap:wrap">
@@ -83,10 +80,10 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
           <button class="btn btn-ghost" data-action="undo" style="min-height:48px"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"></path><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"></path></svg>Deshacer</button>
         </div>
 
-        <div class="tgt"></div>
+        <div class="tgt web"></div>
 
         <div style="display:flex;gap:20px;font-size:14px;color:var(--text-2);flex-wrap:wrap;justify-content:center">
-          <span style="display:inline-flex;align-items:center;gap:6px"><span aria-hidden="true" style="width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid #fff"></span>Impacto</span>
+          <span style="display:inline-flex;align-items:center;gap:6px"><span aria-hidden="true" class="sw-imp"></span>Impacto</span>
           <span style="display:inline-flex;align-items:center;gap:6px"><span aria-hidden="true" style="color:var(--info);font-weight:700;font-size:18px">+</span>PMI (punto medio de impacto)</span>
           <span style="display:inline-flex;align-items:center;gap:6px"><span aria-hidden="true" style="width:16px;height:16px;border-radius:50%;border:2px dashed var(--accent)"></span>Grupo</span>
         </div>
@@ -115,6 +112,8 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
           <div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Dist. al centro</span><span class="display num" style="font-size:30px"><span data-m="dc"></span><span style="font-size:15px;color:var(--text-3)"> mm</span></span><span style="font-size:13px;color:var(--text-3)">promedio por tiro</span></div>
         </div>
 
+        <a href="analisis-calibracion.html" class="btn btn-ghost" style="align-self:flex-start"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M22 12h-4"></path><path d="M6 12H2"></path><path d="M12 6V2"></path><path d="M12 22v-4"></path></svg>Recalibrar la foto</a>
+
         <section class="card" style="overflow:hidden">
           <h2 style="font-size:16px;font-weight:600;padding:12px 14px">Impactos <span class="num" style="color:var(--text-3)">(<span data-m="count"></span>)</span></h2>
           <div style="max-height:300px;overflow-y:auto">
@@ -129,6 +128,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
   </main>
 </div>
 <script src="../assets/app.js"></script>
+<script src="../assets/viewer.js"></script>
 <script src="../assets/analyzer.js"></script>
 </body>
 </html>

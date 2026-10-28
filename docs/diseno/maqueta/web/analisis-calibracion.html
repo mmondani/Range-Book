@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Análisis de blanco: calibración — web · RangeBook</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Barlow:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0D0F}
+.rb{--bg:#0B0D0F;--surface:#14181C;--surface-2:#1C2126;--surface-3:#262C33;--border:#2E353D;--text:#F2F4F5;--text-2:#B4BCC5;--text-3:#8A949F;--accent:#FF6A1A;--accent-soft:rgba(255,106,26,.14);--on-accent:#1A0B02;--success:#3DD68C;--warning:#F5C04A;--danger:#FF6B6B;--info:#5AA9FF;font-family:'Barlow',system-ui,sans-serif;color:var(--text);background:var(--bg);font-size:16px;line-height:1.5}
+.rb *{box-sizing:border-box}
+.rb h1,.rb h2,.rb h3,.rb p{margin:0}
+.display{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.01em;text-transform:uppercase;line-height:1.05}
+.num{font-variant-numeric:tabular-nums}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:12px;border:1px solid transparent;font:600 15px 'Barlow',sans-serif;cursor:pointer;text-decoration:none;color:var(--text);background:var(--surface-2)}
+.btn-primary{background:var(--accent);color:var(--on-accent)}
+.btn-primary:hover{background:var(--accent-hover);color:var(--on-accent)}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text)}
+.btn-ghost:hover{background:var(--surface-2);color:var(--text)}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;border:0;background:transparent;color:var(--text-2);cursor:pointer;text-decoration:none}
+.icon-btn:hover{background:var(--surface-3);color:var(--text)}
+.seg{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:0 14px;border:0;border-radius:10px;background:transparent;color:var(--text-2);font:600 15px 'Barlow',sans-serif;cursor:pointer}
+.seg:hover{color:var(--text)}
+.seg.on{background:var(--surface-3);color:var(--text)}
+.side{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:var(--text-2);text-decoration:none;font-weight:600}
+.side:hover{background:var(--surface-2);color:var(--text)}
+.side.on{background:var(--accent-soft);color:var(--text)}
+.side.on svg{color:var(--accent)}
+.tgt{position:relative;width:560px;max-width:100%;aspect-ratio:1;border-radius:16px;background:#E9E4D6;overflow:hidden}
+.ring{position:absolute;border-radius:50%}
+.imp{position:absolute;width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid #fff;padding:0;cursor:pointer;box-shadow:0 0 0 1px rgba(0,0,0,.6);transform:translate(-50%,-50%)}
+.imp.rm{background:var(--danger)}
+.dist{display:inline-flex;align-items:baseline;gap:6px;padding:4px 10px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);font-size:14px;color:var(--text-2)}
+.dist b{color:var(--text);font-family:'Barlow Condensed',sans-serif;font-size:18px}
+table{border-collapse:collapse;width:100%}
+th{position:sticky;top:0;background:var(--surface);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);text-align:left;padding:8px 12px;border-bottom:1px solid var(--border)}
+td{padding:4px 12px;border-bottom:1px solid var(--border);font-size:14px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sm{width:18px;height:18px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:14px;font-weight:600;color:var(--text-2)}
+.help{font-size:13px;color:var(--text-3)}
+.input{min-height:44px;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font:400 16px 'Barlow',sans-serif;width:100%;color-scheme:var(--scheme)}
+select.input{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--text-3) 50%),linear-gradient(135deg,var(--text-3) 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 15px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:40px}
+a{color:var(--accent)}a:hover{color:var(--accent-hover)}
+</style>
+<link rel="stylesheet" href="../assets/frame.css">
+<link rel="stylesheet" href="../assets/viewer.css">
+</head>
+<body class="mk-web">
+<div class="rb" data-calibration style="min-height:100vh;display:flex;flex-wrap:wrap">
+  <aside style="flex:1 1 240px;background:var(--sunken);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;align-items:center;gap:10px;padding:0 8px">
+      <div style="width:36px;height:36px;border-radius:10px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4.5"></circle><path d="M12 1v5"></path><path d="M12 18v5"></path><path d="M1 12h5"></path><path d="M18 12h5"></path></svg></div>
+      <span class="display" style="font-size:24px">RangeBook</span>
+    </div>
+    <nav aria-label="Principal" style="display:flex;flex-direction:column;gap:4px">
+      <a href="sesiones.html" class="side on" aria-current="page"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M22 12h-4"></path><path d="M6 12H2"></path><path d="M12 6V2"></path><path d="M12 22v-4"></path></svg>Sesiones</a>
+      <a href="rendimiento.html" class="side"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>Rendimiento</a>
+      <a href="inventario.html" class="side"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>Inventario</a>
+      <a href="#" class="side"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg>Perfil</a>
+    </nav>
+  </aside>
+
+  <main style="flex:999 1 560px;min-width:0;padding:24px 32px 48px;display:flex;flex-direction:column;gap:20px">
+    <nav aria-label="Ruta" style="font-size:14px;color:var(--text-3);display:flex;gap:8px;align-items:center;flex-wrap:wrap"><a href="sesiones.html" style="text-decoration:none">Sesiones</a><span aria-hidden="true">/</span><a href="sesiones.html" style="text-decoration:none">25 oct · Glock 17</a><span aria-hidden="true">/</span><span>Ronda 2</span></nav>
+    <header style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <h1 class="display" style="font-size:40px">Análisis · Ronda 2</h1>
+        <span style="color:var(--text-2)">ISSF Pistola Precisión · 25 m · 15 disparos declarados</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a href="sesiones.html" class="btn btn-ghost">Cancelar</a>
+        <a href="analisis.html" class="btn btn-primary">Continuar</a>
+      </div>
+    </header>
+
+    <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
+      <section class="card" aria-label="Blanco" style="flex:1 1 600px;min-width:0;padding:16px;display:flex;flex-direction:column;gap:16px;align-items:center">
+        <div class="tgt web">
+          <div class="ov-left" role="radiogroup" aria-label="Qué ajustar" data-tools>
+            <button type="button" class="pick" role="radio" data-value="center">Centro</button>
+            <button type="button" class="pick" role="radio" data-value="edge">Anillo</button>
+            <button type="button" class="pick" role="radio" data-value="shape">Forma</button>
+          </div>
+        </div>
+      </section>
+
+      <aside style="flex:1 1 340px;min-width:0;display:flex;flex-direction:column;gap:12px">
+        <section class="card" aria-labelledby="cal-title" style="padding:16px 18px;display:flex;flex-direction:column;gap:12px">
+          <h2 id="cal-title" class="display" style="font-size:26px">Calibrar la foto</h2>
+          <p style="font-size:14px;color:var(--text-2)">Para medir en mm, ubicá sobre la foto el centro del blanco y un punto sobre un anillo. Con los botones de arriba de la foto elegís qué punto ubicar. Para ajustarlo, mantené apretado y arrastralo; para verlo de cerca, acercá la foto con dos dedos o con los botones de zoom. La foto tiene que estar sacada de frente.</p>
+          <p role="status" style="font-weight:600" data-instruction></p>
+          <p style="font-size:14px;color:var(--text-2)" data-auto>El centro se ubicó automáticamente. Si no coincide con el de la foto, elegí «Centro» y tocalo.</p>
+          <button type="button" class="btn btn-ghost" style="align-self:flex-start" data-reset-shape hidden>Volver a círculos</button>
+          <div class="field">
+            <label for="anillo">Anillo marcado</label>
+            <select id="anillo" class="input" data-ring>
+              <option value="500">1 puntos · Ø 500 mm</option><option value="450">2 puntos · Ø 450 mm</option><option value="400">3 puntos · Ø 400 mm</option>
+              <option value="350">4 puntos · Ø 350 mm</option><option value="300">5 puntos · Ø 300 mm</option><option value="250">6 puntos · Ø 250 mm</option>
+              <option value="200">7 puntos · Ø 200 mm</option><option value="150" selected>8 puntos · Ø 150 mm</option><option value="100">9 puntos · Ø 100 mm</option>
+              <option value="50">10 puntos · Ø 50 mm</option>
+            </select>
+            <span class="help">Por defecto, el tercero desde el centro.</span>
+          </div>
+          <p role="alert" style="font-size:14px;color:var(--danger)" data-error hidden></p>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+<script src="../assets/viewer.js"></script>
+<script src="../assets/calibration.js"></script>
+</body>
+</html>

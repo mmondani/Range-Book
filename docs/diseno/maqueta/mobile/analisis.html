@@ -21,10 +21,7 @@ body{margin:0;background:#0B0D0F}
 .icon-btn:hover{background:var(--surface-2);color:var(--text)}
 .seg{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;border:0;border-radius:10px;background:transparent;color:var(--text-2);font:600 15px 'Barlow',sans-serif;cursor:pointer}
 .seg.on{background:var(--surface-3);color:var(--text)}
-.tgt{position:relative;width:100%;aspect-ratio:1;border-radius:16px;background:#E9E4D6;overflow:hidden;flex-shrink:0}
-.ring{position:absolute;border-radius:50%}
-.imp{position:absolute;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #fff;padding:0;cursor:pointer;box-shadow:0 0 0 1px rgba(0,0,0,.6);transform:translate(-50%,-50%)}
-.imp.rm{background:var(--danger)}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text)}
 .dist{display:inline-flex;align-items:baseline;gap:6px;padding:4px 10px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);font-size:14px;color:var(--text-2)}
 .dist b{color:var(--text);font-family:'Barlow Condensed',sans-serif;font-size:18px}
 .i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
@@ -32,6 +29,7 @@ body{margin:0;background:#0B0D0F}
 a{color:var(--accent)}a:hover{color:var(--accent-hover)}
 </style>
 <link rel="stylesheet" href="../assets/frame.css">
+<link rel="stylesheet" href="../assets/viewer.css">
 </head>
 <body class="mk-mobile">
 <div class="rb phone" data-analyzer style="width:390px;height:844px;position:relative;overflow:hidden">
@@ -48,7 +46,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
     <div class="tgt"></div>
 
     <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--text-2)">
-      <span style="display:inline-flex;align-items:center;gap:6px"><span aria-hidden="true" style="width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid #fff"></span>Impacto</span>
+      <span style="display:inline-flex;align-items:center;gap:6px"><span aria-hidden="true" class="sw-imp"></span>Impacto</span>
       <span style="display:inline-flex;align-items:center;gap:6px"><span aria-hidden="true" style="color:var(--info);font-weight:700">+</span>PMI</span>
       <span style="display:inline-flex;align-items:center;gap:6px"><span aria-hidden="true" style="width:14px;height:14px;border-radius:50%;border:2px dashed var(--accent)"></span>Grupo</span>
     </div>
@@ -81,6 +79,8 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
         <div class="card" style="padding:12px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Al centro</span><span class="display num" style="font-size:26px"><span data-m="dc"></span><span style="font-size:14px;color:var(--text-3)"> mm</span></span><span style="font-size:12px;color:var(--text-3)">prom. por tiro</span></div>
       </div>
     </section>
+
+    <a href="analisis-calibracion.html" class="btn btn-ghost" style="align-self:flex-start"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M22 12h-4"></path><path d="M6 12H2"></path><path d="M12 6V2"></path><path d="M12 22v-4"></path></svg>Recalibrar la foto</a>
   </main>
 
   <div style="position:absolute;left:0;right:0;bottom:0;padding:4px 16px 24px;background:var(--bg);border-top:1px solid var(--border)">
@@ -89,6 +89,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
   </div>
 </div>
 <script src="../assets/app.js"></script>
+<script src="../assets/viewer.js"></script>
 <script src="../assets/analyzer.js"></script>
 </body>
 </html>

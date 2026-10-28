@@ -50,7 +50,7 @@ Dos temas con los mismos tokens: **oscuro (por defecto)** y **claro**. El usuari
 
 Reglas:
 - **Fondos de estado:** derivarlos del token con `color-mix(in srgb, var(--success) 14%, transparent)`, nunca con un `rgba` fijo. Así funcionan en los dos temas.
-- **Lo que no cambia con el tema:** la foto del blanco y sus superposiciones (impactos, PMI, grupo), y los botones sobre fotos (fondo `rgba(11,13,15,.75)`).
+- **Lo que no cambia con el tema:** la foto del blanco y sus superposiciones, con colores fijos: impactos `#FF6A1A` (en el modo Quitar, `#FF6B6B`), PMI `#5AA9FF`, grupo punteado `#FF6A1A` y calibración (anillos calibrados, marcadores, punto activo) `#3DD68C`. También los botones sobre fotos (fondo `rgba(11,13,15,.75)`, borde `rgba(255,255,255,.25)`, texto `#F2F4F5`).
 - **Color como indicador:** nunca es el único. Los estados llevan siempre texto o ícono (por ejemplo, el badge "Analizada" con ✓).
 - **Gráficos:** naranja y azul se distinguen también por luminosidad. No usar pares rojo/verde.
 - **Contraste:** verificar cada tema por separado. Los valores claros de acento y de estado son más oscuros que los del tema oscuro justamente para llegar a 4.5:1 sobre blanco.
@@ -85,7 +85,7 @@ Reglas:
 ## Íconos
 
 - Set: **Lucide** (`lucide-react`), trazo 2 px y 24 px (18 px en chips y botones chicos). Es el set que se dibujó en la maqueta.
-- Mapeo: Sesiones `Crosshair`, Rendimiento `TrendingUp`, Inventario `Package`, Perfil `User`, Cámara `Camera`, Galería `Image`, Modificación `Wrench`, Configuración `Layers`, Detectar `WandSparkles`, Agregar impacto `CirclePlus`, Quitar impacto `CircleMinus`, Deshacer `Undo2`, Polígono `MapPin`. Clima: `Sun`, `Cloud`, `CloudRain`, `CloudFog`, `Wind`.
+- Mapeo: Sesiones `Crosshair`, Rendimiento `TrendingUp`, Inventario `Package`, Perfil `User`, Cámara `Camera`, Galería `Image`, Modificación `Wrench`, Configuración `Layers`, Detectar `WandSparkles`, Agregar impacto `CirclePlus`, Quitar impacto `CircleMinus`, Deshacer `Undo2`, Recalibrar la foto `Crosshair`, Acercar `ZoomIn`, Alejar `ZoomOut`, Ver la foto entera `Maximize2`, Editar `Pencil`, Polígono `MapPin`. Clima: `Sun`, `Cloud`, `CloudRain`, `CloudFog`, `Wind`.
 - Un ícono decorativo junto a un texto lleva `aria-hidden`. Un botón que solo tiene ícono lleva `aria-label`.
 - Logo provisorio: diana con cruz dentro de un cuadrado redondeado naranja (se ve en Login y en el sidebar).
 
@@ -105,16 +105,16 @@ Reglas:
 | Componente | Variantes / estados | Notas |
 |---|---|---|
 | `Button` | `primary`, `secondary`, `ghost`, `danger`; `md` (44 px) y `lg` (48–52 px); `loading`, `disabled` | `loading` desactiva el botón y muestra un spinner. `disabled` usa opacidad .45 |
-| `IconButton` | 40–44 px; sobre foto con fondo `rgba(11,13,15,.75)` | `aria-label` obligatorio |
+| `IconButton` | 40–44 px; sobre foto con fondo `rgba(11,13,15,.75)` | `aria-label` obligatorio. Los botones de zoom del visor son redondos, de 40 px |
 | `Fab` | Extendido (ícono + texto), 56 px | Solo en la lista de sesiones (mobile) |
 | `Chip` | `filter` (con caret), `selectable` (`.on`), `removable` (con ✕ de 32 px), `add` (borde punteado) | Los grupos de chips se acomodan en varias líneas, sin scroll horizontal |
 | `Badge` | `success`, `warning`, `accent`, `neutral` | Con texto siempre |
-| `Card` | Base y `interactive` (hover en el borde) | La tarjeta clickeable es un `<a>` |
-| `StatTile` | Eyebrow + número display + unidad + delta o ayuda | Usado en totales de sesión, KPIs y métricas |
+| `Card` | Base y `interactive` (hover en el borde) | La tarjeta clickeable es un `<a>`; si además tiene otra acción (por ejemplo, editar), su link principal se estira sobre ella (`::after`) y la otra acción queda por encima |
+| `StatTile` | Eyebrow + número display + unidad + delta o ayuda; tamaños `md` y `sm` (26 px, para tres por fila en mobile) | Usado en totales de sesión, KPIs y métricas |
 | `Field` | Label + control + ayuda + error | Asterisco naranja si es obligatorio. El error va debajo del campo, con `aria-describedby` y `role="alert"` |
 | `Input`, `Select`, `Textarea`, `DateInput` | Alto 48 px en mobile y 44 px en desktop | Controles nativos (`type="date"`, `inputmode="numeric"`, `datalist` para calibre) |
 | `Stepper` | − valor + | Para cantidad de disparos |
-| `SegmentedControl` | 2–3 opciones | Unidades, tema, modo del analizador |
+| `SegmentedControl` | 2–3 opciones | Unidades, tema |
 | `Tabs` | Mobile: chips seleccionables; desktop: tabs subrayados | Inventario |
 | `ZoneEditor` | Filas puntaje + diámetro, Generar anillos uniformes, vista previa | Alta de blanco (M12) |
 | `PhotoPicker` | Botones Cámara / Galería, miniaturas con quitar, portada | Cámara: `<input type=file accept=image/* capture=environment>`. Galería: igual pero sin `capture`. En desktop, zona para arrastrar archivos |
@@ -125,12 +125,17 @@ Reglas:
 | `EmptyState` | Ícono + texto + acción | Para listas vacías y gráficos sin datos |
 | `Skeleton` | Tarjetas, filas, gráficos | Si la carga tarda más de 300 ms |
 | `SessionCard` | Fecha en bloque, configuración, polígono · munición, clima, rondas / disparos / promedio | Variante "Hoy" con borde y badge de acento |
-| `RoundRow` | Miniatura del blanco, ronda, blanco, distancia, disparos, puntaje, grupo, estado de análisis, CTA "Analizar" | En desktop es una fila de tabla |
+| `RoundRow` | Miniatura del blanco, ronda, disparos · puntaje · grupo, blanco · distancia · comentarios, estado de análisis, link "Ver análisis" / "Analizar blanco" y lápiz "Editar" | Toda la tarjeta lleva al análisis. En desktop es una fila de tabla (`RoundTable`), que también lleva al análisis con un clic |
 | `TargetThumb` | Blanco dibujado o foto con impactos | — |
-| `TargetAnalyzer` | Foto, impactos, PMI (cruz azul), círculo de grupo (punteado naranja), modos Detectar / Agregar / Quitar, Deshacer | Ver `pantallas.md` → Análisis |
-| `MetricTile` | Puntaje (+ distribución por zona), tamaño de grupo (mm + MOA), desvío del PMI, distancia al centro | Unidad en mm o pulgadas, según el perfil |
+| `TargetAnalyzer` | Visor de la foto: recuadro 5:6 (mobile) o 1:1 (desktop), la foto arranca cubriéndolo y centrada; zoom propio (botones Acercar / Alejar / Ver la foto entera abajo a la derecha, dos dedos, Ctrl + rueda) y desplazamiento; controles propios arriba a la izquierda (`controls`); impactos (anillo naranja de 2 px sin relleno, 18 px en mobile y 20 px en desktop, con un filo oscuro de cada lado; rojo en Quitar), PMI (cruz azul), grupo (punteado naranja), anillos de calibración y marcadores (verde); overlay de progreso | Marcadores y trazos mantienen su tamaño con cualquier zoom. Arrastre de marcadores con los punteros (con el dedo, a los 100 ms; un segundo dedo es zoom). Ver `pantallas.md` → Análisis |
+| `MarkerPicker` | Botones sobre la foto (40 px, redondeados): Centro / Anillo / Forma o Centro / Punto A / Punto B; activo con borde verde, ✓ en los ya ubicados | `radiogroup` "Qué ajustar", navegable con las flechas |
+| `CalibrationPanel` | Tarjeta "Calibrar la foto": explicación, instrucción del punto activo, aviso del centro automático, "Volver a círculos", anillo marcado o distancia A–B, error | — |
+| `AnalyzerToolbar` | Detectar / Agregar / Quitar (`aria-pressed`); "Detectar automáticamente" en desktop | `toolbar` "Modo de edición" |
+| `ScoreTile` | Puntaje / máximo, promedio por tiro y distribución por zona; lugar para la confirmación del puntaje | — |
+| `MetricTile` | Tamaño de grupo (mm + MOA), desvío del PMI (hora de reloj o "Centrado"), distancia al centro | Una `StatTile` en tarjeta. Unidad en mm o pulgadas, según el perfil |
+| `ImpactTable` | #, zona, X / Y desde el centro, quitar | Solo en desktop; alternativa accesible para quitar impactos |
 | `LineChart`, `BarChart` | Ejes con unidad, último punto destacado, `aria-label` con el resumen | Grilla tenue. Tooltip al tocar o pasar el mouse |
-| `DataTable` | Ordenable (`aria-sort`), scroll horizontal en su contenedor | Rendimiento, inventario, impactos |
+| `DataTable` | Ordenable (`aria-sort`), scroll horizontal en su contenedor; filas clickeables (`onRowClick`, con resaltado al pasar el mouse) | Rendimiento, inventario, rondas, impactos. La fila clickeable es un atajo para el mouse: la misma acción tiene que estar en un link o botón de la fila |
 
 ## Accesibilidad (mínimos)
 
@@ -138,4 +143,4 @@ Reglas:
 - Áreas táctiles ≥ 44×44 px, con ≥ 8 px entre una y otra.
 - Foco visible: `outline: 2px solid var(--accent); outline-offset: 2px`.
 - Jerarquía de headings sin saltos. Cada ruta mueve el foco al `<h1>`.
-- Todo lo que se hace con gestos tiene un control visible. En el analizador, quitar un impacto también se puede hacer desde la tabla de impactos.
+- Todo lo que se hace con gestos tiene un control visible. En el analizador, quitar un impacto también se puede hacer desde la tabla de impactos, el zoom tiene botones y el punto a ubicar se elige con botones sobre la foto.

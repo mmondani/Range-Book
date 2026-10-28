@@ -21,6 +21,10 @@ body{margin:0;background:#0B0D0F}
 .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:0;background:transparent;color:var(--text);cursor:pointer;text-decoration:none}
 .icon-btn:hover{background:var(--surface-2);color:var(--text)}
 .chip{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);font:500 14px 'Barlow',sans-serif}
+.round{position:relative;display:flex;gap:14px;padding:12px;align-items:center}
+/* Toda la tarjeta lleva al análisis: el link se estira sobre ella; el lápiz queda por encima. */
+.stretch::after{content:'';position:absolute;inset:0;border-radius:16px}
+.edit{position:relative;z-index:1;align-self:flex-start;color:var(--text-2)}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:13px;font-weight:600}
 .ph{background:repeating-linear-gradient(135deg,var(--surface-2) 0 10px,var(--ph-2) 10px 20px);display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:13px;text-align:center}
 .i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
@@ -74,28 +78,32 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
           <h2 class="display" style="font-size:22px">Rondas <span class="num" style="color:var(--text-3)">· 2</span></h2>
         </div>
 
-        <a href="analisis.html" class="card" style="display:flex;gap:14px;padding:12px;text-decoration:none;color:var(--text);align-items:center">
+        <div class="card round">
           <div class="tgt" aria-hidden="true">
             <div style="width:48px;height:48px;border-radius:50%;border:1px solid #333;display:flex;align-items:center;justify-content:center"><div style="width:28px;height:28px;border-radius:50%;background:#1B1B1B"></div></div>
             <span class="dot" style="left:28px;top:27px"></span><span class="dot" style="left:33px;top:31px"></span><span class="dot" style="left:25px;top:34px"></span><span class="dot" style="left:30px;top:22px"></span><span class="dot" style="left:37px;top:26px"></span>
           </div>
           <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="font-weight:600">Ronda 1</span><span class="badge" style="background:color-mix(in srgb, var(--success) 14%, transparent);color:var(--success)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;stroke-width:3"><path d="M20 6 9 17l-5-5"></path></svg>Analizada</span></div>
-            <span class="num" style="font-size:14px;color:var(--text-2)">15 disparos · 136 pts · 46 mm</span>
+            <span class="num" style="font-size:14px;color:var(--text-2)">15 disparos · 136 pts · 46,0 mm</span>
             <span style="font-size:14px;color:var(--text-3)">ISSF Pistola Precisión · 25 m · Buen control del gatillo</span>
+            <a href="analisis.html" class="stretch" aria-label="Ver análisis de la ronda 1" style="font-size:14px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;min-height:32px;align-self:flex-start">Ver análisis<svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></a>
           </div>
-        </a>
+          <a href="ronda-form.html" class="icon-btn edit" aria-label="Editar ronda 1"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></a>
+        </div>
 
-        <div class="card" style="display:flex;gap:14px;padding:12px;align-items:center">
+        <div class="card round">
           <div class="tgt" aria-hidden="true">
             <div style="width:48px;height:48px;border-radius:50%;border:1px solid #333;display:flex;align-items:center;justify-content:center"><div style="width:28px;height:28px;border-radius:50%;background:#1B1B1B"></div></div>
             <span class="dot" style="left:20px;top:36px"></span><span class="dot" style="left:26px;top:40px"></span><span class="dot" style="left:18px;top:30px"></span><span class="dot" style="left:31px;top:37px"></span>
           </div>
           <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="font-weight:600">Ronda 2</span><span class="badge" style="background:color-mix(in srgb, var(--warning) 14%, transparent);color:var(--warning)">Sin analizar</span></div>
-            <span class="num" style="font-size:14px;color:var(--text-2)">15 disparos · 131 pts · 25 m</span>
-            <a href="analisis.html" style="font-size:14px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;min-height:32px">Analizar blanco<svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></a>
+            <span class="num" style="font-size:14px;color:var(--text-2)">15 disparos · 131 pts</span>
+            <span style="font-size:14px;color:var(--text-3)">ISSF Pistola Precisión · 25 m · Tirones abajo-izquierda</span>
+            <a href="analisis-calibracion.html" class="stretch" aria-label="Analizar blanco de la ronda 2" style="font-size:14px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;min-height:32px;align-self:flex-start">Analizar blanco<svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></a>
           </div>
+          <a href="ronda-form.html" class="icon-btn edit" aria-label="Editar ronda 2"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></a>
         </div>
       </section>
 

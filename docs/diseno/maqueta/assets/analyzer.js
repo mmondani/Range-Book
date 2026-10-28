@@ -1,6 +1,7 @@
-// Analizador de blancos de la maqueta.
+// Analizador de blancos de la maqueta (etapa de impactos; la calibración está en calibration.js).
 // Referencia de comportamiento y de cálculo de métricas (docs/features/000-mvp/shooting_metrics.md, sección 8):
-// puntaje, tamaño de grupo, PMI y distancia al centro. La implementación real va en src/lib/ con tests.
+// puntaje, tamaño de grupo, PMI y distancia al centro. La implementación real está en src/lib/ con tests.
+// Necesita viewer.js (recuadro y zoom). Las superposiciones usan colores fijos: no cambian con el tema.
 (function () {
   // Blanco del inventario (modelo de datos: ver requerimientos.md → ABM de blancos)
   var BLANCO = {
@@ -18,7 +19,7 @@
 
   var root = document.querySelector('[data-analyzer]');
   if (!root) return;
-  var target = root.querySelector('.tgt');
+  var target = window.mkViewer(root.querySelector('.tgt'));
   var span = BLANCO.diametroMm / 0.94; // mm representados por el ancho del cuadro
   var pts = DETECTADOS.slice();
   var hist = [];
@@ -52,16 +53,16 @@
     target.appendChild(ring);
   });
 
-  var group = el('div', 'ring', 'border:2px dashed var(--accent);pointer-events:none');
+  var group = el('div', 'ring', 'border:calc(2px / var(--zoom)) dashed #FF6A1A;pointer-events:none');
   group.setAttribute('aria-hidden', 'true');
   var surface = el('button', '', 'position:absolute;inset:0;background:transparent;border:0;padding:0');
   surface.type = 'button';
   surface.setAttribute('aria-label', 'Agregar impacto en el punto indicado');
   var layer = el('div', '', 'position:absolute;inset:0;pointer-events:none');
-  var pmi = el('div', '', 'position:absolute;width:26px;height:26px;transform:translate(-50%,-50%);pointer-events:none');
+  var pmi = el('div', '', 'position:absolute;width:26px;height:26px;transform:translate(-50%,-50%) scale(calc(1 / var(--zoom)));pointer-events:none');
   pmi.setAttribute('aria-hidden', 'true');
-  pmi.innerHTML = '<div style="position:absolute;left:12px;top:0;width:2px;height:26px;background:var(--info)"></div>' +
-    '<div style="position:absolute;left:0;top:12px;width:26px;height:2px;background:var(--info)"></div>';
+  pmi.innerHTML = '<div style="position:absolute;left:12px;top:0;width:2px;height:26px;background:#5AA9FF"></div>' +
+    '<div style="position:absolute;left:0;top:12px;width:26px;height:2px;background:#5AA9FF"></div>';
   target.appendChild(group);
   target.appendChild(surface);
   target.appendChild(layer);

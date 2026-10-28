@@ -24,6 +24,9 @@ body{margin:0;background:#0B0D0F}
 .icon-btn:hover{background:var(--surface-2);color:var(--text)}
 .chip{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);font:500 14px 'Barlow',sans-serif;cursor:pointer}
 .chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--text)}
+/* Un clic en la fila (salvo sus links) lleva al análisis; el botón de la fila hace lo mismo con el teclado. */
+.rowlink{cursor:pointer}
+.rowlink:hover td{background:var(--surface-2)}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:13px;font-weight:600}
 .input{min-height:44px;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font:400 15px 'Barlow',sans-serif;width:100%}
 .side{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:var(--text-2);text-decoration:none;font-weight:600}
@@ -140,25 +143,27 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
         </div>
         <div style="overflow-x:auto">
           <table>
-            <thead><tr><th scope="col">Blanco</th><th scope="col">Ronda</th><th scope="col">Distancia</th><th scope="col">Disparos</th><th scope="col">Puntaje</th><th scope="col">Grupo</th><th scope="col">Comentarios</th><th scope="col"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Acciones</span></th></tr></thead>
+            <thead><tr><th scope="col"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Foto</span></th><th scope="col">Ronda</th><th scope="col">Distancia</th><th scope="col">Disparos</th><th scope="col">Puntaje</th><th scope="col">Grupo</th><th scope="col">Comentarios</th><th scope="col">Análisis</th><th scope="col"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Acciones</span></th></tr></thead>
             <tbody>
-              <tr>
+              <tr class="rowlink" data-href="analisis.html">
                 <td><div class="tgt" aria-hidden="true"><div style="width:42px;height:42px;border-radius:50%;border:1px solid #333;display:flex;align-items:center;justify-content:center"><div style="width:24px;height:24px;border-radius:50%;background:#1B1B1B"></div></div><span class="dot" style="left:25px;top:24px"></span><span class="dot" style="left:30px;top:28px"></span><span class="dot" style="left:22px;top:30px"></span><span class="dot" style="left:27px;top:19px"></span></div></td>
                 <td style="font-weight:600">1 · ISSF Precisión</td><td class="num">25 m</td>
                 <td class="num">15</td>
                 <td class="num" style="font-weight:600">136</td>
-                <td class="num">46 mm</td>
+                <td class="num">46,0 mm</td>
                 <td style="color:var(--text-2)">Buen control del gatillo</td>
-                <td style="text-align:right"><a href="analisis.html" class="btn btn-ghost" style="min-height:36px"><span class="badge" style="background:color-mix(in srgb, var(--success) 14%, transparent);color:var(--success);padding:0 6px">✓</span>Ver análisis</a></td>
+                <td><span class="badge" style="background:color-mix(in srgb, var(--success) 14%, transparent);color:var(--success)">✓ Analizada</span></td>
+                <td style="text-align:right;white-space:nowrap"><a href="analisis.html" class="btn btn-ghost" aria-label="Ver análisis de la ronda 1" style="min-height:36px;color:var(--accent);border-color:transparent">Ver análisis</a><a href="sesiones.html" class="icon-btn" aria-label="Editar ronda 1"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></a></td>
               </tr>
-              <tr>
+              <tr class="rowlink" data-href="analisis-calibracion.html">
                 <td><div class="tgt" aria-hidden="true"><div style="width:42px;height:42px;border-radius:50%;border:1px solid #333;display:flex;align-items:center;justify-content:center"><div style="width:24px;height:24px;border-radius:50%;background:#1B1B1B"></div></div><span class="dot" style="left:18px;top:32px"></span><span class="dot" style="left:23px;top:36px"></span><span class="dot" style="left:16px;top:27px"></span></div></td>
                 <td style="font-weight:600">2 · ISSF Precisión</td><td class="num">25 m</td>
                 <td class="num">15</td>
                 <td class="num" style="font-weight:600">131</td>
                 <td style="color:var(--text-3)">—</td>
                 <td style="color:var(--text-2)">Tirones abajo-izquierda</td>
-                <td style="text-align:right"><a href="analisis.html" class="btn btn-ghost" style="min-height:36px;color:var(--accent)">Analizar blanco</a></td>
+                <td><span class="badge" style="background:color-mix(in srgb, var(--warning) 14%, transparent);color:var(--warning)">Sin analizar</span></td>
+                <td style="text-align:right;white-space:nowrap"><a href="analisis-calibracion.html" class="btn btn-ghost" aria-label="Analizar blanco de la ronda 2" style="min-height:36px;color:var(--accent);border-color:transparent">Analizar blanco</a><a href="sesiones.html" class="icon-btn" aria-label="Editar ronda 2"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></a></td>
               </tr>
             </tbody>
           </table>
@@ -172,6 +177,11 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
     </section>
   </div>
 </div>
+<script>
+document.querySelectorAll('tr[data-href]').forEach(function (tr) {
+  tr.addEventListener('click', function (e) { if (!e.target.closest('a, button')) location.href = tr.dataset.href; });
+});
+</script>
 <script src="../assets/app.js"></script>
 </body>
 </html>
