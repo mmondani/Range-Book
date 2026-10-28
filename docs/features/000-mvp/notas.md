@@ -257,7 +257,6 @@
 - **Lighthouse ya no tiene la categoría PWA** (se quitó en Lighthouse 12). La instalabilidad se verifica en Chrome → DevTools → Application → Manifest.
 
 ## Pendientes
-- **Paso 13, verificación manual pendiente** (no hubo prueba en el navegador ni en el celular; la extensión de Chrome no estaba conectada): desplegar y (1) revisar en DevTools → Application que el manifest no tenga errores y que el service worker quede activo; (2) instalar desde Perfil en Android y seguir las instrucciones en iPhone; (3) en modo avión, crear una sesión con foto y una ronda, ver el banner, cerrar y abrir la app, y comprobar que al volver la conexión la foto se sube (desaparece de IndexedDB `rangebook-uploads`) y se ve desde otro dispositivo; (4) publicar un cambio y ver el toast "Hay una versión nueva".
 - Las fotos quitadas o de sesiones eliminadas sin conexión no se borran de Storage (`deleteObject` falla y se ignora): quedan huérfanas. Se podría encolar también los borrados.
 - Un error de una escritura que se dio por guardada sin conexión (por ejemplo, de permisos al sincronizar) solo queda en la consola; el usuario no se entera.
 - No se muestra cuántas fotos quedan pendientes de subir.
@@ -276,6 +275,7 @@
 - Al apagar los emuladores, el runtime de reglas de Storage imprime un `NullPointerException` de Java. Es inofensivo (el script sale con código 0).
 
 ## Aprendizajes
+- **PWA y offline (paso 13):** probado por el usuario en producción después del despliegue; funciona bien (instalación, uso sin conexión y sincronización al volver).
 - **Cámara en el celular (pasada del paso 5):** probada en producción con el formulario de arma después del paso 7; la foto se saca, se comprime, se sube y el arma se guarda.
 - **Reglas de Storage con `firestore.exists` en producción.** Las reglas que consultan Firestore necesitan que la cuenta de servicio de Storage (`service-<número>@gcp-sa-firebasestorage.iam.gserviceaccount.com`) tenga el rol `roles/firebaserules.firestoreServiceAgent`. `firebase deploy` lo ofrece con una pregunta, pero **solo en una terminal interactiva**: desplegado sin TTY (como desde Claude Code) se saltea en silencio y las subidas fallan con `storage/unauthorized`. Apareció en el paso 7 con la primera foto real (guardar un arma con foto fallaba). Además, la verificación solo corre cuando `storage.rules` cambia: con las reglas ya publicadas, volver a desplegar no la dispara. Se arregla dando el rol a mano en IAM (Google Cloud Console → IAM → "Incluir asignaciones de roles proporcionadas por Google").
 - El script de despliegue se corre con `pnpm run deploy`: `pnpm deploy` es un comando propio de pnpm (para workspaces) y falla con `ERR_PNPM_CANNOT_DEPLOY`.
