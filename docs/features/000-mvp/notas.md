@@ -101,7 +101,36 @@
   - `src/test/match-media.ts` responde también al corte de desktop (`setDesktop`).
   - El test de `RequireAuth` que entraba a `/inventario` ahora entra a `/rendimiento`: Inventario necesita providers que ese test no monta.
 
+### Paso 7 — Inventario: armas, modificaciones y configuraciones
+- **Repositorios:** `InventoryRepositories` suma `firearms`, `configurations` y `modifications(firearmId)`, que devuelve siempre el mismo repositorio de la subcolección `firearms/{id}/modifications` (así `useCollection` no se vuelve a suscribir en cada render). `InventoryRepository` suma `newId(uid)` y `create` acepta el id y lo devuelve: el arma necesita su id antes de guardarse para armar la ruta de las fotos.
+- **Uso en sesiones (`usage`):** fuente de solo lectura en `InventoryRepositories` que lee `sessions` y devuelve arma, configuración y disparos de cada una (`parseSessionUsage`). Alimenta los tiros acumulados y los contadores de sesiones. Hoy no hay sesiones, así que todo muestra solo los tiros previos; en el paso 9 conviene que salga del repositorio de sesiones. `profileSummary` (paso 4) sigue leyendo sesiones y armas por su cuenta.
+- **Modificaciones de todas las armas** (`useFirearmModifications`): la lista de armas (contador) y la de configuraciones (etiquetas) necesitan las modificaciones de cada arma; como son subcolecciones, se abre una suscripción por arma. Se descartó una consulta *collection group* porque las reglas no pueden limitarla al dueño sin guardar el `uid` en cada documento.
+- **Archivos extra** que no figuraban en la tabla del plan:
+  - Componentes: `FirearmCards`, `ConfigurationCard`, `ModificationChecklist`, `ModificationTags`, `Tag` (la etiqueta chica `.mini` de la maqueta) y `TagList`.
+  - Pantallas: `FirearmScreen` (M09 / W07), `FirearmSheet` (M10), `ModificationSheet`, `ConfigurationSheet` y `FirearmItemRoute` (sheets sobre el detalle).
+  - `src/lib/format.ts` suma `isoDate` (fecha local `AAAA-MM-DD`) y `formatIsoDate` (`14/03/2023`).
+- **`InventoryItems`** acepta `render` (las armas son tarjetas, no filas, pero reusan los estados cargando / error / vacío / sin resultados / todo archivado), `extra` (etiquetas debajo del detalle en mobile) y `headingLevel` en el estado vacío. `useItemForm` compara las listas (fotos, modificaciones elegidas) por contenido para saber si hay cambios. `useInventorySheet` toma `listPath` de `useSheetOutlet`, común a la lista y al detalle del arma.
+- **Rutas:**
+  - `/inventario/armas/nueva`: alta sobre la lista. Al guardar abre el detalle del arma nueva (reemplazando la entrada del historial), como en la maqueta.
+  - `/inventario/armas/:id`: detalle, con sus sheets como rutas hijas: `editar`, `modificaciones/nueva`, `modificaciones/:itemId/editar`, `configuraciones/nueva` y `configuraciones/:itemId/editar`. Va después de `inventario/:category` en `routes.tsx`: `/inventario/armas/nueva` empata en puntaje con `inventario/armas/:id` y gana la primera (hay un test que lo cubre).
+  - `/inventario/configuraciones/nueva` y `/:id/editar`: sheet sobre la lista. El alta desde la lista pide el arma base; desde el detalle viene fija. Al editar, el arma base no cambia (las modificaciones son de esa arma).
+- **Desvíos de la maqueta:**
+  - **M10 es un sheet (diálogo en desktop)**, no una página completa: mismo patrón que el resto del inventario (confirmación al cerrar con cambios, "atrás" lo cierra, "Archivar arma" adentro).
+  - El detalle no tiene menú "⋮": **Editar** y **Archivar** (o **Restaurar**, con el badge "Archivada") son botones del encabezado en los dos tamaños, como en W07. Mobile tiene "‹ Armas" para volver; desktop, la ruta Inventario / Armas / arma.
+  - La galería del detalle no tiene el botón "Agregar foto": las fotos se agregan, quitan y ordenan desde **Editar**.
+  - Las modificaciones del detalle tienen un lápiz "Editar …" (no "⋮ Acciones de …"), igual que el paso 6. "Mostrar modificaciones archivadas" y "Mostrar configuraciones archivadas" son checkboxes separados (el estado vive en la pantalla, no en la URL).
+  - Tarjeta de arma: el calibre va como etiqueta junto al nombre también en mobile. Las archivadas se ven atenuadas con el badge "Archivada" y se restauran desde su detalle.
+  - Configuraciones en la lista: la tabla de desktop y las tarjetas de mobile muestran nombre, arma base y modificaciones; la columna "Sesiones" solo está en desktop. Se edita con el lápiz (no "⋮").
+- **Validaciones:**
+  - Arma: marca, modelo y calibre obligatorios; fecha de compra válida y no futura; tiros previos enteros entre 0 y 10.000.000 (acepta `1.200`); hasta 20 fotos.
+  - Configuración: nombre obligatorio, distinto de "Stock" y de las otras configuraciones activas de la misma arma (sin distinguir mayúsculas ni acentos), y **al menos una modificación** (sin modificaciones es "Stock"). Solo se ofrecen las modificaciones activas, salvo las que ya estaban elegidas.
+- **Archivados:** una configuración sigue mostrando una modificación archivada (atenuada, "(archivada)"); no cambia sola. Las configuraciones de un arma archivada siguen en la lista de configuraciones: el filtro para el select de sesión queda para el paso 9.
+- **Fotos del arma:** se suben antes de guardar el documento y las quitadas se borran después, como se definió en el paso 5. Si falla el alta después de subir las fotos, quedan huérfanas en Storage (al reintentar se reusan las mismas rutas).
+- **Reglas:** `firearms`, `firearms/{id}/modifications` y `configurations` validan campos, tipos, longitudes y límites (iguales a `src/lib/firearms.ts`), no se pueden borrar, y una configuración tiene que apuntar a un arma existente del mismo usuario. El test de reglas que borraba un arma ahora borra una sesión.
+
 ## Pendientes
+- **Prueba manual de la cámara en el celular** (pasada del paso 5): queda lista en el formulario de arma, después de desplegar.
+- El paso 7 tampoco tuvo revisión visual en el navegador (solo tests): revisar M09 / W07 / M10 y las pestañas Armas y Configuraciones en los dos temas, en 375 px y 1280 px.
 - **Guardar sin conexión (paso 13).** `create` y `update` esperan la confirmación del servidor de Firestore: sin conexión el sheet quedaría en "guardando". Revisarlo junto con la persistencia offline (no esperar la promesa o cerrar al escribir en la caché local).
 - El paso 6 no tuvo revisión visual contra la maqueta en el navegador (solo tests). Revisarla en los dos temas, en 375 px y 1280 px.
 - `pnpm` ignoró el script de instalación de `protobufjs` (dependencia de `firebase-tools`). Los emuladores funcionan igual; si aparece algún problema, correr `pnpm approve-builds`.

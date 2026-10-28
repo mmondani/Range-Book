@@ -8,6 +8,14 @@ export interface ItemFormOptions<I> {
   save: (input: I) => Promise<void>;
 }
 
+/** Igualdad de un campo: las listas (fotos, modificaciones elegidas) se comparan por contenido. */
+function sameValue(a: unknown, b: unknown): boolean {
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return a.length === b.length && a.every((item, index) => item === b[index]);
+  }
+  return a === b;
+}
+
 /** Estado de un formulario corto del inventario: borrador, errores y guardado. */
 export function useItemForm<I extends object>({ initial, validate, save }: ItemFormOptions<I>) {
   const [draft, setDraft] = useState(initial);
@@ -15,7 +23,9 @@ export function useItemForm<I extends object>({ initial, validate, save }: ItemF
   const [errorAttempt, setErrorAttempt] = useState(0);
   const [saving, setSaving] = useState(false);
 
-  const dirty = (Object.keys(initial) as Array<keyof I>).some((key) => draft[key] !== initial[key]);
+  const dirty = (Object.keys(initial) as Array<keyof I>).some(
+    (key) => !sameValue(draft[key], initial[key]),
+  );
 
   function setField<K extends keyof I>(key: K, value: I[K]) {
     setDraft((current) => ({ ...current, [key]: value }));

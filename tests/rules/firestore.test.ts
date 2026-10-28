@@ -17,6 +17,23 @@ import {
 const PROFILE = { displayName: 'Ana Gómez', photoURL: null, units: 'mm', theme: 'dark' };
 const AMMUNITION = { brand: 'CCI', model: 'Standard Velocity', description: '', archived: false };
 const RANGE = { name: 'Club', address: '', archived: false };
+const FIREARM = {
+  brand: 'Glock',
+  model: '17 Gen5',
+  caliber: '9×19 mm',
+  purchaseDate: '2023-03-14',
+  purchasePlace: 'Armería Centro',
+  priorShots: 1200,
+  photos: ['users/ana/firearms/glock/a.jpg'],
+  archived: false,
+};
+const MODIFICATION = { brand: 'Holosun', model: '507C', comments: '', archived: false };
+const CONFIGURATION = {
+  name: 'IPSC',
+  firearmId: 'glock',
+  modificationIds: ['holosun'],
+  archived: false,
+};
 
 let env: RulesTestEnvironment;
 
@@ -34,7 +51,8 @@ beforeEach(async () => {
   await env.withSecurityRulesDisabled(async (context) => {
     const db = context.firestore();
     await setDoc(doc(db, 'users', ALLOWED.uid), PROFILE);
-    await setDoc(doc(db, 'users', ALLOWED.uid, 'firearms', 'glock'), { brand: 'Glock' });
+    await setDoc(doc(db, 'users', ALLOWED.uid, 'firearms', 'glock'), FIREARM);
+    await setDoc(doc(db, 'users', ALLOWED.uid, 'sessions', 's1'), { notes: '' });
     await setDoc(doc(db, 'users', OTHER_ALLOWED.uid), { ...PROFILE, displayName: 'Beto' });
     await setDoc(doc(db, 'users', OTHER_ALLOWED.uid, 'firearms', 'cz'), { brand: 'CZ' });
   });
@@ -78,7 +96,7 @@ describe('users', () => {
     await assertSucceeds(getDoc(doc(db, 'users', ALLOWED.uid)));
     await assertSucceeds(getDocs(collection(db, 'users', ALLOWED.uid, 'firearms')));
     await assertSucceeds(setDoc(doc(db, 'users', ALLOWED.uid, 'ranges', 'club'), RANGE));
-    await assertSucceeds(deleteDoc(doc(db, 'users', ALLOWED.uid, 'firearms', 'glock')));
+    await assertSucceeds(deleteDoc(doc(db, 'users', ALLOWED.uid, 'sessions', 's1')));
   });
 
   it('un usuario no autorizado no lee ni escribe nada, ni siquiera bajo su uid', async () => {
@@ -179,5 +197,80 @@ describe('inventario: munición y polígonos', () => {
     await assertFails(getDoc(doc(db, 'users', OTHER_ALLOWED.uid, 'ranges', 'x')));
     await assertFails(getDocs(collection(db, 'users', OTHER_ALLOWED.uid, 'ammunition')));
     await assertFails(setDoc(doc(db, 'users', OTHER_ALLOWED.uid, 'ammunition', 'y'), AMMUNITION));
+  });
+});
+
+describe('inventario: armas, modificaciones y configuraciones', () => {
+  type Db = ReturnType<ReturnType<typeof signedIn>['firestore']>;
+  const firearm = (db: Db, id = 'glock') => doc(db, 'users', ALLOWED.uid, 'firearms', id);
+  const modification = (db: Db, id = 'holosun') =>
+    doc(db, 'users', ALLOWED.uid, 'firearms', 'glock', 'modifications', id);
+  const configuration = (db: Db, id = 'ipsc') =>
+    doc(db, 'users', ALLOWED.uid, 'configurations', id);
+
+  it('se crean y editan con los campos válidos', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    await assertSucceeds(setDoc(firearm(db, 'cz'), { ...FIREARM, purchaseDate: null, photos: [] }));
+    await assertSucceeds(updateDoc(firearm(db), { priorShots: 1500, photos: [] }));
+    await assertSucceeds(setDoc(modification(db), MODIFICATION));
+    await assertSucceeds(updateDoc(modification(db), { comments: 'Red dot' }));
+    await assertSucceeds(setDoc(configuration(db), CONFIGURATION));
+    await assertSucceeds(updateDoc(configuration(db), { modificationIds: ['holosun', 'zev'] }));
+    await assertSucceeds(getDocs(collection(db, 'users', ALLOWED.uid, 'configurations')));
+    await assertSucceeds(
+      getDocs(collection(db, 'users', ALLOWED.uid, 'firearms', 'glock', 'modifications')),
+    );
+  });
+
+  it('el arma rechaza campos faltantes, vacíos, inválidos o de más', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    const ref = firearm(db, 'x');
+    await assertFails(setDoc(ref, { ...FIREARM, caliber: '' }));
+    await assertFails(setDoc(ref, { ...FIREARM, priorShots: -1 }));
+    await assertFails(setDoc(ref, { ...FIREARM, priorShots: 12.5 }));
+    await assertFails(setDoc(ref, { ...FIREARM, priorShots: 10000001 }));
+    await assertFails(setDoc(ref, { ...FIREARM, purchaseDate: '14/03/2023' }));
+    await assertFails(setDoc(ref, { ...FIREARM, photos: 'a.jpg' }));
+    await assertFails(setDoc(ref, { ...FIREARM, photos: Array.from({ length: 21 }, String) }));
+    await assertFails(setDoc(ref, { ...FIREARM, serial: '123' }));
+    const { photos, ...withoutPhotos } = FIREARM;
+    void photos;
+    await assertFails(setDoc(ref, withoutPhotos));
+  });
+
+  it('la modificación y la configuración validan sus campos', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    await assertFails(setDoc(modification(db), { ...MODIFICATION, brand: '' }));
+    await assertFails(setDoc(modification(db), { ...MODIFICATION, comments: 'x'.repeat(501) }));
+    await assertFails(setDoc(configuration(db), { ...CONFIGURATION, name: '' }));
+    await assertFails(setDoc(configuration(db), { ...CONFIGURATION, modificationIds: [] }));
+    await assertFails(setDoc(configuration(db), { ...CONFIGURATION, modificationIds: 'holosun' }));
+  });
+
+  it('la configuración tiene que apuntar a un arma propia', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    await assertFails(setDoc(configuration(db), { ...CONFIGURATION, firearmId: 'nada' }));
+    // `cz` es un arma de B.
+    await assertFails(setDoc(configuration(db), { ...CONFIGURATION, firearmId: 'cz' }));
+  });
+
+  it('se archivan y restauran, pero no se borran', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    await assertSucceeds(updateDoc(firearm(db), { archived: true }));
+    await assertSucceeds(updateDoc(firearm(db), { archived: false }));
+    await assertFails(deleteDoc(firearm(db)));
+    await assertSucceeds(setDoc(modification(db), MODIFICATION));
+    await assertSucceeds(updateDoc(modification(db), { archived: true }));
+    await assertFails(deleteDoc(modification(db)));
+    await assertSucceeds(setDoc(configuration(db), CONFIGURATION));
+    await assertFails(deleteDoc(configuration(db)));
+  });
+
+  it('el usuario A no lee ni escribe las armas de B', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    const other = (...path: string[]) => doc(db, 'users', OTHER_ALLOWED.uid, ...path);
+    await assertFails(getDoc(other('firearms', 'cz')));
+    await assertFails(setDoc(other('firearms', 'cz', 'modifications', 'm'), MODIFICATION));
+    await assertFails(setDoc(other('configurations', 'c'), { ...CONFIGURATION, firearmId: 'cz' }));
   });
 });

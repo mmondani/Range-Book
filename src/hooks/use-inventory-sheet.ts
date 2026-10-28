@@ -5,7 +5,7 @@ import { useCurrentUser } from './use-auth';
 import {
   useArchiveActions,
   useCloseSheet,
-  useInventoryOutlet,
+  useSheetOutlet,
   type ArchiveMessages,
 } from './use-inventory';
 import { useItemForm } from './use-item-form';
@@ -31,7 +31,7 @@ export function useInventorySheet<T extends Archivable, I extends object>({
   messages,
 }: InventorySheetOptions<T, I>) {
   const uid = useCurrentUser()?.uid;
-  const { listPath } = useInventoryOutlet();
+  const { listPath } = useSheetOutlet();
   const close = useCloseSheet(listPath);
   const toast = useToast();
   const { archive } = useArchiveActions(repository, messages);

@@ -4,10 +4,12 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { describe, expect, it } from 'vitest';
 import { AuthProvider } from '@/components/auth-provider';
 import { InventoryProvider } from '@/components/inventory-provider';
+import { PhotoProvider } from '@/components/photo-provider';
 import { ToastProvider } from '@/components/toast-provider';
 import { routes } from '@/routes';
 import { ANA, createFakeAuth } from '@/test/fake-auth';
-import { createFakeInventory, SELLIER } from '@/test/fake-inventory';
+import { createFakeInventory, GLOCK, IPSC, SELLIER } from '@/test/fake-inventory';
+import { createFakePhotos } from '@/test/fake-photos';
 import { setDesktop } from '@/test/match-media';
 
 type InventoryOptions = Parameters<typeof createFakeInventory>[0];
@@ -15,38 +17,138 @@ type InventoryOptions = Parameters<typeof createFakeInventory>[0];
 function renderInventory(path = '/inventario/municiones', options?: InventoryOptions) {
   const { auth, profiles } = createFakeAuth({ initialUser: ANA });
   const inventory = createFakeInventory(options);
+  const photos = createFakePhotos();
   const router = createMemoryRouter(routes, { initialEntries: [path] });
   render(
     <AuthProvider auth={auth} profiles={profiles}>
-      <InventoryProvider repositories={inventory.repositories}>
-        <ToastProvider>
-          <RouterProvider router={router} />
-        </ToastProvider>
-      </InventoryProvider>
+      <PhotoProvider repository={photos.repository}>
+        <InventoryProvider repositories={inventory.repositories}>
+          <ToastProvider>
+            <RouterProvider router={router} />
+          </ToastProvider>
+        </InventoryProvider>
+      </PhotoProvider>
     </AuthProvider>,
   );
   return { ...inventory, router };
 }
 
 const list = (name: string) => screen.findByRole('region', { name });
+// Solo las filas: no los `<li>` de las etiquetas que van adentro.
 const names = (region: HTMLElement) =>
   within(region)
     .getAllByRole('listitem')
+    .filter((item) => item.parentElement?.parentElement === region)
     .map((item) => item.querySelector('div')?.firstElementChild?.textContent);
 const dialog = () => screen.findByRole('dialog');
 
 describe('InventoryScreen', () => {
-  it('/inventario abre Armas, todavía en construcción', async () => {
+  it('/inventario abre Armas', async () => {
     const { router } = renderInventory('/inventario');
-    expect(await screen.findByRole('tab', { name: 'Armas', selected: true })).toBeInTheDocument();
-    expect(screen.getByText('En construcción')).toBeInTheDocument();
+    expect(await screen.findByRole('tab', { name: 'Armas 2', selected: true })).toBeVisible();
     expect(router.state.location.pathname).toBe('/inventario/armas');
   });
 
   it('muestra las categorías con el contador de activos', async () => {
     renderInventory();
     expect(await screen.findByRole('tab', { name: 'Munición 2', selected: true })).toBeVisible();
+    expect(screen.getByRole('tab', { name: 'Armas 2' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Configuraciones 1' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Polígonos 2' })).toBeInTheDocument();
+  });
+
+  describe('armas', () => {
+    const cards = async () => within(await screen.findByRole('list', { name: 'Armas' }));
+
+    it('tarjetas con calibre, modificaciones activas y tiros acumulados', async () => {
+      renderInventory('/inventario/armas');
+      const list = await cards();
+      const glock = await list.findByRole('link', { name: /Glock 17 Gen5/ });
+      expect(glock).toHaveAttribute('href', '/inventario/armas/glock');
+      expect(glock).toHaveTextContent('9×19 mm');
+      // 1.200 previos + 210 en sesiones.
+      expect(glock).toHaveTextContent('1.410 tiros acumulados');
+      expect(await within(glock).findByText(/2 modificaciones/)).toBeInTheDocument();
+      expect(list.getByRole('link', { name: /Ruger 10\/22/ })).toHaveTextContent(
+        'Sin modificaciones',
+      );
+    });
+
+    it('una archivada no aparece, salvo con "Mostrar archivados"', async () => {
+      renderInventory('/inventario/armas');
+      expect((await cards()).queryByText(/Bersa/)).not.toBeInTheDocument();
+      await userEvent.click(screen.getByRole('checkbox', { name: 'Mostrar archivados (1)' }));
+      const bersa = (await cards()).getByRole('link', { name: /Bersa Thunder 380/ });
+      expect(bersa).toHaveTextContent('Archivada');
+    });
+
+    it('"Nueva arma" abre el formulario sobre la lista', async () => {
+      const { router } = renderInventory('/inventario/armas');
+      await userEvent.click(await screen.findByRole('link', { name: 'Nueva arma' }));
+      expect(router.state.location.pathname).toBe('/inventario/armas/nueva');
+      expect(within(await dialog()).getByRole('heading', { name: 'Nueva arma' })).toBeVisible();
+      expect(screen.getByRole('list', { name: 'Armas' })).toBeInTheDocument();
+    });
+
+    it('sin armas muestra el estado vacío', async () => {
+      renderInventory('/inventario/armas', { firearms: [] });
+      expect(await screen.findByRole('heading', { name: 'Sin armas' })).toBeInTheDocument();
+    });
+  });
+
+  describe('configuraciones', () => {
+    it('muestra nombre, arma base y modificaciones; las archivadas no', async () => {
+      renderInventory('/inventario/configuraciones');
+      const region = await list('Configuraciones');
+      expect(names(region)).toEqual(['Config. IPSC']);
+      expect(region).toHaveTextContent('Base: Glock 17 Gen5');
+      const tags = await within(region).findByRole('list', {
+        name: 'Modificaciones de Config. IPSC',
+      });
+      expect(
+        within(tags)
+          .getAllByRole('listitem')
+          .map((item) => item.textContent),
+      ).toEqual(['Holosun 507C X2', 'Zev PRO Trigger']);
+    });
+
+    it('alta desde la lista: elige el arma y sus modificaciones', async () => {
+      const { repositories } = renderInventory('/inventario/configuraciones');
+      await userEvent.click(await screen.findByRole('link', { name: 'Nueva configuración' }));
+      const sheet = await dialog();
+      await userEvent.selectOptions(
+        within(sheet).getByRole('combobox', { name: /Arma base/ }),
+        'Glock 17 Gen5',
+      );
+      await userEvent.type(within(sheet).getByRole('textbox', { name: /Nombre/ }), 'Liviana');
+      // La modificación archivada no se ofrece.
+      expect(within(sheet).queryByRole('checkbox', { name: /Taran/ })).not.toBeInTheDocument();
+      await userEvent.click(await within(sheet).findByRole('checkbox', { name: /Zev/ }));
+      await userEvent.click(within(sheet).getByRole('button', { name: 'Guardar configuración' }));
+
+      expect(repositories.configurations.create).toHaveBeenCalledWith(ANA.uid, {
+        name: 'Liviana',
+        firearmId: GLOCK.id,
+        modificationIds: ['zev'],
+      });
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+      expect(names(await list('Configuraciones'))).toEqual(['Config. IPSC', 'Liviana']);
+    });
+
+    it('editar desde la lista conserva el arma base', async () => {
+      const { repositories } = renderInventory('/inventario/configuraciones');
+      await userEvent.click(await screen.findByRole('button', { name: 'Editar Config. IPSC' }));
+      const sheet = await dialog();
+      expect(within(sheet).queryByRole('combobox')).not.toBeInTheDocument();
+      expect(await within(sheet).findByRole('checkbox', { name: /Holosun/ })).toBeChecked();
+      await userEvent.click(within(sheet).getByRole('checkbox', { name: /Holosun/ }));
+      await userEvent.click(within(sheet).getByRole('button', { name: 'Guardar cambios' }));
+      expect(repositories.configurations.update).toHaveBeenCalledWith(ANA.uid, IPSC.id, {
+        name: 'Config. IPSC',
+        firearmId: GLOCK.id,
+        modificationIds: ['zev'],
+      });
+    });
   });
 
   it('cambiar de categoría cambia la URL y el botón primario', async () => {

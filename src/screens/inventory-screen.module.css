@@ -92,3 +92,15 @@
     min-height: 48px;
   }
 }
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.help {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-3);
+}

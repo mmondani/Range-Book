@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext } from 'react';
 import { useLocation, useNavigate, useOutletContext } from 'react-router';
 import type { InventoryRepositories, InventoryRepository } from '@/data/inventory-repository';
+import type { Configuration, Firearm } from '@/lib/firearms';
 import type { Ammunition, Archivable, Range } from '@/lib/inventory';
 import { useCurrentUser } from './use-auth';
 import type { CollectionState } from './use-collection';
@@ -14,12 +15,22 @@ export function useInventoryRepositories(): InventoryRepositories {
   return context;
 }
 
-/** Lo que la pantalla de inventario les pasa a sus sheets (rutas hijas). */
-export interface InventoryOutletContext {
+/** Lo que toda pantalla con sheets (rutas hijas) les pasa. */
+export interface SheetOutletContext {
+  /** Adónde vuelve el sheet al cerrarse: la lista con su query string, o el detalle del arma. */
+  listPath: string;
+}
+
+export function useSheetOutlet(): SheetOutletContext {
+  return useOutletContext<SheetOutletContext>();
+}
+
+/** Lo que la pantalla de inventario les pasa a sus sheets. */
+export interface InventoryOutletContext extends SheetOutletContext {
+  firearms: CollectionState<Firearm>;
+  configurations: CollectionState<Configuration>;
   ammunition: CollectionState<Ammunition>;
   ranges: CollectionState<Range>;
-  /** Lista de la categoría, con su query string (por ejemplo, `?archivados=1`). */
-  listPath: string;
 }
 
 export function useInventoryOutlet(): InventoryOutletContext {

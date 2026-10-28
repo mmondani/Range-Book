@@ -3,6 +3,8 @@ import { useInventoryOutlet } from '@/hooks/use-inventory';
 import type { CollectionState } from '@/hooks/use-collection';
 import { NEW_ITEM_SEGMENT, parseCategory, type Archivable } from '@/lib/inventory';
 import { AmmunitionSheet } from './ammunition-sheet';
+import { ConfigurationSheet } from './configuration-sheet';
+import { FirearmSheet } from './firearm-sheet';
 import { RangeSheet } from './range-sheet';
 
 export type InventoryItemRouteProps = { segment: 'nueva' | 'nuevo' } | { segment: 'editar' };
@@ -19,20 +21,43 @@ function lookup<T extends Archivable>(
   return item ? { status: 'found', item } : { status: 'missing' };
 }
 
+function itemsOf<T>(state: CollectionState<T>): T[] {
+  return state.status === 'ready' ? state.items : [];
+}
+
 /**
  * Sheet de alta o edición sobre la lista (ruta hija de `/inventario/:categoria`). Si la URL no
- * corresponde a ningún elemento editable, vuelve a la lista.
+ * corresponde a ningún elemento editable, vuelve a la lista. Las armas se editan desde su detalle.
  */
 export function InventoryItemRoute(props: InventoryItemRouteProps) {
   const params = useParams();
   const category = parseCategory(params.category);
-  const { ammunition, ranges, listPath } = useInventoryOutlet();
+  const { firearms, configurations, ammunition, ranges, listPath } = useInventoryOutlet();
   const back = <Navigate to={listPath} replace />;
   const id = props.segment === 'editar' ? params.id : undefined;
 
   if (!category) return back;
   if (props.segment !== 'editar' && NEW_ITEM_SEGMENT[category] !== props.segment) return back;
 
+  if (category === 'armas') {
+    if (id) return <Navigate to={`/inventario/armas/${id}/editar`} replace />;
+    if (firearms.status === 'loading') return null;
+    return <FirearmSheet firearms={itemsOf(firearms)} />;
+  }
+  if (category === 'configuraciones') {
+    const found = lookup(configurations, id);
+    if (configurations.status === 'loading' || firearms.status === 'loading') return null;
+    return found.status === 'found' ? (
+      <ConfigurationSheet
+        key={id}
+        item={found.item}
+        firearms={itemsOf(firearms)}
+        configurations={itemsOf(configurations)}
+      />
+    ) : (
+      back
+    );
+  }
   if (category === 'municiones') {
     const found = lookup(ammunition, id);
     if (found.status === 'loading') return null;

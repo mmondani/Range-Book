@@ -46,6 +46,41 @@ service cloud.firestore {
         && data.archived is bool;
     }
 
+    // Límites de `src/lib/firearms.ts` (MAX_PRIOR_SHOTS, MAX_FIREARM_PHOTOS,
+    // MAX_CONFIGURATION_MODIFICATIONS).
+    function isValidFirearm(data) {
+      return data.keys().hasOnly([
+          'brand', 'model', 'caliber', 'purchaseDate', 'purchasePlace', 'priorShots', 'photos',
+          'archived'
+        ])
+        && isText(data.brand, 100) && data.brand.size() > 0
+        && isText(data.model, 100) && data.model.size() > 0
+        && isText(data.caliber, 100) && data.caliber.size() > 0
+        && (data.purchaseDate == null
+          || (data.purchaseDate is string && data.purchaseDate.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')))
+        && isText(data.purchasePlace, 500)
+        && data.priorShots is int && data.priorShots >= 0 && data.priorShots <= 10000000
+        && data.photos is list && data.photos.size() <= 20
+        && data.archived is bool;
+    }
+
+    function isValidModification(data) {
+      return data.keys().hasOnly(['brand', 'model', 'comments', 'archived'])
+        && isText(data.brand, 100) && data.brand.size() > 0
+        && isText(data.model, 100) && data.model.size() > 0
+        && isText(data.comments, 500)
+        && data.archived is bool;
+    }
+
+    function isValidConfiguration(data) {
+      return data.keys().hasOnly(['name', 'firearmId', 'modificationIds', 'archived'])
+        && isText(data.name, 100) && data.name.size() > 0
+        && isText(data.firearmId, 100) && data.firearmId.size() > 0
+        && data.modificationIds is list
+        && data.modificationIds.size() > 0 && data.modificationIds.size() <= 50
+        && data.archived is bool;
+    }
+
     // Lista de acceso: se administra a mano desde la consola. Cada usuario solo puede
     // consultar su propio email (exista o no) y nadie puede escribirla desde el cliente.
     match /allowedEmails/{allowedEmail} {
@@ -59,6 +94,27 @@ service cloud.firestore {
       allow delete: if false;
 
       // Inventario validado. No se borra: se archiva.
+      match /firearms/{firearmId} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidFirearm(request.resource.data);
+        allow delete: if false;
+
+        match /modifications/{id} {
+          allow read: if isOwner(uid);
+          allow create, update: if isOwner(uid) && isValidModification(request.resource.data);
+          allow delete: if false;
+        }
+      }
+
+      // Cada configuración apunta a un arma existente del mismo usuario.
+      match /configurations/{id} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && isValidConfiguration(request.resource.data)
+          && exists(/databases/$(database)/documents/users/$(uid)/firearms/$(request.resource.data.firearmId));
+        allow delete: if false;
+      }
+
       match /ammunition/{id} {
         allow read: if isOwner(uid);
         allow create, update: if isOwner(uid) && isValidAmmunition(request.resource.data);
@@ -75,7 +131,8 @@ service cloud.firestore {
       // evita que el comodín recursivo (que acepta cero segmentos) también matchee el perfil.
       match /{subcollection}/{document=**} {
         allow read: if isOwner(uid);
-        allow write: if isOwner(uid) && !(subcollection in ['ammunition', 'ranges']);
+        allow write: if isOwner(uid)
+          && !(subcollection in ['firearms', 'configurations', 'ammunition', 'ranges']);
       }
     }
   }

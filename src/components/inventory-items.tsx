@@ -21,17 +21,28 @@ export interface InventoryItemsProps<T extends Archivable> {
   searchFields: (item: T) => string[];
   showArchived: boolean;
   query?: string;
-  /** Mobile: fila con ícono opcional, título y detalle. */
+  /** Mobile: fila con ícono opcional, título, detalle y algo más debajo (por ejemplo, etiquetas). */
   icon?: ReactNode;
-  title: (item: T) => string;
-  detail: (item: T) => string;
+  title?: (item: T) => string;
+  detail?: (item: T) => string;
+  extra?: (item: T) => ReactNode;
   /** Desktop: columnas de la tabla (sin la de acciones). */
-  columns: ReadonlyArray<DataTableColumn<T>>;
+  columns?: ReadonlyArray<DataTableColumn<T>>;
+  /** Reemplaza la lista y la tabla (por ejemplo, tarjetas); recibe los elementos ya filtrados. */
+  render?: (items: T[]) => ReactNode;
   'aria-label': string;
   /** Estado vacío cuando todavía no se cargó ninguno. */
-  empty: { icon: ReactNode; title: string; text: string; action: ReactNode };
-  onEdit: (item: T) => void;
-  onRestore: (item: T) => void;
+  empty: {
+    icon: ReactNode;
+    title: string;
+    text: string;
+    action?: ReactNode;
+    headingLevel?: 2 | 3;
+  };
+  onEdit?: (item: T) => void;
+  onRestore?: (item: T) => void;
+  /** Título del estado "Todo archivado". */
+  archivedText?: string;
 }
 
 /** Lista (mobile) o tabla (desktop) de una categoría del inventario, con sus estados. */
@@ -42,13 +53,16 @@ export function InventoryItems<T extends Archivable>({
   showArchived,
   query = '',
   icon,
-  title,
+  title = name,
   detail,
-  columns,
+  extra,
+  columns = [],
+  render,
   'aria-label': ariaLabel,
   empty,
   onEdit,
   onRestore,
+  archivedText = 'Marcá «Mostrar archivados» para verlos y restaurarlos.',
 }: InventoryItemsProps<T>) {
   const isDesktop = useIsDesktop();
 
@@ -84,13 +98,11 @@ export function InventoryItems<T extends Archivable>({
         text={`Nada coincide con «${query.trim()}».`}
       />
     ) : (
-      <EmptyState
-        icon={empty.icon}
-        title="Todo archivado"
-        text="Marcá «Mostrar archivados» para verlos y restaurarlos."
-      />
+      <EmptyState icon={empty.icon} title="Todo archivado" text={archivedText} />
     );
   }
+
+  if (render) return render(items);
 
   function action(item: T) {
     const itemName = name(item);
@@ -99,7 +111,7 @@ export function InventoryItems<T extends Archivable>({
         <Button
           variant="ghost"
           aria-label={`Restaurar ${itemName}`}
-          onClick={() => onRestore(item)}
+          onClick={() => onRestore?.(item)}
         >
           <RotateCcw aria-hidden="true" size={18} />
           Restaurar
@@ -107,7 +119,7 @@ export function InventoryItems<T extends Archivable>({
       );
     }
     return (
-      <IconButton aria-label={`Editar ${itemName}`} onClick={() => onEdit(item)}>
+      <IconButton aria-label={`Editar ${itemName}`} onClick={() => onEdit?.(item)}>
         <Pencil aria-hidden="true" size={20} />
       </IconButton>
     );
@@ -151,7 +163,8 @@ export function InventoryItems<T extends Archivable>({
             )}
             <div className={styles.text}>
               <span className={styles.title}>{title(item)}</span>
-              {detail(item) && <span className={styles.detail}>{detail(item)}</span>}
+              {detail?.(item) && <span className={styles.detail}>{detail(item)}</span>}
+              {extra?.(item)}
               {item.archived && <Badge className={styles.badge}>Archivado</Badge>}
             </div>
             {action(item)}

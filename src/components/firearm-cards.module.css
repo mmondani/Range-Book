@@ -1,0 +1,140 @@
+/* Mobile: filas con miniatura de 76 px. Desktop: grilla de tarjetas con la foto arriba. */
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 100%;
+  padding: var(--space-3);
+  overflow: hidden;
+}
+
+.media {
+  position: relative;
+  flex-shrink: 0;
+  width: 76px;
+  height: 76px;
+  overflow: hidden;
+  border-radius: var(--radius-control);
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--surface-2);
+  color: var(--text-3);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px var(--space-2);
+}
+
+.name {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.configs {
+  display: none;
+}
+
+.shots {
+  color: var(--text-3);
+}
+
+.shots b {
+  color: var(--accent);
+}
+
+.badge {
+  align-self: flex-start;
+  margin-top: var(--space-1);
+}
+
+.archived .name,
+.archived .shots b {
+  color: var(--text-3);
+}
+
+.archived .media {
+  opacity: 0.6;
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+  }
+
+  .media {
+    width: 100%;
+    height: 170px;
+    border-radius: 0;
+  }
+
+  .body {
+    gap: 6px;
+    padding: 14px var(--space-4) var(--space-4);
+  }
+
+  .name {
+    font-size: 18px;
+  }
+
+  .meta {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .configs {
+    display: inline;
+  }
+
+  .shots {
+    color: var(--text-2);
+  }
+}

@@ -93,7 +93,7 @@ No hay código todavía; todo es nuevo. `docs/arquitectura.md` no existe y se cr
 - [x] **6. Inventario: municiones, polígonos y archivado**
   - Qué: M08/W06 con categorías y contadores; ABM de munición y polígonos en sheet/diálogo; archivar, "Ver archivadas" y restaurar (patrón común para todas las entidades).
   - Verificación: tests de que un archivado no aparece en listas ni selects pero sí con "Ver archivadas", y que se puede restaurar.
-- [ ] **7. Inventario: armas, modificaciones y configuraciones**
+- [x] **7. Inventario: armas, modificaciones y configuraciones**
   - Qué: M09/W07, M10. Fotos múltiples con portada, calibre con sugerencias, tiros previos. Modificaciones en sheet. Configuraciones (nombre + checkboxes de modificaciones). Tiros acumulados = previos + disparos de sesiones.
   - Verificación: tests de `firearms.ts` (tiros acumulados, configuración "Stock" implícita, archivados); tests de validación del formulario de arma.
 - [ ] **8. Inventario: blancos**

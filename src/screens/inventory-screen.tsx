@@ -1,4 +1,4 @@
-import { Boxes, Construction, MapPin, Plus, Search } from 'lucide-react';
+import { Boxes, Construction, Crosshair, Layers, MapPin, Plus, Search } from 'lucide-react';
 import { useState } from 'react';
 import {
   Navigate,
@@ -9,11 +9,14 @@ import {
   useSearchParams,
 } from 'react-router';
 import { EmptyState } from '@/components/empty-state';
+import { FirearmCards } from '@/components/firearm-cards';
 import { Input } from '@/components/input';
 import { InventoryItems } from '@/components/inventory-items';
 import { LinkButton } from '@/components/link-button';
+import { ModificationTags } from '@/components/modification-tags';
 import { tabPanelProps, Tabs, type TabItem } from '@/components/tabs';
 import { useCollection, type CollectionState } from '@/hooks/use-collection';
+import { useFirearmModifications } from '@/hooks/use-firearm-modifications';
 import {
   OPENED_FROM_LIST,
   useArchiveActions,
@@ -21,6 +24,15 @@ import {
   type InventoryOutletContext,
 } from '@/hooks/use-inventory';
 import { useIsDesktop } from '@/hooks/use-media-query';
+import {
+  configurationModifications,
+  configurationName,
+  configurationSessions,
+  firearmName,
+  modificationName,
+  type Configuration,
+} from '@/lib/firearms';
+import { formatInteger } from '@/lib/format';
 import {
   activeItems,
   ammunitionName,
@@ -47,8 +59,15 @@ const CATEGORY_LABELS: Record<InventoryCategory, string> = {
 
 /** Botón primario de cada categoría. Las que todavía no tienen ABM no lo muestran. */
 const NEW_LABELS: Partial<Record<InventoryCategory, string>> = {
+  armas: 'Nueva arma',
+  configuraciones: 'Nueva configuración',
   municiones: 'Nueva munición',
   poligonos: 'Nuevo polígono',
+};
+
+const CONFIGURATION_MESSAGES = {
+  archived: 'Configuración archivada',
+  restored: 'Configuración restaurada',
 };
 
 const AMMUNITION_MESSAGES = { archived: 'Munición archivada', restored: 'Munición restaurada' };
@@ -68,16 +87,28 @@ export function InventoryScreen() {
   const [query, setQuery] = useState('');
 
   const repositories = useInventoryRepositories();
+  const firearms = useCollection(repositories.firearms);
+  const configurations = useCollection(repositories.configurations);
+  const usage = useCollection(repositories.usage);
+  const modifications = useFirearmModifications(
+    firearms.status === 'ready' ? firearms.items.map((item) => item.id) : [],
+  );
   const ammunition = useCollection(repositories.ammunition);
   const ranges = useCollection(repositories.ranges);
   const ammunitionActions = useArchiveActions(repositories.ammunition, AMMUNITION_MESSAGES);
   const rangeActions = useArchiveActions(repositories.ranges, RANGE_MESSAGES);
+  const configurationActions = useArchiveActions(
+    repositories.configurations,
+    CONFIGURATION_MESSAGES,
+  );
 
   if (!category) return <Navigate to="/inventario/armas" replace />;
 
   const showArchived = searchParams.get(ARCHIVED_PARAM) === '1';
   const listPath = `/inventario/${category}${search}`;
   const states: Partial<Record<InventoryCategory, CollectionState<Archivable>>> = {
+    armas: firearms,
+    configuraciones: configurations,
     municiones: ammunition,
     poligonos: ranges,
   };
@@ -122,7 +153,31 @@ export function InventoryScreen() {
     );
   }
 
-  const outlet: InventoryOutletContext = { ammunition, ranges, listPath };
+  const outlet: InventoryOutletContext = {
+    firearms,
+    configurations,
+    ammunition,
+    ranges,
+    listPath,
+  };
+
+  const usageItems = usage.status === 'ready' ? usage.items : [];
+  const configurationItems = configurations.status === 'ready' ? configurations.items : [];
+  const firearmById = new Map(
+    (firearms.status === 'ready' ? firearms.items : []).map((firearm) => [firearm.id, firearm]),
+  );
+  const baseName = (configuration: Configuration) => {
+    const base = firearmById.get(configuration.firearmId);
+    return base ? firearmName(base) : '';
+  };
+  const includedModifications = (configuration: Configuration) =>
+    configurationModifications(configuration, modifications?.get(configuration.firearmId) ?? []);
+  const configurationTags = (configuration: Configuration) => (
+    <ModificationTags
+      aria-label={`Modificaciones de ${configuration.name}`}
+      modifications={includedModifications(configuration)}
+    />
+  );
 
   return (
     <div className={styles.screen}>
@@ -168,6 +223,74 @@ export function InventoryScreen() {
       </div>
 
       <div {...tabPanelProps(TABS_ID, category)} className={styles.panel}>
+        {category === 'armas' && (
+          <InventoryItems
+            aria-label="Armas"
+            state={firearms}
+            name={firearmName}
+            searchFields={(item) => [item.brand, item.model, item.caliber]}
+            showArchived={showArchived}
+            query={searchText}
+            empty={{
+              icon: <Crosshair />,
+              title: 'Sin armas',
+              text: 'Cargá tus armas para registrar sesiones y llevar la cuenta de los tiros.',
+              action: newButton('Nueva arma'),
+            }}
+            render={(items) => (
+              <FirearmCards
+                aria-label="Armas"
+                firearms={items}
+                modifications={modifications}
+                configurations={configurationItems}
+                usage={usageItems}
+              />
+            )}
+          />
+        )}
+        {category === 'configuraciones' && (
+          <>
+            <p className={styles.help}>
+              Un arma base + modificaciones. Se eligen al crear una sesión.
+            </p>
+            <InventoryItems
+              aria-label="Configuraciones"
+              state={configurations}
+              name={configurationName}
+              searchFields={(item) => [
+                item.name,
+                baseName(item),
+                ...includedModifications(item).map(modificationName),
+              ]}
+              showArchived={showArchived}
+              query={searchText}
+              detail={(item) => `Base: ${baseName(item)}`}
+              extra={configurationTags}
+              columns={[
+                { key: 'name', header: 'Nombre', kind: 'primary', cell: configurationName },
+                { key: 'firearm', header: 'Arma base', cell: baseName },
+                { key: 'modifications', header: 'Modificaciones', cell: configurationTags },
+                {
+                  key: 'sessions',
+                  header: 'Sesiones',
+                  cell: (item) => (
+                    <span className="num">
+                      {formatInteger(configurationSessions(usageItems, item.firearmId, item.id))}
+                    </span>
+                  ),
+                },
+              ]}
+              empty={{
+                icon: <Layers />,
+                title: 'Sin configuraciones',
+                text: 'Combiná un arma con sus modificaciones para elegirla en una sesión. El arma sin modificaciones ya está disponible como «Stock».',
+                action: newButton('Nueva configuración'),
+              }}
+              onEdit={edit}
+              onRestore={configurationActions.restore}
+            />
+          </>
+        )}
         {category === 'municiones' && (
           <InventoryItems
             aria-label="Munición"
