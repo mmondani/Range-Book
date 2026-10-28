@@ -1,0 +1,13 @@
+.sunny {
+  color: var(--warning);
+}
+
+.rainy {
+  color: var(--info);
+}
+
+.cloudy,
+.fog,
+.windy {
+  color: var(--text-2);
+}

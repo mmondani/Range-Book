@@ -4,6 +4,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { describe, expect, it } from 'vitest';
 import { AuthProvider } from '@/components/auth-provider';
 import { routes } from '@/routes';
+import { DataProviders } from '@/test/data-providers';
 import { ANA, createFakeAuth, INTRUDER, never, type FakeAuthOptions } from '@/test/fake-auth';
 
 function renderLogin(options?: FakeAuthOptions) {
@@ -11,7 +12,9 @@ function renderLogin(options?: FakeAuthOptions) {
   const router = createMemoryRouter(routes, { initialEntries: ['/login'] });
   render(
     <AuthProvider auth={fake.auth} profiles={fake.profiles}>
-      <RouterProvider router={router} />
+      <DataProviders>
+        <RouterProvider router={router} />
+      </DataProviders>
     </AuthProvider>,
   );
   return { ...fake, router };
@@ -118,7 +121,9 @@ describe('LoginScreen', () => {
     const router = createMemoryRouter(routes, { initialEntries: ['/login'] });
     render(
       <AuthProvider auth={fake.auth} profiles={fake.profiles}>
-        <RouterProvider router={router} />
+        <DataProviders>
+          <RouterProvider router={router} />
+        </DataProviders>
       </AuthProvider>,
     );
     const alert = await screen.findByRole('alert');

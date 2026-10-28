@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes } from 'react';
+import type { InputHTMLAttributes, Ref } from 'react';
 import { cx } from '@/lib/cx';
 import styles from './control.module.css';
 import { useFieldContext } from './field-context';
@@ -6,6 +6,7 @@ import { useFieldContext } from './field-context';
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   /** Unidad que se muestra dentro del campo, a la derecha (por ejemplo "m"). */
   suffix?: string;
+  ref?: Ref<HTMLInputElement>;
 }
 
 export function Input({ suffix, className, ...rest }: InputProps) {

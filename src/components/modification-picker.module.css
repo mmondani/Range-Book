@@ -1,0 +1,11 @@
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.options {
+  padding: var(--space-3);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-control);
+}

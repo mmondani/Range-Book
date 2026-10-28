@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { hasErrors, type FieldErrors } from '@/lib/inventory';
 
 export interface ItemFormOptions<I> {
+  /** Valores guardados: contra ellos se calcula si hay cambios. */
   initial: I;
+  /** Borrador con el que arranca, si no es `initial` (por ejemplo, uno recuperado). */
+  start?: I;
   validate: (input: I) => FieldErrors<I>;
   /** Guarda el borrador ya validado. Si falla, el formulario queda abierto. */
   save: (input: I) => Promise<void>;
@@ -16,9 +19,14 @@ function sameValue(a: unknown, b: unknown): boolean {
   return a === b;
 }
 
-/** Estado de un formulario corto del inventario: borrador, errores y guardado. */
-export function useItemForm<I extends object>({ initial, validate, save }: ItemFormOptions<I>) {
-  const [draft, setDraft] = useState(initial);
+/** Estado de un formulario: borrador, errores y guardado. */
+export function useItemForm<I extends object>({
+  initial,
+  start = initial,
+  validate,
+  save,
+}: ItemFormOptions<I>) {
+  const [draft, setDraft] = useState(start);
   const [errors, setErrors] = useState<FieldErrors<I>>({});
   const [errorAttempt, setErrorAttempt] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -27,10 +35,36 @@ export function useItemForm<I extends object>({ initial, validate, save }: ItemF
     (key) => !sameValue(draft[key], initial[key]),
   );
 
+  function clearErrors(keys: Array<keyof I>) {
+    setErrors((current) =>
+      keys.some((key) => current[key])
+        ? { ...current, ...Object.fromEntries(keys.map((key) => [key, undefined])) }
+        : current,
+    );
+  }
+
   function setField<K extends keyof I>(key: K, value: I[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
-    // Al corregir un campo se borra su error; se vuelve a validar al guardar.
-    setErrors((current) => (current[key] ? { ...current, [key]: undefined } : current));
+    // Al corregir un campo se borra su error; se vuelve a validar al salir del campo o al guardar.
+    clearErrors([key]);
+  }
+
+  /** Cambia varios campos a la vez (por ejemplo, el arma y lo que se precarga con ella). */
+  function setFields(values: Partial<I>) {
+    setDraft((current) => ({ ...current, ...values }));
+    clearErrors(Object.keys(values) as Array<keyof I>);
+  }
+
+  /** Valida un campo al salir de él. */
+  function touch(key: keyof I) {
+    const error = validate(draft)[key];
+    setErrors((current) => (current[key] === error ? current : { ...current, [key]: error }));
+  }
+
+  /** Vuelve a los valores guardados (por ejemplo, al descartar un borrador recuperado). */
+  function reset() {
+    setDraft(initial);
+    setErrors({});
   }
 
   async function submit() {
@@ -48,5 +82,16 @@ export function useItemForm<I extends object>({ initial, validate, save }: ItemF
     }
   }
 
-  return { draft, errors, errorAttempt, saving, dirty, setField, submit };
+  return {
+    draft,
+    errors,
+    errorAttempt,
+    saving,
+    dirty,
+    setField,
+    setFields,
+    touch,
+    reset,
+    submit,
+  };
 }

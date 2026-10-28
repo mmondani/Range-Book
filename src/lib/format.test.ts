@@ -3,8 +3,13 @@ import {
   formatDecimal,
   formatInteger,
   formatIsoDate,
+  formatLongDate,
+  formatMonthYear,
+  formatShortDate,
+  formatShortMonth,
   initials,
   isoDate,
+  isValidIsoDate,
   parseDecimal,
 } from './format';
 
@@ -61,5 +66,22 @@ describe('parseDecimal', () => {
     expect(parseDecimal('-3')).toBeUndefined();
     expect(parseDecimal('12 mm')).toBeUndefined();
     expect(parseDecimal('1,2,3')).toBeUndefined();
+  });
+});
+
+describe('fechas de las sesiones', () => {
+  it('valida fechas AAAA-MM-DD que existen', () => {
+    expect(isValidIsoDate('2026-10-25')).toBe(true);
+    expect(isValidIsoDate('2026-02-30')).toBe(false);
+    expect(isValidIsoDate('25/10/2026')).toBe(false);
+  });
+
+  it('formatea mes, día de la semana y fecha larga', () => {
+    expect(formatMonthYear('2026-10')).toBe('Octubre 2026');
+    expect(formatMonthYear('2026-09-27')).toBe('Septiembre 2026');
+    expect(formatShortMonth('2026-10-25')).toBe('Oct');
+    expect(formatShortDate('2026-10-25')).toBe('Dom 25 oct 2026');
+    expect(formatLongDate('2026-10-24')).toBe('Sábado 24 de octubre de 2026');
+    expect(formatLongDate('2026-03-02')).toBe('Lunes 2 de marzo de 2026');
   });
 });

@@ -10,6 +10,10 @@
     calc(var(--nav-height) + var(--space-4) + env(safe-area-inset-bottom));
 }
 
+.noNav {
+  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+}
+
 .main h1:focus {
   outline: none;
 }

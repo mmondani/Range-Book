@@ -143,7 +143,37 @@
   - Las etiquetas de las filas usan el número de fila («Puntaje de la zona 2», «Quitar la zona 2»), no el puntaje como en la maqueta, para que no cambien al escribir.
 - Ya no queda ninguna categoría "En construcción": se quitó ese estado de `InventoryScreen`.
 
+### Paso 9 — Sesiones: lista, alta, edición y detalle
+- **Repositorio propio** (`src/data/session-repository.ts`), no el genérico del inventario: las sesiones se eliminan. `create` escribe la sesión con `rounds: []` y `update` solo los campos de M04 (las rondas no se tocan). `remove` lee el documento crudo antes de borrarlo y devuelve `undo`, que lo vuelve a escribir tal cual (con las rondas y su análisis completos). `App` recibe `sessions`; los tests usan `src/test/fake-sessions.ts`.
+- **Archivos extra** que no figuraban en la tabla del plan:
+  - Componentes: `Fab` (de `design-system.md`, quedaba para este paso), `IconLink` (link con el aspecto de `IconButton`), `SessionCard` (tarjeta en mobile y fila compacta en W02), `WeatherIcon`, `WeatherPicker`, `ModificationPicker` (personalizaciones con quitar / "Agregar"), `PhotoStrip` (encabezado de fotos de M03) y `SessionProvider`.
+  - Hooks: `use-sessions.ts` (contexto, contexto de la ruta hija y `useDeleteSession`) y `useSessionData` (sesiones + armas, configuraciones, polígonos, munición y blancos).
+  - Pantallas: `SessionsScreen`, `SessionDetail` y `SessionFormScreen`.
+  - Tests: `src/test/render-sessions.tsx` y `src/test/data-providers.tsx` (los tests que entran a `/sesiones` al loguearse ahora necesitan esos providers).
+  - `src/lib/format.ts` suma `isValidIsoDate` (ahora también la usa `firearms.ts`), `formatMonthYear`, `formatShortMonth`, `formatShortDate` y `formatLongDate`.
+- **Modelo:** `weather` es `'sunny' | 'cloudy' | 'rainy' | 'fog' | 'windy' | null` (opcional; tocar el elegido lo desmarca). La ronda tiene `manualScore` y `score` como `number | null`; el puntaje de una ronda es `score ?? manualScore`. Del análisis la sesión por ahora solo lee `analysis.metrics.groupSizeMm` (el modelo completo llega en el paso 11).
+- **Totales:** puntaje = suma de las rondas con puntaje; máximo = disparos × zona más alta del blanco, y se omite si alguna de esas rondas usa un blanco sin zonas. Prom./tiro = puntaje / disparos de las rondas con puntaje. Grupo = promedio de las rondas analizadas, en la unidad del perfil.
+- **Defaults:** fecha de hoy, el polígono de la última sesión y, al elegir el arma, la munición de su última sesión (si no hay, se conserva la elegida). Si el último polígono o munición se archivó, se usa el anterior que siga activo. **El arma no se precarga** (el requerimiento no lo pide).
+- **Arma / configuración:** un solo `<select>` con un `<optgroup>` por arma ("Stock" + sus configuraciones activas, salvo la ya elegida). El valor es `arma` o `arma/configuración`. Al cambiarlo, las personalizaciones se reemplazan por las de la configuración.
+- **Validación:** arma, fecha (válida y no futura), polígono y munición obligatorios; hasta 20 fotos y notas de hasta 2000 caracteres. Se valida al salir del campo (`useItemForm` suma `touch`, `setFields`, `reset` y `start`) y al guardar el foco va al primer error.
+- **Salir con cambios** (cerrar, Cancelar, "atrás", otra sección del menú) pide confirmación con `useBlocker` de React Router.
+- **Borrador local:** se guarda en `localStorage` (`rb-session-draft:{uid}:{id | nueva}`) mientras haya cambios y se borra al guardar o descartar. Al volver, se recupera con el aviso "Recuperamos los cambios que no guardaste" y el botón "Descartar borrador". **Las fotos todavía sin subir no entran en el borrador** (son `Blob`): hay que volver a elegirlas. Al editar, el borrador no se compara con cambios hechos desde otro dispositivo.
+- **Eliminar:** pide confirmación, vuelve a la lista y muestra un toast con "Deshacer". Las fotos de la sesión y de sus rondas se borran de Storage recién cuando ya no se puede deshacer (5 s después); si se cierra la app antes, quedan huérfanas.
+- **Rutas:** `/sesiones` con la hija `:id` (en mobile se ve una u otra; desde 1024 px, las dos). `/sesiones/nueva` y `/sesiones/:id/editar` son páginas completas con `handle: { hideBottomNav: true }`: `AppLayout` oculta la barra inferior para dejar lugar a la barra fija "Guardar sesión". La búsqueda (`?q=`) y el filtro por arma (`?arma=`) van en la query string, así se conservan al abrir y cerrar el detalle.
+- **Reglas:** `sessions` valida campos, tipos y límites (hasta 50 personalizaciones, 20 fotos, 100 rondas, notas de 2000), y el dueño puede borrarlas. Las reglas no recorren listas: el contenido de las personalizaciones y las rondas lo valida el cliente. No se verifica que el arma, el polígono o la munición existan.
+- **Desvíos de la maqueta:**
+  - M03 no tiene menú "⋮": volver, editar y **eliminar** son botones sobre la foto (en desktop, "Editar" y "Eliminar" en el encabezado, como W02). Sin fotos, los botones quedan arriba sin fondo.
+  - M03 todavía no tiene la barra "Agregar ronda" ni `RoundRow`: las rondas se listan en tarjetas simples (o "Todavía no hay rondas"). Llegan en el paso 10.
+  - En el detalle de desktop, polígono / clima / munición van en una tarjeta y los totales (disparos, puntaje, grupo) en otra fila, igual que en mobile; W02 los mezclaba en una sola grilla. La galería de desktop es una grilla de fotos; en mobile, `PhotoStrip` (se desliza de a una, con "1 / 3 fotos").
+  - M04: la munición va junto al arma también en mobile (la maqueta la tenía después del clima), porque su default depende del arma.
+  - "Agregar" personalización despliega debajo los chips de las modificaciones activas del arma que faltan (no hay menú en el sistema de diseño).
+  - El resumen del mes solo está en mobile; desktop muestra "N en total", como W02. En mobile, "Buscar" y "Filtrar" abren el campo y los chips debajo del resumen.
+  - La fecha de la maqueta ("Sáb 25 oct 2026") estaba mal: el 25/10/2026 es domingo.
+- **Revisar en el paso 10:** `profileSummary` (paso 4) y `usage` del inventario (paso 7) siguen leyendo `sessions` por su cuenta; con las rondas reales conviene que salgan de `useSessionData`.
+
 ## Pendientes
+- El paso 9 tampoco tuvo revisión visual en el navegador (solo tests): revisar M02 / W02 (lista, detalle, búsqueda, filtro, vacío), M03 (con y sin fotos) y M04 / W03 (errores, borrador recuperado, confirmación) en los dos temas, en 375 px y 1280 px.
+- Al volver del detalle a la lista en mobile no se restaura el scroll (los filtros sí). Evaluar `<ScrollRestoration>` cuando haya más sesiones.
 - El paso 7 tampoco tuvo revisión visual en el navegador (solo tests): revisar M09 / W07 / M10 y las pestañas Armas y Configuraciones en los dos temas, en 375 px y 1280 px.
 - El paso 8 tampoco: revisar M12 (con anillos y sin zonas, errores en las filas, vista previa) y la pestaña Blancos en los dos temas, en 375 px y 1280 px.
 - **Guardar sin conexión (paso 13).** `create` y `update` esperan la confirmación del servidor de Firestore: sin conexión el sheet quedaría en "guardando". Revisarlo junto con la persistencia offline (no esperar la promesa o cerrar al escribir en la caché local).

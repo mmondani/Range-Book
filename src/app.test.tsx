@@ -2,10 +2,21 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { App } from '@/app';
 import { ANA, createFakeAuth } from '@/test/fake-auth';
+import { createFakeInventory } from '@/test/fake-inventory';
+import { createFakePhotos } from '@/test/fake-photos';
+import { createFakeSessions } from '@/test/fake-sessions';
 
 function renderApp() {
   const { auth, profiles } = createFakeAuth({ initialUser: ANA });
-  return render(<App auth={auth} profiles={profiles} />);
+  return render(
+    <App
+      auth={auth}
+      profiles={profiles}
+      photos={createFakePhotos().repository}
+      inventory={createFakeInventory().repositories}
+      sessions={createFakeSessions().repository}
+    />,
+  );
 }
 
 describe('App', () => {

@@ -5,7 +5,7 @@ import {
   type Archivable,
   type FieldErrors,
 } from './inventory';
-import { formatInteger } from './format';
+import { formatInteger, isValidIsoDate } from './format';
 import { storedPhotos, type PhotoDraft } from './photos';
 
 /** Máximos que también exigen las reglas de Firestore. */
@@ -89,14 +89,6 @@ export function firearmDraft(firearm?: Firearm): FirearmDraft {
   };
 }
 
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-
-function isValidDate(value: string): boolean {
-  if (!DATE_PATTERN.test(value)) return false;
-  const date = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value);
-}
-
 /**
  * Tiros previos del borrador; `undefined` si no es un entero válido. Acepta el separador de miles
  * de `es-AR` (`1.200`).
@@ -117,7 +109,7 @@ export function validateFirearm(draft: FirearmDraft, today: string): FieldErrors
   if (!draft.model.trim()) errors.model = 'Ingresá el modelo';
   if (!draft.caliber.trim()) errors.caliber = 'Ingresá el calibre';
   if (draft.purchaseDate) {
-    if (!isValidDate(draft.purchaseDate)) errors.purchaseDate = 'Ingresá una fecha válida';
+    if (!isValidIsoDate(draft.purchaseDate)) errors.purchaseDate = 'Ingresá una fecha válida';
     else if (draft.purchaseDate > today) errors.purchaseDate = 'La fecha no puede ser futura';
   }
   if (parsePriorShots(draft.priorShots) === undefined) {
@@ -164,7 +156,10 @@ export interface ModificationInput {
 /** Modificación de un arma (`firearms/{id}/modifications/{id}`). */
 export interface Modification extends ModificationInput, Archivable {}
 
-export function modificationName({ brand, model }: ModificationInput): string {
+export function modificationName({
+  brand,
+  model,
+}: Pick<ModificationInput, 'brand' | 'model'>): string {
   return [brand, model].filter(Boolean).join(' ');
 }
 

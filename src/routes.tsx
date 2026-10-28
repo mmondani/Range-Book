@@ -1,5 +1,5 @@
 import { Navigate, type RouteObject } from 'react-router';
-import { AppLayout } from '@/components/app-layout';
+import { AppLayout, type LayoutHandle } from '@/components/app-layout';
 import { RequireAuth } from '@/components/require-auth';
 import { ComponentCatalog } from '@/screens/component-catalog';
 import { FirearmItemRoute } from '@/screens/firearm-item-route';
@@ -9,6 +9,11 @@ import { InventoryScreen } from '@/screens/inventory-screen';
 import { LoginScreen } from '@/screens/login-screen';
 import { PlaceholderScreen } from '@/screens/placeholder-screen';
 import { ProfileScreen } from '@/screens/profile-screen';
+import { SessionDetail } from '@/screens/session-detail';
+import { SessionFormScreen } from '@/screens/session-form-screen';
+import { SessionsScreen } from '@/screens/sessions-screen';
+
+const FULL_SCREEN: LayoutHandle = { hideBottomNav: true };
 
 export const routes: RouteObject[] = [
   { path: 'login', element: <LoginScreen /> },
@@ -20,7 +25,15 @@ export const routes: RouteObject[] = [
     ),
     children: [
       { index: true, element: <Navigate to="/sesiones" replace /> },
-      { path: 'sesiones/*', element: <PlaceholderScreen title="Sesiones" /> },
+      {
+        // Mobile: la lista o el detalle. Desktop: los dos a la vez (W02).
+        path: 'sesiones',
+        element: <SessionsScreen />,
+        children: [{ path: ':id', element: <SessionDetail /> }],
+      },
+      // Formulario de pantalla completa. `sesiones/nueva` le gana a `sesiones/:id`.
+      { path: 'sesiones/nueva', element: <SessionFormScreen />, handle: FULL_SCREEN },
+      { path: 'sesiones/:id/editar', element: <SessionFormScreen />, handle: FULL_SCREEN },
       { path: 'rendimiento', element: <PlaceholderScreen title="Rendimiento" /> },
       { path: 'inventario', element: <Navigate to="/inventario/armas" replace /> },
       {

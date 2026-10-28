@@ -99,7 +99,7 @@ No hay código todavía; todo es nuevo. `docs/arquitectura.md` no existe y se cr
 - [x] **8. Inventario: blancos**
   - Qué: M12 con tipo de puntuación, tamaño de referencia, `ZoneEditor` con "Generar" y vista previa.
   - Verificación: tests de `target-zones.ts` (diámetros únicos y crecientes al bajar el puntaje, ninguna zona mayor que la referencia, generación uniforme, zona más chica que contiene el centro, 0 fuera).
-- [ ] **9. Sesiones: lista, alta, edición y detalle**
+- [x] **9. Sesiones: lista, alta, edición y detalle**
   - Qué: M02/W02 (resumen del mes, agrupado por mes, "Hoy", búsqueda y filtro por arma, estados vacío/cargando/sin resultados), M04/W03 (defaults, snapshot de personalizaciones, validación al salir del campo, foco en el primer error, confirmación al cerrar con cambios, borrador en `localStorage`), M03 (galería, totales, notas, eliminar con confirmación y "Deshacer").
   - Verificación: tests de `sessions.ts` (snapshot inmune a cambios posteriores del inventario, defaults, totales); tests de pantalla del formulario y de eliminar/deshacer.
 - [ ] **10. Rondas**

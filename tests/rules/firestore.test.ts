@@ -47,6 +47,19 @@ const TARGET = {
   archived: false,
 };
 
+const SESSION = {
+  date: '2026-10-25',
+  firearmId: 'glock',
+  configurationId: 'ipsc',
+  modificationsSnapshot: [{ brand: 'Holosun', model: '507C' }],
+  rangeId: 'norte',
+  weather: 'sunny',
+  ammunitionId: 'magtech',
+  photos: ['users/ana/sessions/s1/a.jpg'],
+  notes: '',
+  rounds: [],
+};
+
 let env: RulesTestEnvironment;
 
 beforeAll(async () => {
@@ -64,7 +77,7 @@ beforeEach(async () => {
     const db = context.firestore();
     await setDoc(doc(db, 'users', ALLOWED.uid), PROFILE);
     await setDoc(doc(db, 'users', ALLOWED.uid, 'firearms', 'glock'), FIREARM);
-    await setDoc(doc(db, 'users', ALLOWED.uid, 'sessions', 's1'), { notes: '' });
+    await setDoc(doc(db, 'users', ALLOWED.uid, 'sessions', 's1'), SESSION);
     await setDoc(doc(db, 'users', OTHER_ALLOWED.uid), { ...PROFILE, displayName: 'Beto' });
     await setDoc(doc(db, 'users', OTHER_ALLOWED.uid, 'firearms', 'cz'), { brand: 'CZ' });
   });
@@ -334,5 +347,49 @@ describe('inventario: blancos', () => {
     const other = doc(db, 'users', OTHER_ALLOWED.uid, 'targets', 't');
     await assertFails(getDoc(other));
     await assertFails(setDoc(other, TARGET));
+  });
+});
+
+describe('sesiones', () => {
+  type Db = ReturnType<ReturnType<typeof signedIn>['firestore']>;
+  const session = (db: Db, id = 's2') => doc(db, 'users', ALLOWED.uid, 'sessions', id);
+
+  it('se crean, editan y eliminan (y se restauran con "Deshacer")', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    await assertSucceeds(setDoc(session(db), SESSION));
+    await assertSucceeds(
+      setDoc(session(db, 's3'), { ...SESSION, configurationId: null, weather: null }),
+    );
+    await assertSucceeds(updateDoc(session(db), { notes: 'Viento leve', weather: 'windy' }));
+    await assertSucceeds(getDocs(collection(db, 'users', ALLOWED.uid, 'sessions')));
+    await assertSucceeds(deleteDoc(session(db)));
+    await assertSucceeds(setDoc(session(db), { ...SESSION, rounds: [{ id: 'r1', shots: 10 }] }));
+  });
+
+  it('rechaza campos faltantes, vacíos, inválidos o de más', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    const ref = session(db, 'x');
+    const withoutNotes: Partial<typeof SESSION> = { ...SESSION };
+    delete withoutNotes.notes;
+    await assertFails(setDoc(ref, withoutNotes));
+    await assertFails(setDoc(ref, { ...SESSION, date: '25/10/2026' }));
+    await assertFails(setDoc(ref, { ...SESSION, firearmId: '' }));
+    await assertFails(setDoc(ref, { ...SESSION, configurationId: '' }));
+    await assertFails(setDoc(ref, { ...SESSION, rangeId: '' }));
+    await assertFails(setDoc(ref, { ...SESSION, ammunitionId: '' }));
+    await assertFails(setDoc(ref, { ...SESSION, weather: 'granizo' }));
+    await assertFails(setDoc(ref, { ...SESSION, notes: 'x'.repeat(2001) }));
+    await assertFails(setDoc(ref, { ...SESSION, photos: Array(21).fill('a.jpg') }));
+    await assertFails(setDoc(ref, { ...SESSION, rounds: Array(101).fill({}) }));
+    await assertFails(setDoc(ref, { ...SESSION, modificationsSnapshot: 'Holosun' }));
+    await assertFails(setDoc(ref, { ...SESSION, score: 10 }));
+  });
+
+  it('el usuario A no lee, escribe ni borra las sesiones de B', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    const other = doc(db, 'users', OTHER_ALLOWED.uid, 'sessions', 's');
+    await assertFails(getDoc(other));
+    await assertFails(setDoc(other, SESSION));
+    await assertFails(deleteDoc(other));
   });
 });

@@ -4,6 +4,7 @@ import { AuthProvider } from '@/components/auth-provider';
 import { InventoryProvider } from '@/components/inventory-provider';
 import { PhotoProvider } from '@/components/photo-provider';
 import { ProfileProvider } from '@/components/profile-provider';
+import { SessionProvider } from '@/components/session-provider';
 import { ToastProvider } from '@/components/toast-provider';
 import { firebaseAuthRepository, type AuthRepository } from '@/data/auth-repository';
 import {
@@ -12,6 +13,7 @@ import {
 } from '@/data/inventory-repository';
 import { firebasePhotoRepository, type PhotoRepository } from '@/data/photo-repository';
 import { firebaseProfileRepository, type ProfileRepository } from '@/data/profile-repository';
+import { firebaseSessionRepository, type SessionRepository } from '@/data/session-repository';
 import { useTheme } from '@/hooks/use-theme';
 import { routes } from '@/routes';
 
@@ -21,6 +23,7 @@ export interface AppProps {
   profiles?: ProfileRepository;
   photos?: PhotoRepository;
   inventory?: InventoryRepositories;
+  sessions?: SessionRepository;
 }
 
 export function App({
@@ -28,6 +31,7 @@ export function App({
   profiles = firebaseProfileRepository,
   photos = firebasePhotoRepository,
   inventory = firebaseInventoryRepositories,
+  sessions = firebaseSessionRepository,
 }: AppProps) {
   const [router] = useState(() => createBrowserRouter(routes));
   // Mantiene `data-theme` sincronizado (por ejemplo, si cambia el tema del sistema).
@@ -38,9 +42,11 @@ export function App({
       <ProfileProvider repository={profiles}>
         <PhotoProvider repository={photos}>
           <InventoryProvider repositories={inventory}>
-            <ToastProvider>
-              <RouterProvider router={router} />
-            </ToastProvider>
+            <SessionProvider repository={sessions}>
+              <ToastProvider>
+                <RouterProvider router={router} />
+              </ToastProvider>
+            </SessionProvider>
           </InventoryProvider>
         </PhotoProvider>
       </ProfileProvider>
