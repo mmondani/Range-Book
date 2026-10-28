@@ -234,13 +234,14 @@ describe('M06 · Análisis con un análisis guardado', () => {
 });
 
 describe('M06 · Análisis nuevo', () => {
-  it('se entra desde la ronda en el detalle de la sesión', async () => {
+  it('se entra desde la ronda en el detalle de la sesión, arriba de todo', async () => {
     const { router } = renderSessions(DETAIL, { sessions: withRound2({}) });
     await userEvent.click(
       await screen.findByRole('link', { name: 'Analizar blanco de la ronda 2' }),
     );
     expect(router.state.location.pathname).toBe(analysisPath(ROUND_2.id));
     expect(await screen.findByRole('heading', { name: 'Calibrar la foto' })).toBeInTheDocument();
+    expect(window.scrollTo).toHaveBeenCalledWith(0, 0);
   });
 
   it('calibra con un anillo, marca impactos y propone el puntaje calculado, ya marcado', async () => {

@@ -172,8 +172,8 @@ describe('M05 · Agregar ronda', () => {
   it('una ronda que no existe vuelve al detalle', async () => {
     const { router } = renderSessions(`${DETAIL}/rondas/nada/editar`);
     await screen.findByRole('heading', { name: 'Rondas · 2' });
-    expect(router.state.location.pathname).toBe(DETAIL);
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(router.state.location.pathname).toBe(DETAIL));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 });
 

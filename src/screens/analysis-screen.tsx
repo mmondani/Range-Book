@@ -1,5 +1,5 @@
 import { ChevronLeft, Crosshair, ImagePlus, Undo2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, Navigate, useBlocker, useLocation, useNavigate, useParams } from 'react-router';
 import { Alert } from '@/components/alert';
 import { AnalyzerToolbar, type AnalyzerMode } from '@/components/analyzer-toolbar';
@@ -80,6 +80,11 @@ const moaFormat = new Intl.NumberFormat('es-AR', {
 export function AnalysisScreen() {
   const { id = '', roundId = '' } = useParams();
   const data = useSessionData();
+
+  // Se entra desde el detalle (o el sheet) con la página desplazada: el análisis arranca arriba.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id, roundId]);
 
   if (data.status === 'error') {
     return (
