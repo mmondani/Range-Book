@@ -69,9 +69,15 @@ function tapPhoto(name: string | RegExp, x: number, y: number) {
   fireEvent.click(photoSurface(name), { clientX: x, clientY: y, detail: 1 });
 }
 
+/** Elige el anillo exterior del ISSF (500 mm); por defecto se propone el de 8 puntos. */
+async function chooseOuterRing() {
+  await userEvent.selectOptions(screen.getByRole('combobox', { name: /Anillo marcado/ }), '500');
+}
+
 /** Calibra con el anillo exterior del ISSF (500 mm) a 250 px del centro: 1 mm por px. */
 async function calibrate() {
   await loadPhoto(2);
+  await chooseOuterRing();
   tapPhoto('Ubicar centro en el punto indicado', 500, 500);
   tapPhoto('Ubicar anillo en el punto indicado', 750, 500);
   await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
@@ -240,7 +246,7 @@ describe('M06 · Análisis nuevo', () => {
   it('calibra con un anillo, marca impactos y propone el puntaje calculado, ya marcado', async () => {
     const { sessions } = renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
     expect(await screen.findByRole('combobox', { name: /Anillo marcado/ })).toHaveDisplayValue(
-      '1 puntos · Ø 500 mm',
+      '8 puntos · Ø 150 mm',
     );
     await calibrate();
 
@@ -293,6 +299,7 @@ describe('M06 · Análisis nuevo', () => {
     expect(screen.getByRole('radio', { name: 'Anillo' })).toBeChecked();
 
     // El centro de la foto original es (551,25; 451,25): el anillo de 500 mm, a 250 px.
+    await chooseOuterRing();
     tapPhoto('Ubicar anillo en el punto indicado', 801.25, 451.25);
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     tapPhoto('Agregar impacto en el punto indicado', 551.25, 441.25);
@@ -355,6 +362,7 @@ describe('M06 · Análisis nuevo', () => {
     expect(screen.getByRole('radio', { name: 'Anillo' })).toBeChecked();
 
     // Fuera de la foto, el punto queda en el borde.
+    await chooseOuterRing();
     const edge = photoSurface('Ubicar anillo en el punto indicado');
     fireEvent.pointerDown(edge, { clientX: 700, clientY: 500, button: 0, pointerId: 1 });
     fireEvent.pointerMove(edge, { clientX: 1200, clientY: 500, pointerId: 1 });
@@ -496,6 +504,7 @@ describe('M06 · Análisis nuevo', () => {
     );
 
     // El anillo de 500 mm, 250 px a la derecha del centro: 1 mm por px.
+    await chooseOuterRing();
     await userEvent.click(within(picker).getByRole('radio', { name: 'Centro' }));
     tapPhoto('Ubicar centro en el punto indicado', 500, 500);
     tapPhoto('Ubicar anillo en el punto indicado', 750, 500);

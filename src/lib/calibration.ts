@@ -87,9 +87,16 @@ export function calibrationTools(scoring: TargetScoring): CalibrationTool[] {
   return scoring === 'rings' ? [...markers, 'shape'] : markers;
 }
 
-/** Anillo que se propone por defecto: el más grande (el que define el tamaño de referencia). */
+/** El anillo que se propone por defecto, contando desde el centro. */
+export const DEFAULT_RING_FROM_CENTER = 3;
+
+/**
+ * Anillo que se propone por defecto: el tercero desde el centro (en un blanco de 10 anillos, el
+ * de 8 puntos). Con menos anillos, el más grande.
+ */
 export function defaultRing(zones: readonly TargetZone[]): number {
-  return zones.reduce((max, zone) => Math.max(max, zone.diameterMm), 0);
+  const diameters = zones.map((zone) => zone.diameterMm).sort((a, b) => a - b);
+  return diameters[Math.min(DEFAULT_RING_FROM_CENTER, diameters.length) - 1] ?? 0;
 }
 
 /** Borrador inicial: vacío o a partir de una calibración guardada. */

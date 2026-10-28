@@ -82,7 +82,7 @@ export function CalibrationPanel({
         </Button>
       )}
       {scoring === 'rings' ? (
-        <Field label="Anillo marcado" help="Por defecto, el más grande.">
+        <Field label="Anillo marcado" help="Por defecto, el tercero desde el centro.">
           <Select
             value={String(draft.diameterMm)}
             onChange={(event) => onChange({ diameterMm: Number(event.target.value) })}

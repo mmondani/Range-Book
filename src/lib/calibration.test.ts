@@ -73,7 +73,7 @@ describe('escala con dos puntos y una distancia', () => {
 describe('buildCalibration', () => {
   it('blanco con anillos: pide el centro, el punto sobre el anillo y el anillo', () => {
     const draft = calibrationDraft(RINGS);
-    expect(draft).toEqual({ diameterMm: 500, distance: '500' });
+    expect(draft).toEqual({ diameterMm: 150, distance: '500' });
     expect(nextMarker(draft, 'rings')).toBe('center');
     expect(buildCalibration(draft, 'rings', SIZE)).toEqual({ error: 'Tocá el centro del blanco' });
 
@@ -124,8 +124,12 @@ describe('buildCalibration', () => {
 });
 
 describe('defaultRing', () => {
-  it('propone el anillo más grande', () => {
-    expect(defaultRing(ZONES)).toBe(500);
+  it('propone el tercer anillo desde el centro', () => {
+    // El tercero desde el centro: en un blanco de 10 anillos, el de 8 puntos.
+    expect(defaultRing(ZONES)).toBe(150);
+    expect(defaultRing([...ZONES].reverse())).toBe(150);
+    // Con menos de tres anillos, el más grande.
+    expect(defaultRing(ZONES.slice(0, 2))).toBe(100);
     expect(defaultRing([])).toBe(0);
   });
 });
