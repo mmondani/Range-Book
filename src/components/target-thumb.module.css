@@ -1,0 +1,51 @@
+/* El tamaño lo define el contenedor; por defecto es cuadrado. */
+.thumb {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius-control);
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+}
+
+.paper {
+  background: var(--paper);
+}
+
+.drawing {
+  width: 100%;
+  height: 100%;
+}
+
+.ring {
+  fill: none;
+  stroke: #2a2a2a;
+  stroke-width: 0.6;
+  vector-effect: non-scaling-stroke;
+}
+
+.inner {
+  stroke: #d9d4c6;
+}
+
+.black {
+  fill: #181818;
+}
+
+/* Silueta de cartón para los blancos sin zonas. */
+.cardboard {
+  background: #c9a77c;
+}
+
+.silhouette {
+  width: 52%;
+  height: 78%;
+  border: 2px solid #6b5235;
+  border-radius: 22% 22% 8% 8%;
+}

@@ -1,0 +1,44 @@
+.alert {
+  --tone: var(--danger);
+  display: flex;
+  gap: var(--space-3);
+  padding: 14px var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--tone) 40%, transparent);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--tone) 8%, transparent);
+}
+
+.danger {
+  --tone: var(--danger);
+}
+
+.warning {
+  --tone: var(--warning);
+}
+
+.icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--tone);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  font-weight: 600;
+}
+
+.text {
+  font-size: 14px;
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+
+.action {
+  margin-top: var(--space-2);
+}

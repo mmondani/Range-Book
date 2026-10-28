@@ -1,0 +1,19 @@
+.card {
+  overflow: hidden;
+}
+
+.title {
+  margin: 0;
+  padding: var(--space-3) 14px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.title span {
+  color: var(--text-3);
+}
+
+.scroll {
+  max-height: 300px;
+  overflow-y: auto;
+}

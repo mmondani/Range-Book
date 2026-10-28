@@ -1,0 +1,287 @@
+/*
+ * La foto y sus superposiciones no cambian con el tema: los colores son fijos (los del tema
+ * oscuro), como pide design-system.md.
+ */
+.frame {
+  --impact: #ff6a1a;
+  --impact-remove: #ff6b6b;
+  --mpi: #5aa9ff;
+  --calibration: #3dd68c;
+
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--paper);
+  /*
+   * El zoom es propio (dentro del recuadro): el navegador no hace zoom sobre la foto. Sin zoom,
+   * un dedo sobre la foto sigue desplazando la página hacia arriba y abajo.
+   */
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Al calibrar (un dedo arrastra el marcador) o con la foto ampliada, los gestos son de la foto. */
+.locked {
+  touch-action: none;
+}
+
+/*
+ * La foto y sus superposiciones, con el zoom: su tamaño (la foto entera) y su transformación van
+ * en línea. `--zoom` deja los marcadores a tamaño fijo.
+ */
+.content {
+  --zoom: 1;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: 0 0;
+}
+
+/* Hasta conocer su tamaño, la foto se ve entera en el recuadro. */
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.error {
+  position: absolute;
+  inset: 0;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ring {
+  fill: none;
+  stroke: var(--calibration);
+  stroke-width: calc(2px / var(--zoom));
+  vector-effect: non-scaling-stroke;
+}
+
+.group {
+  fill: none;
+  stroke: var(--impact);
+  stroke-width: calc(2px / var(--zoom));
+  stroke-dasharray: calc(6px / var(--zoom)) calc(5px / var(--zoom));
+  vector-effect: non-scaling-stroke;
+}
+
+.surface {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: crosshair;
+}
+
+.surface:disabled {
+  cursor: default;
+}
+
+.surface:focus-visible {
+  outline-offset: -4px;
+}
+
+/* Marcadores de la calibración. */
+.marker {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: rgba(11, 13, 15, 0.75);
+  color: #fff;
+  font: 700 13px var(--font-body);
+  transform: translate(-50%, -50%) scale(calc(1 / var(--zoom)));
+  pointer-events: none;
+}
+
+.active {
+  border-color: var(--calibration);
+  box-shadow: 0 0 0 3px rgba(61, 214, 140, 0.45);
+}
+
+/* El centro es una cruz. */
+.cross {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.cross::before,
+.cross::after {
+  content: '';
+  position: absolute;
+  background: var(--calibration);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+
+.cross::before {
+  width: 2px;
+  height: 26px;
+}
+
+.cross::after {
+  width: 26px;
+  height: 2px;
+}
+
+.impact {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  /* Solo el contorno, para que se vea el agujero; un filo oscuro de cada lado lo separa del papel. */
+  border: 2px solid var(--impact);
+  border-radius: 50%;
+  background: transparent;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.6);
+  transform: translate(-50%, -50%) scale(calc(1 / var(--zoom)));
+  pointer-events: none;
+}
+
+/* Modo Quitar: rojos, con un área táctil más grande que el punto. */
+.removable {
+  border-color: var(--impact-remove);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.removable::before {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+}
+
+.mpi {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  transform: translate(-50%, -50%) scale(calc(1 / var(--zoom)));
+  pointer-events: none;
+}
+
+.mpi::before,
+.mpi::after {
+  content: '';
+  position: absolute;
+  background: var(--mpi);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+.mpi::before {
+  left: 12px;
+  width: 2px;
+  height: 26px;
+}
+
+.mpi::after {
+  top: 12px;
+  width: 26px;
+  height: 2px;
+}
+
+/* Controles propios de la pantalla (arriba a la izquierda) y zoom (abajo a la derecha). */
+.controls {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  right: var(--space-2);
+  display: flex;
+  pointer-events: none;
+}
+
+.controls > * {
+  pointer-events: auto;
+}
+
+.zoomControls {
+  position: absolute;
+  right: var(--space-2);
+  bottom: var(--space-2);
+  display: flex;
+  gap: 6px;
+}
+
+.zoomButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  background: rgba(11, 13, 15, 0.75);
+  color: #f2f4f5;
+  cursor: pointer;
+}
+
+.zoomButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.zoomButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+.busy {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background: rgba(11, 13, 15, 0.7);
+  color: #f2f4f5;
+  font-weight: 600;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .impact {
+    width: 20px;
+    height: 20px;
+  }
+}

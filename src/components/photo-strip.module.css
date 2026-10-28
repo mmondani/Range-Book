@@ -1,0 +1,68 @@
+.strip {
+  position: relative;
+  height: 200px;
+  flex-shrink: 0;
+}
+
+.empty {
+  height: auto;
+  min-height: 60px;
+}
+
+.photos {
+  display: flex;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  list-style: none;
+}
+
+.photos::-webkit-scrollbar {
+  display: none;
+}
+
+.slide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+}
+
+.actions {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-2);
+  right: var(--space-2);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+.actions > * {
+  pointer-events: auto;
+}
+
+.empty .actions {
+  position: static;
+  padding-top: var(--space-3);
+}
+
+/* Va sobre la foto: no cambia con el tema. */
+.counter {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(11, 13, 15, 0.8);
+  color: #f2f4f5;
+  font-size: 13px;
+  font-weight: 600;
+}

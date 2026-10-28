@@ -1,0 +1,222 @@
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  /* Mobile: espacio para la barra fija "Agregar ronda". */
+  padding-bottom: var(--action-bar-height);
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Mobile: las fotos van a todo el ancho, pegadas arriba. */
+.strip {
+  margin: calc(-1 * (var(--space-5) + env(safe-area-inset-top))) calc(-1 * var(--space-4)) 0;
+  padding-top: env(safe-area-inset-top);
+}
+
+.stripActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.titles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.title {
+  font-size: 32px;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.dataList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.dataList > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 14px var(--space-4);
+}
+
+.dataList > div:nth-child(1) {
+  border-right: 1px solid var(--border);
+}
+
+.dataList > div:nth-child(-n + 2) {
+  border-bottom: 1px solid var(--border);
+}
+
+.wide {
+  grid-column: span 2;
+}
+
+.dataList dd {
+  margin: 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.weather {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.totals > * {
+  padding: var(--space-3);
+}
+
+.max {
+  font-size: 16px;
+  color: var(--text-3);
+}
+
+.photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.photo {
+  height: 150px;
+  border-radius: 14px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.sectionTitle {
+  font-size: 22px;
+}
+
+.table {
+  overflow: hidden;
+}
+
+.count {
+  color: var(--text-3);
+}
+
+.rounds {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.notes p {
+  color: var(--text-2);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* Mobile: barra fija abajo, en lugar de la barra de navegación. */
+.addRound {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-nav);
+  padding: var(--space-3) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+@media (min-width: 1024px) {
+  .detail {
+    gap: var(--space-6);
+    padding-bottom: 0;
+  }
+
+  .title {
+    font-size: 40px;
+  }
+
+  .dataList {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dataList > div {
+    border: 0;
+  }
+
+  .dataList > div + div {
+    border-left: 1px solid var(--border);
+  }
+
+  .dataList > div:nth-child(1),
+  .dataList > div:nth-child(-n + 2) {
+    border-right: 0;
+    border-bottom: 0;
+  }
+
+  .wide {
+    grid-column: auto;
+  }
+
+  .totals {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-3);
+  }
+
+  .totals > * {
+    padding: 14px var(--space-4);
+  }
+
+  .notes {
+    max-width: 760px;
+  }
+}

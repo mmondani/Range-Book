@@ -1,0 +1,79 @@
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: var(--space-3);
+}
+
+.thumb {
+  width: 64px;
+  flex-shrink: 0;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.title {
+  font-weight: 600;
+}
+
+.data {
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.meta {
+  color: var(--text-3);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.analysis {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 4px;
+  min-height: 32px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* Toda la tarjeta lleva al análisis: el link se estira sobre ella (el lápiz queda por encima). */
+.analysis::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.analysis:focus-visible {
+  outline: none;
+}
+
+.analysis:focus-visible::after {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-card);
+}
+
+.edit {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  align-self: flex-start;
+  color: var(--text-2);
+}

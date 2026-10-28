@@ -1,0 +1,42 @@
+.nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-nav);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  height: calc(var(--nav-height) + env(safe-area-inset-bottom));
+  padding: 8px 8px calc(18px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: var(--radius-control);
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.item:hover {
+  color: var(--text);
+}
+
+.on,
+.on:hover {
+  color: var(--accent);
+}
+
+@media (min-width: 1024px) {
+  .nav {
+    display: none;
+  }
+}

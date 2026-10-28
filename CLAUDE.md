@@ -14,14 +14,17 @@
 1. Leer `docs/vision.md` y `docs/arquitectura.md`.
 2. Leer los ADR vigentes en `docs/decisiones/` si el cambio toca alguna decisión.
 3. Leer `requerimientos.md` de la iteración actual en `docs/features/NNN-nombre/`.
-4. No leer planes de iteraciones anteriores salvo que se pida explícitamente.
+4. Si el cambio toca la UI, leer `docs/diseno/` (README, `design-system.md`, `pantallas.md` y la maqueta).
+5. No leer planes de iteraciones anteriores salvo que se pida explícitamente.
 
 ### Al planificar
 - Escribir `plan.md` en la carpeta de la iteración usando `docs/plantillas/plan.md`.
+- Si el cambio toca la UI, crear `diseno/` en la carpeta de la iteración con `cambios.md` y una maqueta con solo las pantallas nuevas o modificadas (formato en `docs/diseno/README.md`). No modificar `docs/diseno/` en esta etapa.
 - Si algo del requerimiento es ambiguo, listarlo en "Preguntas abiertas" y esperar respuesta antes de implementar.
-- No implementar hasta que el plan esté aprobado.
+- No implementar hasta que el plan (y la maqueta de la iteración, si la hay) esté aprobado.
 
 ### Al implementar
+- Usar como referencia visual la maqueta de la iteración para las pantallas que cambian, y `docs/diseno/maqueta/` para el resto.
 - Seguir el plan paso a paso y marcar cada checkbox al terminarlo.
 - Correr tests y lint después de cada paso relevante.
 - Si hay que desviarse del plan, anotarlo en `notas.md` con el motivo. No reescribir el plan.
@@ -29,8 +32,9 @@
 ### Al cerrar la iteración
 1. Verificar todos los criterios de aceptación.
 2. Actualizar `docs/arquitectura.md` para que refleje el estado real del sistema.
-3. Si hubo una decisión de diseño importante, crear un ADR en `docs/decisiones/`.
-4. Completar `notas.md` con pendientes y aprendizajes.
+3. Si la iteración cambió la UI, llevar los cambios a `docs/diseno/` (maqueta, `pantallas.md` y `design-system.md`) según lo que realmente se implementó. Anotar en `notas.md` los desvíos respecto de la maqueta aprobada.
+4. Si hubo una decisión de diseño importante, crear un ADR en `docs/decisiones/`.
+5. Completar `notas.md` con pendientes y aprendizajes.
 
 ## Iteración actual
 <!-- Actualizar al empezar cada iteración -->

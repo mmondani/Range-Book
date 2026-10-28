@@ -1,0 +1,189 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // El email se guarda en minúsculas como id de `allowedEmails`.
+    function email() {
+      return request.auth.token.email.lower();
+    }
+
+    // Usuario con sesión, email verificado y presente en la lista de acceso.
+    function isAllowed() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && exists(/databases/$(database)/documents/allowedEmails/$(email()));
+    }
+
+    function isOwner(uid) {
+      return isAllowed() && request.auth.uid == uid;
+    }
+
+    function isValidProfile(data) {
+      return data.keys().hasOnly(['displayName', 'photoURL', 'units', 'theme'])
+        && data.displayName is string
+        && (data.photoURL == null || data.photoURL is string)
+        && data.units in ['mm', 'in']
+        && data.theme in ['dark', 'light', 'system'];
+    }
+
+    function isText(value, maxLength) {
+      return value is string && value.size() <= maxLength;
+    }
+
+    // Longitudes de `src/lib/inventory.ts` (NAME_MAX_LENGTH, TEXT_MAX_LENGTH).
+    function isValidAmmunition(data) {
+      return data.keys().hasOnly(['brand', 'model', 'description', 'archived'])
+        && isText(data.brand, 100) && data.brand.size() > 0
+        && isText(data.model, 100) && data.model.size() > 0
+        && isText(data.description, 500)
+        && data.archived is bool;
+    }
+
+    function isValidRange(data) {
+      return data.keys().hasOnly(['name', 'address', 'archived'])
+        && isText(data.name, 100) && data.name.size() > 0
+        && isText(data.address, 500)
+        && data.archived is bool;
+    }
+
+    // Límites de `src/lib/firearms.ts` (MAX_PRIOR_SHOTS, MAX_FIREARM_PHOTOS,
+    // MAX_CONFIGURATION_MODIFICATIONS).
+    function isValidFirearm(data) {
+      return data.keys().hasOnly([
+          'brand', 'model', 'caliber', 'purchaseDate', 'purchasePlace', 'priorShots', 'photos',
+          'archived'
+        ])
+        && isText(data.brand, 100) && data.brand.size() > 0
+        && isText(data.model, 100) && data.model.size() > 0
+        && isText(data.caliber, 100) && data.caliber.size() > 0
+        && (data.purchaseDate == null
+          || (data.purchaseDate is string && data.purchaseDate.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')))
+        && isText(data.purchasePlace, 500)
+        && data.priorShots is int && data.priorShots >= 0 && data.priorShots <= 10000000
+        && data.photos is list && data.photos.size() <= 20
+        && data.archived is bool;
+    }
+
+    function isValidModification(data) {
+      return data.keys().hasOnly(['brand', 'model', 'comments', 'archived'])
+        && isText(data.brand, 100) && data.brand.size() > 0
+        && isText(data.model, 100) && data.model.size() > 0
+        && isText(data.comments, 500)
+        && data.archived is bool;
+    }
+
+    function isValidConfiguration(data) {
+      return data.keys().hasOnly(['name', 'firearmId', 'modificationIds', 'archived'])
+        && isText(data.name, 100) && data.name.size() > 0
+        && isText(data.firearmId, 100) && data.firearmId.size() > 0
+        && data.modificationIds is list
+        && data.modificationIds.size() > 0 && data.modificationIds.size() <= 50
+        && data.archived is bool;
+    }
+
+    // Límites de `src/lib/target-zones.ts` (MAX_REFERENCE_MM, MAX_ZONES). Las reglas no recorren
+    // listas: el contenido de cada zona lo valida el cliente.
+    function isValidTarget(data) {
+      return data.keys().hasOnly(['name', 'photo', 'scoring', 'referenceSizeMm', 'zones', 'archived'])
+        && isText(data.name, 100) && data.name.size() > 0
+        && (data.photo == null || data.photo is string)
+        && data.scoring in ['rings', 'none']
+        && data.referenceSizeMm is number
+        && data.referenceSizeMm > 0 && data.referenceSizeMm <= 10000
+        && data.zones is list && data.zones.size() <= 50
+        && (data.scoring == 'rings' ? data.zones.size() > 0 : data.zones.size() == 0)
+        && data.archived is bool;
+    }
+
+    // Límites de `src/lib/sessions.ts` (MAX_SESSION_PHOTOS, NOTES_MAX_LENGTH, MAX_SESSION_ROUNDS)
+    // y `src/lib/firearms.ts` (MAX_CONFIGURATION_MODIFICATIONS). El contenido de las listas
+    // (personalizaciones, rondas) lo valida el cliente.
+    function isValidSession(data) {
+      return data.keys().hasOnly([
+          'date', 'firearmId', 'configurationId', 'modificationsSnapshot', 'rangeId', 'weather',
+          'ammunitionId', 'photos', 'notes', 'rounds'
+        ])
+        && data.date is string && data.date.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        && isText(data.firearmId, 100) && data.firearmId.size() > 0
+        && (data.configurationId == null
+          || (isText(data.configurationId, 100) && data.configurationId.size() > 0))
+        && data.modificationsSnapshot is list && data.modificationsSnapshot.size() <= 50
+        && isText(data.rangeId, 100) && data.rangeId.size() > 0
+        && (data.weather == null || data.weather in ['sunny', 'cloudy', 'rainy', 'fog', 'windy'])
+        && isText(data.ammunitionId, 100) && data.ammunitionId.size() > 0
+        && data.photos is list && data.photos.size() <= 20
+        && isText(data.notes, 2000)
+        && data.rounds is list && data.rounds.size() <= 100;
+    }
+
+    // Lista de acceso: se administra a mano desde la consola. Cada usuario solo puede
+    // consultar su propio email (exista o no) y nadie puede escribirla desde el cliente.
+    match /allowedEmails/{allowedEmail} {
+      allow get: if request.auth != null && email() == allowedEmail;
+      allow list, write: if false;
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid) && isValidProfile(request.resource.data);
+      allow delete: if false;
+
+      // Inventario validado. No se borra: se archiva.
+      match /firearms/{firearmId} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidFirearm(request.resource.data);
+        allow delete: if false;
+
+        match /modifications/{id} {
+          allow read: if isOwner(uid);
+          allow create, update: if isOwner(uid) && isValidModification(request.resource.data);
+          allow delete: if false;
+        }
+      }
+
+      // Cada configuración apunta a un arma existente del mismo usuario.
+      match /configurations/{id} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && isValidConfiguration(request.resource.data)
+          && exists(/databases/$(database)/documents/users/$(uid)/firearms/$(request.resource.data.firearmId));
+        allow delete: if false;
+      }
+
+      match /ammunition/{id} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidAmmunition(request.resource.data);
+        allow delete: if false;
+      }
+
+      match /ranges/{id} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidRange(request.resource.data);
+        allow delete: if false;
+      }
+
+      match /targets/{id} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidTarget(request.resource.data);
+        allow delete: if false;
+      }
+
+      // Las sesiones sí se borran: nada las referencia.
+      match /sessions/{id} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidSession(request.resource.data);
+        allow delete: if isOwner(uid);
+      }
+
+      // Resto de los datos del usuario, hasta que tengan sus propias reglas. `{subcollection}`
+      // evita que el comodín recursivo (que acepta cero segmentos) también matchee el perfil.
+      match /{subcollection}/{document=**} {
+        allow read: if isOwner(uid);
+        allow write: if isOwner(uid)
+          && !(subcollection in [
+            'firearms', 'configurations', 'ammunition', 'ranges', 'targets', 'sessions'
+          ]);
+      }
+    }
+  }
+}

@@ -1,0 +1,168 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 880px;
+  /* Espacio para la barra de acción fija. */
+  padding-bottom: var(--action-bar-height);
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Solo en desktop (W03). */
+.breadcrumb {
+  display: none;
+}
+
+.breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  color: var(--text-3);
+  font-size: 14px;
+  list-style: none;
+}
+
+.breadcrumb li + li::before {
+  content: '/';
+  margin-right: var(--space-2);
+}
+
+.breadcrumb a {
+  text-decoration: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: calc(-1 * var(--space-2));
+}
+
+.title {
+  font-size: 24px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+/* Mobile: los campos van seguidos, sin tarjetas ni títulos de sección. */
+.sectionTitle {
+  display: none;
+}
+
+.pair {
+  display: grid;
+  gap: 22px;
+}
+
+/* Fecha y polígono van juntos también en mobile. */
+.dates {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.note {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-3);
+}
+
+/* Mobile: barra fija abajo con el botón primario a todo el ancho. */
+.actions {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-nav);
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.cancel {
+  display: none;
+}
+
+.submit {
+  flex: 1;
+}
+
+@media (min-width: 1024px) {
+  .screen {
+    gap: var(--space-6);
+    padding-bottom: 0;
+  }
+
+  .breadcrumb {
+    display: block;
+  }
+
+  .header {
+    margin-left: 0;
+  }
+
+  .close {
+    display: none;
+  }
+
+  .title {
+    font-size: 40px;
+  }
+
+  .form {
+    gap: var(--space-6);
+  }
+
+  .section {
+    gap: var(--space-5);
+    padding: var(--space-6);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .sectionTitle {
+    display: block;
+  }
+
+  .pair {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--space-5);
+  }
+
+  .actions {
+    position: static;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .cancel {
+    display: inline-flex;
+  }
+
+  .submit {
+    flex: none;
+  }
+}

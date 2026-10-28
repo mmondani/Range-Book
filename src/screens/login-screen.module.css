@@ -1,0 +1,200 @@
+.screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  overflow: hidden;
+  padding: calc(var(--space-12) + env(safe-area-inset-top)) var(--space-6)
+    calc(var(--space-10) + env(safe-area-inset-bottom));
+}
+
+.brand {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Anillos de diana decorativos. */
+.rings {
+  position: absolute;
+  top: -120px;
+  right: -160px;
+  width: 460px;
+  height: 460px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 60px var(--bg),
+    0 0 0 61px var(--border),
+    0 0 0 120px var(--bg),
+    0 0 0 121px var(--border);
+  pointer-events: none;
+}
+
+.cross {
+  display: none;
+}
+
+.pitch {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pitch > .mobileOnly {
+  margin-bottom: var(--space-3);
+}
+
+.title {
+  font-size: 56px;
+}
+
+.tagline {
+  max-width: 300px;
+  font-size: 18px;
+  color: var(--text-2);
+}
+
+.panel {
+  position: relative;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.intro {
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.intro h2 {
+  font-size: 36px;
+}
+
+.intro p {
+  color: var(--text-2);
+}
+
+.note {
+  font-size: 14px;
+  color: var(--text-3);
+  text-align: center;
+}
+
+.desktopOnly {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .screen {
+    flex-direction: row;
+    padding: 0;
+  }
+
+  .brand {
+    position: relative;
+    overflow: hidden;
+    flex: 1 1 480px;
+    justify-content: space-between;
+    gap: var(--space-12);
+    padding: 56px;
+    border-right: 1px solid var(--border);
+    background: var(--sunken);
+  }
+
+  .rings {
+    top: auto;
+    right: -220px;
+    bottom: -220px;
+    width: 640px;
+    height: 640px;
+    box-shadow:
+      0 0 0 80px var(--sunken),
+      0 0 0 81px var(--border),
+      0 0 0 160px var(--sunken),
+      0 0 0 161px var(--border);
+  }
+
+  /* Cruz de la mira, centrada en los anillos. */
+  .cross {
+    display: block;
+    position: absolute;
+    right: 100px;
+    bottom: 100px;
+    pointer-events: none;
+  }
+
+  .cross::before,
+  .cross::after {
+    content: '';
+    position: absolute;
+    background: color-mix(in srgb, var(--accent) 50%, transparent);
+  }
+
+  .cross::before {
+    left: -1px;
+    top: -140px;
+    width: 2px;
+    height: 280px;
+  }
+
+  .cross::after {
+    left: -140px;
+    top: -1px;
+    width: 280px;
+    height: 2px;
+  }
+
+  .pitch {
+    gap: var(--space-4);
+    max-width: 520px;
+  }
+
+  .title {
+    font-size: 64px;
+  }
+
+  .tagline {
+    max-width: none;
+    font-size: 19px;
+  }
+
+  .panel {
+    flex: 1 1 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-12) var(--space-6);
+  }
+
+  .form {
+    width: 100%;
+    max-width: 400px;
+    gap: var(--space-6);
+  }
+
+  .note {
+    text-align: left;
+  }
+
+  .brand > .desktopOnly {
+    position: relative;
+  }
+
+  .mobileOnly {
+    display: none;
+  }
+
+  .desktopOnly {
+    display: revert;
+  }
+
+  .intro.desktopOnly {
+    display: flex;
+  }
+}

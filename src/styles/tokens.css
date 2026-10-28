@@ -1,0 +1,94 @@
+/* Tokens de design-system.md. Los componentes usan solo estas variables. */
+
+:root,
+[data-theme='dark'] {
+  --bg: #0b0d0f;
+  --sunken: #0e1114;
+  --surface: #14181c;
+  --surface-2: #1c2126;
+  --surface-3: #262c33;
+  --ph-2: #20262c;
+  --border: #2e353d;
+  --border-strong: #3e4650;
+  --axis: #3a424b;
+  --text: #f2f4f5;
+  --text-2: #b4bcc5;
+  --text-3: #8a949f;
+  --accent: #ff6a1a;
+  --accent-hover: #ff7f3a;
+  --accent-soft: rgba(255, 106, 26, 0.14);
+  --on-accent: #1a0b02;
+  --success: #3dd68c;
+  --warning: #f5c04a;
+  --danger: #ff6b6b;
+  --info: #5aa9ff;
+  --paper: #e9e4d6;
+  --scheme: dark;
+}
+
+[data-theme='light'] {
+  --bg: #f6f7f8;
+  --sunken: #eef0f2;
+  --surface: #ffffff;
+  --surface-2: #eef0f2;
+  --surface-3: #e2e5e9;
+  --ph-2: #e6e9ec;
+  --border: #d5dae0;
+  --border-strong: #aeb6bf;
+  --axis: #aeb6bf;
+  --text: #14181c;
+  --text-2: #444c55;
+  --text-3: #5e6772;
+  --accent: #b93d0b;
+  --accent-hover: #9f340a;
+  --accent-soft: rgba(185, 61, 11, 0.1);
+  --on-accent: #ffffff;
+  --success: #157042;
+  --warning: #8a5a00;
+  --danger: #b42318;
+  --info: #1f6fd1;
+  --paper: #e9e4d6;
+  --scheme: light;
+}
+
+:root {
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-display: 'Barlow Condensed', 'Barlow', system-ui, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  --radius-control: 12px;
+  --radius-card: 16px;
+  --radius-sheet: 24px;
+  --radius-thumb: 10px;
+  --radius-pill: 999px;
+
+  --shadow-raised: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --scrim: rgba(0, 0, 0, 0.7);
+  --on-photo: rgba(11, 13, 15, 0.75);
+
+  --z-header: 10;
+  --z-nav: 20;
+  --z-fab: 30;
+  --z-sheet: 40;
+  --z-toast: 50;
+
+  --dur-press: 120ms;
+  --dur-state: 200ms;
+  --dur-enter: 280ms;
+  --dur-exit: 180ms;
+  --ease-enter: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  --nav-height: 80px;
+  --sidebar-width: 240px;
+  --action-bar-height: 88px;
+}

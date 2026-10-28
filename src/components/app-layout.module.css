@@ -1,0 +1,25 @@
+.layout {
+  display: flex;
+  min-height: 100dvh;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: calc(var(--space-5) + env(safe-area-inset-top)) var(--space-4)
+    calc(var(--nav-height) + var(--space-4) + env(safe-area-inset-bottom));
+}
+
+.noNav {
+  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+}
+
+.main h1:focus {
+  outline: none;
+}
+
+@media (min-width: 1024px) {
+  .main {
+    padding: var(--space-8) var(--space-10);
+  }
+}

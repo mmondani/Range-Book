@@ -1,0 +1,54 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+}
+
+/* Las configuraciones guardadas se destacan frente a "Stock". */
+.saved {
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.archived {
+  border-color: var(--border);
+  border-style: dashed;
+  background: transparent;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 24px;
+}
+
+.header button {
+  margin: -10px -8px -10px 0;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.archived .name {
+  color: var(--text-3);
+}
+
+.sessions,
+.detail {
+  font-size: 14px;
+  color: var(--text-3);
+}
+
+.archivedRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rendimiento — web · RangeBook</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Barlow:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0D0F}
+.rb{--bg:#0B0D0F;--surface:#14181C;--surface-2:#1C2126;--surface-3:#262C33;--border:#2E353D;--text:#F2F4F5;--text-2:#B4BCC5;--text-3:#8A949F;--accent:#FF6A1A;--accent-soft:rgba(255,106,26,.14);--on-accent:#1A0B02;--success:#3DD68C;--warning:#F5C04A;--danger:#FF6B6B;--info:#5AA9FF;font-family:'Barlow',system-ui,sans-serif;color:var(--text);background:var(--bg);font-size:16px;line-height:1.5}
+.rb *{box-sizing:border-box}
+.rb h1,.rb h2,.rb h3,.rb p{margin:0}
+.display{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.01em;text-transform:uppercase;line-height:1.05}
+.num{font-variant-numeric:tabular-nums}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:12px;border:1px solid transparent;font:600 15px 'Barlow',sans-serif;cursor:pointer;text-decoration:none;color:var(--text);background:var(--surface-2)}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text)}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:13px;font-weight:600;color:var(--text-3)}
+.input{min-height:44px;padding:8px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font:500 15px 'Barlow',sans-serif;width:100%}
+select.input{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--text-3) 50%),linear-gradient(135deg,var(--text-3) 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 15px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:40px}
+.delta{font-size:14px;font-weight:600;color:var(--success)}
+.side{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:var(--text-2);text-decoration:none;font-weight:600}
+.side:hover{background:var(--surface-2);color:var(--text)}
+.side.on{background:var(--accent-soft);color:var(--text)}
+.side.on svg{color:var(--accent)}
+table{border-collapse:collapse;width:100%}
+th{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);text-align:left;padding:10px 16px;border-bottom:1px solid var(--border);white-space:nowrap}
+th button{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+td{padding:12px 16px;border-bottom:1px solid var(--border)}
+.ax{font:500 12px 'Barlow',sans-serif;fill:var(--text-3)}
+.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sm{width:16px;height:16px}
+a{color:var(--accent)}a:hover{color:var(--accent-hover)}
+</style>
+<link rel="stylesheet" href="../assets/frame.css">
+</head>
+<body class="mk-web">
+<div class="rb" style="min-height:1150px;display:flex;flex-wrap:wrap">
+  <aside style="flex:1 1 240px;background:var(--sunken);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;align-items:center;gap:10px;padding:0 8px">
+      <div style="width:36px;height:36px;border-radius:10px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4.5"></circle><path d="M12 1v5"></path><path d="M12 18v5"></path><path d="M1 12h5"></path><path d="M18 12h5"></path></svg></div>
+      <span class="display" style="font-size:24px">RangeBook</span>
+    </div>
+    <nav aria-label="Principal" style="display:flex;flex-direction:column;gap:4px">
+      <a href="sesiones.html" class="side"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M22 12h-4"></path><path d="M6 12H2"></path><path d="M12 6V2"></path><path d="M12 22v-4"></path></svg>Sesiones</a>
+      <a href="rendimiento.html" class="side on" aria-current="page"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>Rendimiento</a>
+      <a href="inventario.html" class="side"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>Inventario</a>
+      <a href="#" class="side"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg>Perfil</a>
+    </nav>
+  </aside>
+
+  <main style="flex:999 1 560px;min-width:0;padding:24px 32px 48px;display:flex;flex-direction:column;gap:20px">
+    <h1 class="display" style="font-size:40px">Rendimiento</h1>
+
+    <section class="card" aria-label="Filtros" style="padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:end">
+      <div class="field"><label for="f-conf">Configuración</label><select id="f-conf" class="input"><option>Glock 17 Gen5 · Config. IPSC</option><option>Glock 17 Gen5 · Stock</option><option>Todas</option></select></div>
+      <div class="field"><label for="f-mun">Munición</label><select id="f-mun" class="input"><option>Todas</option></select></div>
+      <div class="field"><label for="f-dist">Distancia</label><select id="f-dist" class="input"><option>La más usada (25 m)</option><option>25 m</option><option>50 m</option><option>Todas</option></select></div>
+      <div class="field"><label for="f-bla">Blanco</label><select id="f-bla" class="input"><option>ISSF Pistola Precisión</option></select></div>
+      <div class="field"><label for="f-pol">Polígono</label><select id="f-pol" class="input"><option>Todos</option></select></div>
+      <div class="field"><label for="f-per">Período</label><select id="f-per" class="input"><option>Últimos 90 días</option><option>Último año</option><option>Todo</option></select></div>
+    </section>
+
+    <section aria-label="Indicadores" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+      <div class="card" style="padding:16px 18px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Promedio por tiro</span><span class="display num" style="font-size:40px;color:var(--accent)">9,1</span><span class="delta">▲ 0,9 (mejor)</span></div>
+      <div class="card" style="padding:16px 18px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Tamaño de grupo</span><span class="display num" style="font-size:40px">46,0 <span style="font-size:18px;color:var(--text-3)">mm</span></span><span class="delta">▼ 26,0 mm (mejor)</span></div>
+      <div class="card" style="padding:16px 18px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Desvío del PMI</span><span class="display num" style="font-size:40px">14,0 <span style="font-size:18px;color:var(--text-3)">mm</span></span><span style="font-size:14px;color:var(--text-3)">Tendencia hacia las 7 h</span></div>
+      <div class="card" style="padding:16px 18px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Disparos</span><span class="display num" style="font-size:40px">1.240</span><span style="font-size:14px;color:var(--text-3)">10 sesiones · 82 rondas</span></div>
+    </section>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:12px">
+      <section class="card" style="padding:18px;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2 style="font-size:18px;font-weight:600">Puntaje promedio por tiro</h2><span style="font-size:13px;color:var(--text-3)">Por sesión · a 25 m</span></div>
+        <svg viewBox="0 0 600 240" role="img" aria-label="Puntaje promedio por tiro en 10 sesiones, del 2 de agosto al 25 de octubre: sube de 8,1 a 9,3" style="width:100%;height:auto">
+          <line x1="30" y1="16" x2="600" y2="16" style="stroke:var(--surface-3)"></line>
+          <line x1="30" y1="90" x2="600" y2="90" style="stroke:var(--surface-3)"></line>
+          <line x1="30" y1="163" x2="600" y2="163" style="stroke:var(--surface-3)"></line>
+          <text class="ax" x="0" y="20">10</text><text class="ax" x="8" y="94">9</text><text class="ax" x="8" y="167">8</text>
+          <polyline fill="none" stroke-width="3" stroke-linejoin="round" points="40,156 101,134 162,149 223,112 284,97 346,119 407,90 468,75 529,82 590,68" style="stroke:var(--accent)"></polyline>
+          <circle cx="40" cy="156" r="4.5" style="fill:var(--accent)"></circle><circle cx="101" cy="134" r="4.5" style="fill:var(--accent)"></circle><circle cx="162" cy="149" r="4.5" style="fill:var(--accent)"></circle><circle cx="223" cy="112" r="4.5" style="fill:var(--accent)"></circle><circle cx="284" cy="97" r="4.5" style="fill:var(--accent)"></circle><circle cx="346" cy="119" r="4.5" style="fill:var(--accent)"></circle><circle cx="407" cy="90" r="4.5" style="fill:var(--accent)"></circle><circle cx="468" cy="75" r="4.5" style="fill:var(--accent)"></circle><circle cx="529" cy="82" r="4.5" style="fill:var(--accent)"></circle><circle cx="590" cy="68" r="6" stroke-width="2" style="fill:var(--accent);stroke:var(--surface)"></circle>
+          <text x="590" y="52" text-anchor="end" style="font:700 14px 'Barlow',sans-serif;fill:var(--text)">9,3</text>
+          <text class="ax" x="40" y="232" text-anchor="middle">2 ago</text><text class="ax" x="223" y="232" text-anchor="middle">30 ago</text><text class="ax" x="407" y="232" text-anchor="middle">27 sep</text><text class="ax" x="590" y="232" text-anchor="end">25 oct</text>
+        </svg>
+      </section>
+      <section class="card" style="padding:18px;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2 style="font-size:18px;font-weight:600">Tamaño de grupo (mm)</h2><span style="font-size:13px;color:var(--text-3)">Por sesión · a 25 m · menor es mejor</span></div>
+        <svg viewBox="0 0 600 240" role="img" aria-label="Tamaño de grupo por sesión en milímetros: baja de 72 a 46" style="width:100%;height:auto">
+          <line x1="30" y1="16" x2="600" y2="16" style="stroke:var(--surface-3)"></line>
+          <line x1="30" y1="108" x2="600" y2="108" style="stroke:var(--surface-3)"></line>
+          <line x1="30" y1="200" x2="600" y2="200" style="stroke:var(--axis)"></line>
+          <text class="ax" x="0" y="20">80</text><text class="ax" x="0" y="112">40</text><text class="ax" x="12" y="204">0</text>
+          <rect x="45" y="34" width="30" height="166" rx="4" opacity=".55" style="fill:var(--info)"></rect>
+          <rect x="103" y="44" width="30" height="156" rx="4" opacity=".55" style="fill:var(--info)"></rect>
+          <rect x="161" y="39" width="30" height="161" rx="4" opacity=".55" style="fill:var(--info)"></rect>
+          <rect x="219" y="60" width="30" height="140" rx="4" opacity=".55" style="fill:var(--info)"></rect>
+          <rect x="277" y="67" width="30" height="133" rx="4" opacity=".55" style="fill:var(--info)"></rect>
+          <rect x="335" y="62" width="30" height="138" rx="4" opacity=".55" style="fill:var(--info)"></rect>
+          <rect x="393" y="76" width="30" height="124" rx="4" opacity=".55" style="fill:var(--info)"></rect>
+          <rect x="451" y="85" width="30" height="115" rx="4" opacity=".55" style="fill:var(--info)"></rect>
+          <rect x="509" y="80" width="30" height="120" rx="4" opacity=".55" style="fill:var(--info)"></rect>
+          <rect x="567" y="94" width="30" height="106" rx="4" style="fill:var(--info)"></rect>
+          <text x="582" y="86" text-anchor="middle" style="font:700 14px 'Barlow',sans-serif;fill:var(--text)">46</text>
+          <text class="ax" x="60" y="222" text-anchor="middle">2 ago</text><text class="ax" x="234" y="222" text-anchor="middle">30 ago</text><text class="ax" x="408" y="222" text-anchor="middle">27 sep</text><text class="ax" x="597" y="222" text-anchor="end">25 oct</text>
+        </svg>
+      </section>
+    </div>
+
+    <section class="card" style="overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;gap:12px;flex-wrap:wrap">
+        <h2 style="font-size:18px;font-weight:600">Detalle por sesión</h2>
+        <button class="btn btn-ghost"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg>Exportar CSV</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th scope="col" aria-sort="descending"><button>Fecha <svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button></th>
+            <th scope="col">Configuración</th><th scope="col">Munición</th><th scope="col">Distancia</th>
+            <th scope="col" style="text-align:right"><button>Disparos</button></th>
+            <th scope="col" style="text-align:right"><button>Prom./tiro</button></th>
+            <th scope="col" style="text-align:right"><button>Grupo</button></th>
+            <th scope="col" style="text-align:right"><button>Desvío PMI</button></th>
+          </tr></thead>
+          <tbody>
+            <tr><td class="num">25/10/2026</td><td>Config. IPSC</td><td>Magtech 115gr</td><td class="num">25 m</td><td class="num" style="text-align:right">30</td><td class="num" style="text-align:right;font-weight:600;color:var(--accent)">9,3</td><td class="num" style="text-align:right">46 mm</td><td class="num" style="text-align:right">12 mm · 7 h</td></tr>
+            <tr><td class="num">18/10/2026</td><td>Config. IPSC</td><td>S&amp;B 124gr</td><td class="num">25 m</td><td class="num" style="text-align:right">100</td><td class="num" style="text-align:right;font-weight:600">9,1</td><td class="num" style="text-align:right">52 mm</td><td class="num" style="text-align:right">15 mm · 8 h</td></tr>
+            <tr><td class="num">04/10/2026</td><td>Config. IPSC</td><td>Magtech 115gr</td><td class="num">25 m</td><td class="num" style="text-align:right">75</td><td class="num" style="text-align:right;font-weight:600">9,2</td><td class="num" style="text-align:right">50 mm</td><td class="num" style="text-align:right">13 mm · 7 h</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

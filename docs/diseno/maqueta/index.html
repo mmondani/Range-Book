@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RangeBook · Maqueta</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&amp;family=Barlow:wght@400;500;600&amp;display=swap">
+<style>
+:root{--bg:#050607;--surface:#14181C;--border:#2E353D;--text:#F2F4F5;--text-2:#B4BCC5;--text-3:#8A949F;--accent:#FF6A1A}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 'Barlow',system-ui,sans-serif}
+main{max-width:1600px;margin:0 auto;padding:40px 24px 80px;display:flex;flex-direction:column;gap:48px}
+h1,h2,h3{margin:0;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.01em;line-height:1.05}
+h1{font-size:48px}
+h2{font-size:30px}
+p{margin:0;color:var(--text-2);max-width:760px}
+a{color:var(--accent)}
+.grid{display:flex;flex-wrap:wrap;gap:28px}
+.shot{display:flex;flex-direction:column;gap:10px}
+.shot header{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.shot h3{font-size:18px}
+.code{font-size:13px;color:var(--text-3);font-weight:600}
+.frame{overflow:hidden;border-radius:22px;border:1px solid var(--border);background:#0B0D0F}
+.frame iframe{border:0;transform-origin:0 0;pointer-events:none}
+.m .frame{width:293px;height:633px}
+.m iframe{width:390px;height:844px;transform:scale(.75)}
+.w .frame{width:504px;height:315px;border-radius:12px}
+.w iframe{width:1440px;height:900px;transform:scale(.35)}
+.frame-link{display:block;text-decoration:none;border-radius:22px}
+.frame-link:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.frame-link:hover .frame{border-color:var(--accent)}
+html[data-theme="light"]{--bg:#E6E9EC;--surface:#FFFFFF;--border:#C5CBD2;--text:#14181C;--text-2:#444C55;--text-3:#5E6772;--accent:#B93D0B}
+.theme{display:inline-flex;gap:4px;padding:4px;border-radius:12px;border:1px solid var(--border);background:var(--surface);align-self:flex-start}
+.theme button{min-height:40px;padding:0 16px;border:0;border-radius:9px;background:transparent;color:var(--text-2);font:600 15px 'Barlow',sans-serif;cursor:pointer}
+.theme button[aria-checked="true"]{background:var(--accent);color:#fff}
+</style>
+</head>
+<body>
+<main>
+  <header style="display:flex;flex-direction:column;gap:12px">
+    <span class="code" style="letter-spacing:.08em;text-transform:uppercase">Maqueta navegable · no es la app</span>
+    <h1>RangeBook · Pantallas</h1>
+    <p>Hacé clic en una pantalla para abrirla. Dentro de cada pantalla los botones y la navegación llevan a las demás. Las pantallas mobile se ven en un marco de teléfono en desktop y ocupan toda la pantalla en un celular. Especificación: <code>../pantallas.md</code> y <code>../design-system.md</code>.</p>
+    <div class="theme" role="radiogroup" aria-label="Tema de las pantallas"><button type="button" role="radio" data-value="oscuro">Tema oscuro (por defecto)</button><button type="button" role="radio" data-value="claro">Tema claro</button></div>
+  </header>
+
+  <section style="display:flex;flex-direction:column;gap:20px">
+    <h2>Mobile</h2>
+    <div class="grid m" id="mobile"></div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:20px">
+    <h2>Web (≥ 1024 px)</h2>
+    <div class="grid w" id="web"></div>
+  </section>
+</main>
+<script>
+(function () {
+  var MOBILE = [
+    ['M01', 'Login', 'login'], ['M02', 'Sesiones (inicio)', 'sesiones'], ['M02b', 'Sesiones sin conexión', 'sesiones-sin-conexion'], ['M03', 'Detalle de sesión', 'sesion-detalle'],
+    ['M04', 'Nueva / editar sesión', 'sesion-form'], ['M05', 'Agregar ronda', 'ronda-form'], ['M06a', 'Análisis: calibración', 'analisis-calibracion'],
+    ['M06', 'Análisis de blanco', 'analisis'],
+    ['M07', 'Rendimiento', 'rendimiento'], ['M08', 'Inventario', 'inventario'], ['M09', 'Detalle de arma', 'arma-detalle'],
+    ['M10', 'Alta / edición de arma', 'arma-form'], ['M11', 'Perfil', 'perfil'], ['M12', 'Alta / edición de blanco', 'blanco-form']
+  ];
+  var WEB = [
+    ['W01', 'Login (no autorizado)', 'login'], ['W02', 'Sesiones: lista + detalle', 'sesiones'], ['W03', 'Nueva / editar sesión', 'sesion-form'],
+    ['W04a', 'Análisis: calibración', 'analisis-calibracion'], ['W04', 'Análisis de blanco', 'analisis'], ['W05', 'Rendimiento', 'rendimiento'], ['W06', 'Inventario', 'inventario'], ['W07', 'Detalle de arma', 'arma-detalle']
+  ];
+  function fill(id, folder, list) {
+    var box = document.getElementById(id);
+    list.forEach(function (s) {
+      var href = folder + '/' + s[2] + '.html';
+      var fig = document.createElement('article');
+      fig.className = 'shot';
+      fig.innerHTML = '<header><h3>' + s[1] + '</h3><span class="code">' + s[0] + '</span></header>' +
+        '<a class="frame-link" href="' + href + '" aria-label="Abrir ' + s[0] + ' ' + s[1] + '"><div class="frame">' +
+        '<iframe src="' + href + '" loading="lazy" tabindex="-1" title="' + s[1] + '"></iframe></div></a>';
+      box.appendChild(fig);
+    });
+  }
+  fill('mobile', 'mobile', MOBILE);
+  fill('web', 'web', WEB);
+
+  // El tema se comparte con las pantallas (localStorage 'rb-theme'); los iframes escuchan el evento storage
+  function pref() { try { return localStorage.getItem('rb-theme') || 'oscuro'; } catch (e) { return 'oscuro'; } }
+  function paint() {
+    var p = pref();
+    document.documentElement.setAttribute('data-theme', p === 'claro' ? 'light' : 'dark');
+    document.querySelectorAll('.theme [role="radio"]').forEach(function (b) { b.setAttribute('aria-checked', b.dataset.value === p ? 'true' : 'false'); });
+  }
+  document.querySelector('.theme').addEventListener('click', function (e) {
+    var b = e.target.closest('[role="radio"]');
+    if (!b) return;
+    try { localStorage.setItem('rb-theme', b.dataset.value); } catch (err) { /* sin almacenamiento */ }
+    paint();
+    document.querySelectorAll('iframe').forEach(function (f) { try { f.contentWindow.location.reload(); } catch (err) { /* file:// */ } });
+  });
+  var forced = new URLSearchParams(location.search).get('tema');
+  if (forced === 'claro' || forced === 'oscuro') { try { localStorage.setItem('rb-theme', forced); } catch (err) { /* sin almacenamiento */ } }
+  paint();
+})();
+</script>
+</body>
+</html>

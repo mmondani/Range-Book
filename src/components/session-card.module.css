@@ -1,0 +1,134 @@
+.card,
+.item {
+  display: flex;
+  gap: 14px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.card {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  transition: border-color var(--dur-state);
+}
+
+.card:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.today,
+.today:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 56px;
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+}
+
+.today .date {
+  background: var(--accent-soft);
+}
+
+.day {
+  font-size: 26px;
+}
+
+.month {
+  font-size: 12px;
+}
+
+.today .month {
+  color: var(--text-2);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.large {
+  font-size: 17px;
+}
+
+.detail {
+  color: var(--text-2);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.stats b {
+  color: var(--text);
+}
+
+/* Fila compacta de W02. */
+.item {
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+}
+
+.item:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.item .date {
+  width: 48px;
+  background: none;
+}
+
+.item .day {
+  font-size: 24px;
+}
+
+.item .month {
+  font-size: 11px;
+}
+
+.selected,
+.selected:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.average {
+  font-size: 20px;
+}
+
+.accent {
+  color: var(--accent);
+}

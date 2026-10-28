@@ -1,0 +1,27 @@
+/* Sobre la foto: colores fijos, como los botones de zoom de `TargetAnalyzer`. */
+.picker {
+  display: flex;
+  gap: 6px;
+}
+
+.option {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 20px;
+  background: rgba(11, 13, 15, 0.75);
+  color: #f2f4f5;
+  font: 600 14px var(--font-body);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* El punto activo, con el verde de la calibración. */
+.on {
+  border-color: #3dd68c;
+  background: rgba(11, 13, 15, 0.9);
+  box-shadow: 0 0 0 2px rgba(61, 214, 140, 0.45);
+  color: #fff;
+}

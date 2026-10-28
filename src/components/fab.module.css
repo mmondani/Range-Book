@@ -1,0 +1,15 @@
+.fab {
+  position: fixed;
+  right: var(--space-4);
+  bottom: calc(var(--nav-height) + var(--space-4) + env(safe-area-inset-bottom));
+  z-index: var(--z-fab);
+  min-height: 56px;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-raised);
+}
+
+@media (min-width: 1024px) {
+  .fab {
+    display: none;
+  }
+}

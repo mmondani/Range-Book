@@ -1,8 +1,8 @@
 # Plan — 000 MVP
 
-**Estado:** Aprobado
+**Estado:** Terminado
 **Requerimientos:** [./requerimientos.md](./requerimientos.md)
-**Diseño:** [design-system.md](./diseno/design-system.md) · [pantallas.md](./diseno/pantallas.md) · [maqueta](./diseno/maqueta/index.html)
+**Diseño:** [design-system.md](../../diseno/design-system.md) · [pantallas.md](../../diseno/pantallas.md) · [maqueta](../../diseno/maqueta/index.html)
 
 ## Resumen del enfoque
 Se construye una SPA con **React + Vite + TypeScript**, instalable como PWA, desplegada en Firebase Hosting y que usa Firestore, Storage y Authentication (Google) directamente desde el cliente. Las reglas de seguridad de Firestore y Storage son la única barrera de privacidad: cada usuario solo lee y escribe bajo `users/{uid}`, y solo si su email figura en `allowedEmails`. Toda la lógica de negocio (métricas de tiro, puntaje por zonas, validación de blancos, snapshots, tiros acumulados, agregaciones de Rendimiento, calibración y detección de impactos) vive en `src/lib/` como funciones puras con tests. Los componentes solo orquestan datos y UI. El trabajo avanza por capas: base del proyecto → auth → inventario → sesiones y rondas → análisis → rendimiento → PWA/offline, y cada paso deja la app desplegable.
@@ -75,46 +75,46 @@ No hay código todavía; todo es nuevo. `docs/arquitectura.md` no existe y se cr
 - Estado global: React context + suscripciones de Firestore (`onSnapshot`). No hace falta Redux/Zustand/React Query.
 
 ## Pasos
-- [ ] **1. Base del proyecto**
+- [x] **1. Base del proyecto**
   - Qué: Vite + React + TS con pnpm, ESLint, Prettier, Vitest, alias `@/`. Scripts `dev`, `build`, `lint`, `test`, `test:rules`, `emulators`. `firebase.json` con Hosting (SPA rewrite) y emuladores.
   - Verificación: `pnpm build`, `pnpm lint` y `pnpm test` pasan; `pnpm dev` muestra una página vacía.
-- [ ] **2. Tokens, tema y componentes base**
+- [x] **2. Tokens, tema y componentes base**
   - Qué: `tokens.css` (oscuro y claro), fuentes Barlow / Barlow Condensed, script inline en `index.html` que aplica `data-theme` antes del render, `useTheme`. Componentes: `Button`, `IconButton`, `Chip`, `Badge`, `Card`, `StatTile`, `Field`, `Input`/`Select`/`Textarea`/`DateInput`, `Stepper`, `SegmentedControl`, `Tabs`, `BottomSheet`/`Dialog`, `ConfirmDialog`, `Toast`, `EmptyState`, `Skeleton`. Layout con barra inferior y sidebar.
   - Verificación: tests de componentes (estados `loading`/`disabled`, `aria-*`, cierre del sheet con Escape y confirmación con cambios); revisión visual contra la maqueta en los dos temas.
-- [ ] **3. Login y autorización**
+- [x] **3. Login y autorización**
   - Qué: Login con Google (popup en desktop, redirect en mobile PWA). Tras autenticar, se lee `allowedEmails/{email}`; si no existe, `signOut` y alerta "no autorizado". Guard de rutas. Creación del perfil en el primer ingreso. Reglas de Firestore y Storage con `isAllowed()` y dueño.
   - Verificación: tests de reglas (usuario no autorizado no lee nada; usuario A no lee datos de B; nadie escribe `allowedEmails`); tests de pantalla de los estados inicial, cargando, no autorizado y error de red.
-- [ ] **4. Perfil**
+- [x] **4. Perfil**
   - Qué: M11 con avatar, resumen, unidades (mm / pulgadas), tema (Oscuro / Claro / Sistema, guardado en Firestore y `localStorage`), versión y cerrar sesión. "Instalar" se agrega en el paso 13.
   - Verificación: tests de `units.ts`; tests de que el tema se aplica al instante y persiste; cerrar sesión vuelve a `/login`.
-- [ ] **5. Fotos**
+- [x] **5. Fotos**
   - Qué: `PhotoPicker` (cámara / galería / arrastrar), `PhotoGallery`, `image-compression.ts`, subida a Storage y guardado de la ruta en Firestore.
   - Verificación: test de cálculo de dimensiones de la compresión; test de que solo se guarda la ruta; prueba manual de cámara en el celular.
-- [ ] **6. Inventario: municiones, polígonos y archivado**
+- [x] **6. Inventario: municiones, polígonos y archivado**
   - Qué: M08/W06 con categorías y contadores; ABM de munición y polígonos en sheet/diálogo; archivar, "Ver archivadas" y restaurar (patrón común para todas las entidades).
   - Verificación: tests de que un archivado no aparece en listas ni selects pero sí con "Ver archivadas", y que se puede restaurar.
-- [ ] **7. Inventario: armas, modificaciones y configuraciones**
+- [x] **7. Inventario: armas, modificaciones y configuraciones**
   - Qué: M09/W07, M10. Fotos múltiples con portada, calibre con sugerencias, tiros previos. Modificaciones en sheet. Configuraciones (nombre + checkboxes de modificaciones). Tiros acumulados = previos + disparos de sesiones.
   - Verificación: tests de `firearms.ts` (tiros acumulados, configuración "Stock" implícita, archivados); tests de validación del formulario de arma.
-- [ ] **8. Inventario: blancos**
+- [x] **8. Inventario: blancos**
   - Qué: M12 con tipo de puntuación, tamaño de referencia, `ZoneEditor` con "Generar" y vista previa.
   - Verificación: tests de `target-zones.ts` (diámetros únicos y crecientes al bajar el puntaje, ninguna zona mayor que la referencia, generación uniforme, zona más chica que contiene el centro, 0 fuera).
-- [ ] **9. Sesiones: lista, alta, edición y detalle**
+- [x] **9. Sesiones: lista, alta, edición y detalle**
   - Qué: M02/W02 (resumen del mes, agrupado por mes, "Hoy", búsqueda y filtro por arma, estados vacío/cargando/sin resultados), M04/W03 (defaults, snapshot de personalizaciones, validación al salir del campo, foco en el primer error, confirmación al cerrar con cambios, borrador en `localStorage`), M03 (galería, totales, notas, eliminar con confirmación y "Deshacer").
   - Verificación: tests de `sessions.ts` (snapshot inmune a cambios posteriores del inventario, defaults, totales); tests de pantalla del formulario y de eliminar/deshacer.
-- [ ] **10. Rondas**
+- [x] **10. Rondas**
   - Qué: M05 como sheet con URL propia (diálogo en desktop): blanco, distancia y disparos precargados de la ronda anterior, puntaje manual, foto, comentarios. `RoundRow` con estado *Analizada / Sin analizar*.
   - Verificación: tests de defaults de la ronda; test de que "atrás" cierra el sheet.
-- [ ] **11. Análisis de blancos**
+- [x] **11. Análisis de blancos**
   - Qué: M06/W04. Calibración de la foto (centro + anillo visible elegido de la lista, o centro + dos puntos con distancia en mm en blancos sin zonas; anillos calibrados dibujados para verificar), `TargetAnalyzer` con modos Detectar / Agregar / Quitar, Deshacer con historial, PMI (cruz azul) y grupo (círculo punteado), aviso de impactos ≠ disparos, tabla de impactos en desktop, `MetricTile`s en vivo, checkbox "Usar el puntaje calculado". Estados: detectando, detección fallida, sin foto, blanco sin zonas. Se guardan impactos en mm y un snapshot de las métricas.
   - Verificación: tests de `metrics.ts` con casos calculados a mano (incluido MOA a varias distancias y horas de reloj del PMI), de `calibration.ts` (escala con distintos anillos de referencia y con dos puntos + distancia) y de `impact-detection.ts` con imágenes sintéticas; tests de pantalla de la confirmación del puntaje (marcado → usa el calculado; desmarcado → conserva el manual).
-- [ ] **12. Rendimiento**
+- [x] **12. Rendimiento**
   - Qué: M07/W05 con filtros en la query string (configuración, munición, blanco, distancia, polígono, período), KPIs con delta, gráficos de puntaje promedio y tamaño de grupo por sesión (filtro por la distancia más usada por defecto), comparación por munición (mobile), tabla ordenable + CSV (desktop). Estados sin análisis y pocos datos.
   - Verificación: tests de `performance.ts` (filtros, deltas vs. período anterior, distancia por defecto, CSV).
-- [ ] **13. PWA y offline**
+- [x] **13. PWA y offline**
   - Qué: manifest, íconos, service worker, `theme-color` según tema, botón "Instalar" (con `beforeinstallprompt`; instrucciones en iOS), persistencia offline de Firestore, banner "Sin conexión", cola de fotos pendientes.
   - Verificación: Lighthouse PWA instalable; prueba manual en modo avión: crear una sesión con foto y ver que se sincroniza al volver la conexión; test de `upload-queue.ts`.
-- [ ] **14. Deploy y cierre**
+- [x] **14. Deploy y cierre**
   - Qué: crear el proyecto de Firebase (plan Blaze, app web, Auth con Google, Firestore, Storage) y cargar el primer email autorizado; deploy de reglas, índices y hosting. Verificación de criterios, `docs/arquitectura.md`, ADRs y `notas.md`.
   - Verificación: app accesible en la URL de Hosting desde el celular y la PC.
 
@@ -164,8 +164,8 @@ No hay código todavía; todo es nuevo. `docs/arquitectura.md` no existe y se cr
 - Ninguna.
 
 ## Al terminar
-- [ ] Todos los criterios de aceptación verificados
-- [ ] Tests y lint pasan
-- [ ] `docs/arquitectura.md` actualizado
-- [ ] ADR creado si corresponde
-- [ ] `notas.md` completado
+- [x] Todos los criterios de aceptación verificados
+- [x] Tests y lint pasan
+- [x] `docs/arquitectura.md` actualizado
+- [x] ADR creado si corresponde
+- [x] `notas.md` completado

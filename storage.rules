@@ -1,0 +1,26 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Misma condición que `isAllowed()` en firestore.rules.
+    function isAllowed() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && firestore.exists(
+          /databases/(default)/documents/allowedEmails/$(request.auth.token.email.lower())
+        );
+    }
+
+    function isOwner(uid) {
+      return isAllowed() && request.auth.uid == uid;
+    }
+
+    // Fotos de cada usuario: solo imágenes de hasta 10 MB.
+    match /users/{uid}/{allPaths=**} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+  }
+}
