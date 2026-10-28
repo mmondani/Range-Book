@@ -1,60 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import type { Calibration, Pixel } from './calibration';
+import { syntheticTarget } from '@/test/synthetic-target';
 import {
   detectImpacts,
   detectionOptions,
   detectionScale,
   holeDiameterMm,
-  type PixelImage,
 } from './impact-detection';
 
-const PAPER = 233;
-const BLACK = 24;
 const HOLE_ON_PAPER = 40;
 const HOLE_ON_BLACK = 200;
-
-/** Blanco sintético: papel, centro negro y anillos finos, como una foto tomada de frente. */
-function syntheticTarget(size = 240) {
-  const center = size / 2;
-  const gray = new Float32Array(size * size).fill(PAPER);
-  const paint = (test: (x: number, y: number) => boolean, value: number) => {
-    for (let y = 0; y < size; y++) {
-      for (let x = 0; x < size; x++) if (test(x, y)) gray[y * size + x] = value;
-    }
-  };
-  const radius = (x: number, y: number) => Math.hypot(x - center, y - center);
-  const target = {
-    size,
-    center: { x: center, y: center },
-    /** Círculo negro de radio `r`. */
-    blackDisk(r: number) {
-      paint((x, y) => radius(x, y) <= r, BLACK);
-      return target;
-    },
-    /** Línea de anillo de 1 px. */
-    ringLine(r: number) {
-      paint((x, y) => Math.abs(radius(x, y) - r) <= 0.5, BLACK);
-      return target;
-    },
-    /** Línea recta fina (un número impreso, un pliegue). */
-    line(y0: number, x0: number, x1: number) {
-      paint((x, y) => y === y0 && x >= x0 && x <= x1, BLACK);
-      return target;
-    },
-    hole({ x, y }: Pixel, value: number, r = 4) {
-      paint((px, py) => Math.hypot(px - x, py - y) <= r, value);
-      return target;
-    },
-    image(): PixelImage {
-      const data = new Uint8ClampedArray(size * size * 4);
-      gray.forEach((value, i) => {
-        data.set([value, value, value, 255], i * 4);
-      });
-      return { width: size, height: size, data };
-    },
-  };
-  return target;
-}
 
 function expectNear(found: Pixel[], expected: Pixel[]) {
   expect(found).toHaveLength(expected.length);

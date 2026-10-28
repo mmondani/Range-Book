@@ -31,6 +31,8 @@ export interface CalibrationPanelProps {
   active: CalibrationMarker;
   onActive: (marker: CalibrationMarker) => void;
   onChange: (changes: Partial<CalibrationDraft>) => void;
+  /** El centro del borrador se ubicó solo: se avisa que hay que revisarlo. */
+  autoCenter?: boolean;
   /** Por qué todavía no se puede continuar (después de intentarlo). */
   error?: string;
   className?: string;
@@ -47,6 +49,7 @@ export function CalibrationPanel({
   active,
   onActive,
   onChange,
+  autoCenter,
   error,
   className,
 }: CalibrationPanelProps) {
@@ -75,6 +78,12 @@ export function CalibrationPanel({
       <p role="status" className={styles.instruction}>
         {INSTRUCTIONS[active]}
       </p>
+      {autoCenter && (
+        <p className={styles.note}>
+          El centro se ubicó automáticamente. Si no coincide con el de la foto, elegí «Centro» y
+          tocalo.
+        </p>
+      )}
       {scoring === 'rings' ? (
         <Field label="Anillo marcado" help="Por defecto, el más grande.">
           <Select

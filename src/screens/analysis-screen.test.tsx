@@ -6,10 +6,20 @@ import { ANA } from '@/test/fake-auth';
 import { ROUND_1, ROUND_2, TODAY, TODAY_SESSION } from '@/test/fake-sessions';
 import { setDesktop } from '@/test/match-media';
 import { renderSessions } from '@/test/render-sessions';
+import { syntheticTarget } from '@/test/synthetic-target';
+
+// jsdom no tiene canvas: por defecto la foto no se puede leer y la detección falla.
+const { readImagePixels } = vi.hoisted(() => ({ readImagePixels: vi.fn() }));
+vi.mock('@/lib/pixel-image', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/pixel-image')>()),
+  readImagePixels,
+}));
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] });
   vi.setSystemTime(TODAY);
+  readImagePixels.mockReset();
+  readImagePixels.mockRejectedValue(new Error('Sin canvas'));
 });
 
 afterEach(() => {
@@ -212,6 +222,70 @@ describe('M06 · Análisis nuevo', () => {
         }),
       }),
     );
+  });
+
+  it('ubica solo el centro de los anillos y el usuario completa la calibración', async () => {
+    // La foto de 1000 px se lee reducida a 400 px (escala 0,4), con el centro en (220, 180).
+    readImagePixels.mockResolvedValueOnce(
+      syntheticTarget({ width: 400, center: { x: 220, y: 180 } })
+        .blackDisk(40)
+        .ringLine(70)
+        .ringLine(100)
+        .image(),
+    );
+    const { sessions } = renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
+    await loadPhoto(2);
+
+    expect(await screen.findByText(/El centro se ubicó automáticamente/)).toBeInTheDocument();
+    expect(readImagePixels).toHaveBeenCalledWith(expect.any(Blob), 0.4);
+    expect(screen.getByRole('radio', { name: 'Centro ✓' })).not.toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Anillo' })).toBeChecked();
+
+    // El centro de la foto original es (551,25; 451,25): el anillo de 500 mm, a 250 px.
+    tapPhoto('Ubicar anillo en el punto indicado', 801.25, 451.25);
+    await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    tapPhoto('Agregar impacto en el punto indicado', 551.25, 441.25);
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar análisis' }));
+
+    expect(sessions.saveAnalysis).toHaveBeenCalledWith(
+      ANA.uid,
+      TODAY_SESSION.id,
+      ROUND_2.id,
+      expect.objectContaining({
+        analysis: expect.objectContaining({
+          calibration: expect.objectContaining({
+            center: { x: expect.closeTo(551.25, 0), y: expect.closeTo(451.25, 0) },
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('el centro ubicado solo se corrige tocando la foto y no cuenta como cambio', async () => {
+    readImagePixels.mockResolvedValueOnce(
+      syntheticTarget({ width: 400 }).blackDisk(40).ringLine(70).image(),
+    );
+    const { router } = renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
+    await loadPhoto(2);
+    await screen.findByText(/El centro se ubicó automáticamente/);
+
+    // Salir sin haber tocado nada no pide confirmación.
+    await userEvent.click(screen.getByRole('button', { name: 'Volver a la sesión' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe(DETAIL));
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('si no encuentra el centro, se ubica a mano', async () => {
+    readImagePixels.mockResolvedValueOnce(syntheticTarget({ width: 400 }).image());
+    renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
+    await loadPhoto(2);
+    await waitFor(() => expect(readImagePixels).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByText('Buscando el centro…')).not.toBeInTheDocument());
+    expect(screen.getByRole('radio', { name: 'Centro' })).toBeChecked();
+    expect(screen.queryByText(/El centro se ubicó automáticamente/)).not.toBeInTheDocument();
+
+    tapPhoto('Ubicar centro en el punto indicado', 500, 500);
+    expect(screen.getByRole('radio', { name: 'Anillo' })).toBeChecked();
   });
 
   it('no deja continuar sin ubicar el punto sobre el anillo', async () => {

@@ -55,11 +55,12 @@ import {
   detectionOptions,
   detectionScale,
   holeDiameterMm,
-  readImagePixels,
 } from '@/lib/impact-detection';
 import { analysisMetrics, groupRadius, meanPoint } from '@/lib/metrics';
 import { storedPhotos } from '@/lib/photos';
+import { readImagePixels } from '@/lib/pixel-image';
 import { sessionLabels, type Round, type Session } from '@/lib/sessions';
+import { centerDetectionScale, detectTargetCenter } from '@/lib/target-center';
 import { zoneScore } from '@/lib/target-zones';
 import { maxZoneScore, targetName, type Target } from '@/lib/targets';
 import { formatLengthValue, UNIT_SYMBOLS } from '@/lib/units';
@@ -168,6 +169,11 @@ function RoundAnalyzer({
     () => nextMarker(initial.draft, analyzed.scoring) ?? 'center',
   );
   const [calibrationError, setCalibrationError] = useState<string>();
+  // Borrador con el centro que se ubicó solo (blancos con anillos, análisis nuevo).
+  const [autoDraft, setAutoDraft] = useState<CalibrationDraft>();
+  const [locating, setLocating] = useState(false);
+  // Si el usuario ya tocó la calibración, el centro encontrado tarde no la pisa.
+  const touched = useRef(false);
   const [history, setHistory] = useState(() => impactHistory(initial.impacts));
   const [mode, setMode] = useState<AnalyzerMode>('add');
   const [detection, setDetection] = useState<Detection>('idle');
@@ -176,7 +182,7 @@ function RoundAnalyzer({
   const leaving = useRef(false);
 
   const dirty =
-    draft !== initial.draft ||
+    (draft !== initial.draft && draft !== autoDraft) ||
     calibration !== initial.calibration ||
     history.impacts !== initial.impacts ||
     useCalculated !== initial.useCalculated;
@@ -213,12 +219,48 @@ function RoundAnalyzer({
   // --- Calibración -----------------------------------------------------------------------------
 
   function placeMarker(pixel: Pixel) {
+    touched.current = true;
     const next = { ...draft, [active]: pixel };
     setDraft(next);
     setCalibrationError(undefined);
     // Pasa solo al próximo marcador que falte.
     const missing = nextMarker(next, analyzed.scoring);
     if (missing) setActive(missing);
+  }
+
+  /** Busca el centro de los anillos en la foto y lo propone; si no lo encuentra, se toca a mano. */
+  async function locateCenter(loaded: ImageSize) {
+    if (!round.photo) return;
+    setLocating(true);
+    try {
+      const blob = await photoRepository.blob(round.photo);
+      const pixels = await readImagePixels(blob, centerDetectionScale(loaded));
+      // Deja que se vea el overlay antes del cálculo, que bloquea el hilo principal.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const found = detectTargetCenter(pixels);
+      if (!found || !mounted.current || touched.current) return;
+      // Del centro del píxel de la foto reducida al punto de la original.
+      const next: CalibrationDraft = {
+        ...initial.draft,
+        center: {
+          x: ((found.x + 0.5) * loaded.width) / pixels.width,
+          y: ((found.y + 0.5) * loaded.height) / pixels.height,
+        },
+      };
+      setDraft(next);
+      setAutoDraft(next);
+      setActive('edge');
+    } catch {
+      // Sin la foto en píxeles (CORS, navegador sin canvas), el centro se ubica a mano.
+    } finally {
+      if (mounted.current) setLocating(false);
+    }
+  }
+
+  function handleSize(loaded: ImageSize) {
+    if (size) return;
+    setSize(loaded);
+    if (calibrating && scored && !draft.center) void locateCenter(loaded);
   }
 
   function confirmCalibration() {
@@ -267,7 +309,7 @@ function RoundAnalyzer({
       setHistory((previous) =>
         commitImpacts(
           previous,
-          found.map(({ x, y }) => ({ x: x / scaleX, y: y / scaleY })),
+          found.map(({ x, y }) => ({ x: (x + 0.5) / scaleX, y: (y + 0.5) / scaleY })),
         ),
       );
       setDetection('idle');
@@ -490,7 +532,7 @@ function RoundAnalyzer({
               photo={photo}
               alt={`Foto del blanco de la ronda ${number}`}
               size={size}
-              onSize={(loaded) => setSize((current) => current ?? loaded)}
+              onSize={handleSize}
               pointLabel={
                 calibrating
                   ? `Ubicar ${MARKER_LABELS[active].toLocaleLowerCase('es-AR')} en el punto indicado`
@@ -507,7 +549,13 @@ function RoundAnalyzer({
               onRemoveImpact={!calibrating && mode === 'remove' ? handleRemove : undefined}
               mpi={mpi}
               group={group}
-              busy={detection === 'detecting' ? 'Detectando impactos…' : undefined}
+              busy={
+                detection === 'detecting'
+                  ? 'Detectando impactos…'
+                  : locating
+                    ? 'Buscando el centro…'
+                    : undefined
+              }
               className={styles.target}
             />
             {!calibrating && (
@@ -538,7 +586,9 @@ function RoundAnalyzer({
                 draft={draft}
                 active={active}
                 onActive={setActive}
+                autoCenter={autoDraft !== undefined && draft.center === autoDraft.center}
                 onChange={(changes) => {
+                  touched.current = true;
                   setDraft({ ...draft, ...changes });
                   setCalibrationError(undefined);
                 }}

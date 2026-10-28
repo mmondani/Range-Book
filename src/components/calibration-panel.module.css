@@ -20,6 +20,12 @@
   font-weight: 600;
 }
 
+.note {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
 .error {
   margin: 0;
   color: var(--danger);
