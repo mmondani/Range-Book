@@ -1,10 +1,14 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { compressImage } from '@/lib/image-compression';
 import { ANA } from '@/test/fake-auth';
+import { stubObjectUrls } from '@/test/fake-photos';
 import { ROUND_1, TODAY, TODAY_SESSION } from '@/test/fake-sessions';
 import { setDesktop } from '@/test/match-media';
 import { renderSessions } from '@/test/render-sessions';
+
+vi.mock('@/lib/image-compression', () => ({ compressImage: vi.fn() }));
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] });
@@ -75,6 +79,32 @@ describe('M05 · Agregar ronda', () => {
     expect(sheetView.getByRole('textbox', { name: 'Puntaje' })).toHaveValue('');
     // El blanco archivado no se ofrece.
     expect(sheetView.queryByRole('option', { name: /NRA B-8/ })).not.toBeInTheDocument();
+  });
+
+  it('con foto, al guardarla pasa a su análisis; "Volver" lleva al detalle', async () => {
+    stubObjectUrls();
+    vi.mocked(compressImage).mockResolvedValue({
+      blob: new Blob(['jpeg'], { type: 'image/jpeg' }),
+      width: 2000,
+      height: 1500,
+    });
+    const { dialog, sessions, router } = await openNewRound();
+    await userEvent.upload(
+      within(dialog).getByTestId('photo-gallery-input'),
+      new File(['raw'], 'blanco.jpg', { type: 'image/jpeg' }),
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar ronda' }));
+
+    expect(sessions.saveRound).toHaveBeenCalled();
+    const id = vi.mocked(sessions.saveRound).mock.calls[0]![2];
+    await waitFor(() =>
+      expect(router.state.location.pathname).toBe(`${DETAIL}/rondas/${id}/analisis`),
+    );
+    expect(await screen.findByRole('heading', { name: 'Análisis · Ronda 3' })).toBeInTheDocument();
+    expect(await screen.findByText('Ronda agregada')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Volver a la sesión' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe(DETAIL));
   });
 
   it('guarda la ronda al final de la sesión y vuelve al detalle', async () => {

@@ -1,6 +1,6 @@
 import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Field } from '@/components/field';
 import { Input } from '@/components/input';
@@ -47,6 +47,7 @@ export interface RoundSheetProps {
 export function RoundSheet({ session, sessions, targets, round, listPath }: RoundSheetProps) {
   const uid = useCurrentUser()?.uid;
   const close = useCloseSheet(listPath);
+  const navigate = useNavigate();
   const toast = useToast();
   const photoRepository = usePhotoRepository();
   const repository = useSessionRepository();
@@ -76,8 +77,9 @@ export function RoundSheet({ session, sessions, targets, round, listPath }: Roun
       }
       // El id se genera antes de guardar para armar la ruta de la foto.
       const id = round?.id ?? crypto.randomUUID();
+      let photo: string | null;
       try {
-        const [photo = null] = await uploadPhotos(
+        [photo = null] = await uploadPhotos(
           draft.photos,
           { uid, kind: 'rounds', docId: id },
           photoRepository,
@@ -100,7 +102,10 @@ export function RoundSheet({ session, sessions, targets, round, listPath }: Roun
         }
       }
       toast.show({ message: round ? 'Cambios guardados' : 'Ronda agregada' });
-      close();
+      // Una ronda nueva con foto sigue en su análisis; reemplaza al sheet, así que "Volver" desde
+      // el análisis lleva al detalle de la sesión.
+      if (!round && photo) navigate(`${listPath}/rondas/${id}/analisis`, { replace: true });
+      else close();
     },
   });
   const { draft, errors, setField, touch } = form;
