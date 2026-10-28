@@ -13,7 +13,7 @@
     "test:watch": "vitest",
     "test:rules": "firebase emulators:exec --project demo-rangebook --only firestore,storage \"vitest run --config vitest.rules.config.ts\"",
     "emulators": "firebase emulators:start --project demo-rangebook",
-    "deploy": "pnpm build && firebase deploy --project range-book --only hosting,firestore"
+    "deploy": "pnpm build && firebase deploy --project range-book --only hosting,firestore,storage"
   },
   "dependencies": {
     "firebase": "^12.19.0",

@@ -1,0 +1,146 @@
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border-radius: var(--radius-control);
+  outline: 2px dashed transparent;
+  outline-offset: 4px;
+  transition: outline-color var(--dur-state);
+}
+
+.dragging {
+  outline-color: var(--accent);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+/* Mobile: miniaturas de 88 px debajo de los botones; sin fotos, no ocupa lugar. */
+.grid {
+  display: none;
+  grid-template-columns: repeat(auto-fill, 88px);
+  gap: var(--space-3);
+  margin: 0;
+  padding: 6px 6px 0 0;
+  list-style: none;
+}
+
+.hasPhotos {
+  display: grid;
+}
+
+.item {
+  position: relative;
+  aspect-ratio: 1;
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-control);
+}
+
+.cover .photo {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Va sobre la foto: no cambia con el tema. */
+.coverLabel {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--on-photo);
+  color: #f2f4f5;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface-3);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.remove svg {
+  width: 16px;
+  height: 16px;
+}
+
+.remove:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.dropItem {
+  display: none;
+}
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+  padding: var(--space-2);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-2);
+  font: 400 14px var(--font-body);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-state),
+    color var(--dur-state);
+}
+
+.dropzone:hover:not(:disabled),
+.dragging .dropzone {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.dropzone:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Desktop: grilla 4:3 con la zona para arrastrar como última celda, sin botones. */
+@media (min-width: 1024px) {
+  .actions {
+    display: none;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .item {
+    aspect-ratio: 4 / 3;
+  }
+
+  .dropItem {
+    display: block;
+    aspect-ratio: 4 / 3;
+  }
+}

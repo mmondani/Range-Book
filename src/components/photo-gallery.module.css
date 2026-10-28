@@ -1,0 +1,86 @@
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* El alto se reserva con `aspect-ratio` para que no salte el layout al cargar. */
+.main {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+}
+
+.mainPhoto {
+  position: absolute;
+  inset: 0;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background: var(--surface-2);
+  color: var(--text-3);
+  font-size: 14px;
+}
+
+/* Va sobre la foto: no cambia con el tema. */
+.counter {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(11, 13, 15, 0.8);
+  color: #f2f4f5;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 64px);
+  gap: var(--space-2);
+  margin: 0;
+  padding: 3px;
+  list-style: none;
+}
+
+.thumb {
+  display: block;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-thumb);
+  background: none;
+  cursor: pointer;
+}
+
+.thumbPhoto {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-thumb);
+}
+
+.selected .thumbPhoto {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+@media (min-width: 1024px) {
+  .thumbs {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .thumb {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+  }
+}

@@ -21,6 +21,8 @@ import { EmptyState } from '@/components/empty-state';
 import { Field } from '@/components/field';
 import { IconButton } from '@/components/icon-button';
 import { Input } from '@/components/input';
+import { PhotoGallery } from '@/components/photo-gallery';
+import { PhotoPicker } from '@/components/photo-picker';
 import { RemovableChip } from '@/components/removable-chip';
 import { SegmentedControl } from '@/components/segmented-control';
 import { Select } from '@/components/select';
@@ -31,6 +33,7 @@ import { Tabs, tabPanelProps } from '@/components/tabs';
 import { Textarea } from '@/components/textarea';
 import { useTheme } from '@/hooks/use-theme';
 import { useToast } from '@/hooks/use-toast';
+import type { PhotoDraft } from '@/lib/photos';
 import type { ThemePreference } from '@/lib/theme';
 import styles from './component-catalog.module.css';
 
@@ -62,6 +65,8 @@ export function ComponentCatalog() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetText, setSheetText] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [photos, setPhotos] = useState<PhotoDraft[]>([]);
+  const [targetPhoto, setTargetPhoto] = useState<PhotoDraft[]>([]);
 
   return (
     <div className={styles.catalog}>
@@ -206,6 +211,23 @@ export function ComponentCatalog() {
         <Field label="Notas">
           <Textarea placeholder="Ej: tirones abajo-izquierda" />
         </Field>
+      </section>
+
+      <section className={styles.section}>
+        <h2 className="eyebrow">Fotos</h2>
+        <div className={styles.grid}>
+          <Field label="Fotos del arma" kind="group" help="La primera foto se usa como portada.">
+            <PhotoPicker value={photos} onChange={setPhotos} cover />
+          </Field>
+          <Field
+            label="Foto del blanco"
+            kind="group"
+            help="Una sola foto: elegir otra la reemplaza."
+          >
+            <PhotoPicker value={targetPhoto} onChange={setTargetPhoto} multiple={false} />
+          </Field>
+        </div>
+        <PhotoGallery photos={photos} label="Galería de las fotos del arma" />
       </section>
 
       <section className={styles.section}>

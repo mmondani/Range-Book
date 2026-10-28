@@ -87,7 +87,7 @@ No hay código todavía; todo es nuevo. `docs/arquitectura.md` no existe y se cr
 - [x] **4. Perfil**
   - Qué: M11 con avatar, resumen, unidades (mm / pulgadas), tema (Oscuro / Claro / Sistema, guardado en Firestore y `localStorage`), versión y cerrar sesión. "Instalar" se agrega en el paso 13.
   - Verificación: tests de `units.ts`; tests de que el tema se aplica al instante y persiste; cerrar sesión vuelve a `/login`.
-- [ ] **5. Fotos**
+- [x] **5. Fotos**
   - Qué: `PhotoPicker` (cámara / galería / arrastrar), `PhotoGallery`, `image-compression.ts`, subida a Storage y guardado de la ruta en Firestore.
   - Verificación: test de cálculo de dimensiones de la compresión; test de que solo se guarda la ruta; prueba manual de cámara en el celular.
 - [ ] **6. Inventario: municiones, polígonos y archivado**
