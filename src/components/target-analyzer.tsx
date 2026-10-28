@@ -1,9 +1,26 @@
-import { LoaderCircle } from 'lucide-react';
-import { useEffect, useRef, type CSSProperties, type MouseEvent, type PointerEvent } from 'react';
+import { LoaderCircle, Maximize2, ZoomIn, ZoomOut } from 'lucide-react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+  type PointerEvent,
+} from 'react';
 import { usePhotoSrc } from '@/hooks/use-photos';
 import type { ImageSize, Pixel } from '@/lib/calibration';
 import { cx } from '@/lib/cx';
 import type { PhotoDraft } from '@/lib/photos';
+import {
+  FULL_VIEW,
+  isZoomed,
+  MAX_ZOOM,
+  panView,
+  pinchView,
+  zoomAt,
+  type ViewPoint,
+  type ZoomView,
+} from '@/lib/zoom';
 import styles from './target-analyzer.module.css';
 
 /**
@@ -12,8 +29,20 @@ import styles from './target-analyzer.module.css';
  */
 export const TOUCH_DRAG_DELAY_MS = 100;
 
-/** Gesto en curso sobre la foto. */
-type Gesture = 'idle' | 'pending' | 'dragging' | 'zoom';
+/** Cuánto hay que mover el dedo o el mouse para desplazar la foto en vez de tocarla. */
+const PAN_THRESHOLD_PX = 8;
+/** Factor de los botones de zoom. */
+const ZOOM_STEP = 2;
+/** Sensibilidad del zoom con Ctrl + rueda (o pellizco en el trackpad). */
+const WHEEL_ZOOM_SPEED = 0.01;
+const CENTER: ViewPoint = { x: 0.5, y: 0.5 };
+
+/**
+ * Gesto en curso sobre la foto: arrastre de un marcador (`pending` mientras espera un posible
+ * segundo dedo), toque que puede pasar a desplazamiento (`press` → `pan`), pellizco y el final de
+ * un pellizco (`done`: se ignoran los dedos que quedan hasta levantarlos todos).
+ */
+type Gesture = 'idle' | 'pending' | 'dragging' | 'press' | 'pan' | 'pinch' | 'done';
 
 /** Marcador de la calibración sobre la foto. */
 export interface AnalyzerMarker {
@@ -40,7 +69,7 @@ export interface TargetAnalyzerProps {
    * (`onPointMove`) y al soltar se fija (`onPoint`).
    */
   onPointMove?: (pixel: Pixel) => void;
-  /** El arrastre se interrumpió (un segundo dedo, el zoom del navegador): el punto vuelve atrás. */
+  /** El arrastre se interrumpió (un segundo dedo, el navegador tomó el gesto): vuelve atrás. */
   onPointCancel?: () => void;
   markers?: readonly AnalyzerMarker[];
   /** Anillos calibrados, para comparar con los de la foto. */
@@ -60,9 +89,24 @@ export interface TargetAnalyzerProps {
   className?: string;
 }
 
+const round = (value: number) => Math.round(value * 1e4) / 1e4;
+const percent = (fraction: number) => `${round(fraction * 100)}%`;
+
+/** Punto de la pantalla en fracciones del recuadro; `undefined` si todavía no tiene tamaño. */
+function viewPointIn(element: HTMLElement, clientX: number, clientY: number) {
+  const rect = element.getBoundingClientRect();
+  if (rect.width === 0 || rect.height === 0) return undefined;
+  return { x: (clientX - rect.left) / rect.width, y: (clientY - rect.top) / rect.height };
+}
+
 /**
  * Foto del blanco con sus superposiciones: marcadores y anillos de la calibración, impactos, PMI
  * y grupo. Las coordenadas son píxeles de la foto; los colores no cambian con el tema.
+ *
+ * El zoom es propio, dentro del recuadro (la página no se mueve): dos dedos acercan, alejan y
+ * desplazan; con la foto ampliada, un dedo o el mouse la desplazan (salvo al arrastrar un
+ * marcador); Ctrl + rueda acerca donde está el cursor y la rueda desplaza. Los marcadores y los
+ * trazos mantienen su tamaño en pantalla.
  */
 export function TargetAnalyzer({
   photo,
@@ -85,219 +129,380 @@ export function TargetAnalyzer({
   className,
 }: TargetAnalyzerProps) {
   const src = usePhotoSrc(photo);
+  const [view, setView] = useState<ZoomView>(FULL_VIEW);
+  const zoomed = isZoomed(view);
+
+  const frameRef = useRef<HTMLDivElement>(null);
+  const surfaceRef = useRef<HTMLButtonElement>(null);
+  const controlsRef = useRef<HTMLDivElement>(null);
+  // La vista actual para el listener de la rueda, que no se vuelve a registrar.
+  const viewRef = useRef(view);
+  useEffect(() => {
+    viewRef.current = view;
+  });
+
+  // Punteros apoyados (en coordenadas de pantalla), gesto en curso y cómo empezó.
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const gesture = useRef<Gesture>('idle');
+  const start = useRef<{ view: ZoomView; points: { x: number; y: number }[] }>({
+    view: FULL_VIEW,
+    points: [],
+  });
+  // Último punto del marcador que se arrastra y espera antes de empezar a arrastrarlo.
+  const last = useRef<Pixel>(undefined);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // El `click` que sigue a un arrastre, un desplazamiento o un pellizco se ignora.
+  const ignoreClick = useRef(false);
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  // Rueda: con Ctrl (o el pellizco del trackpad) acerca o aleja; con la foto ampliada, desplaza.
+  // Se registra a mano porque React la registra pasiva y no se puede cancelar el scroll.
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    function handleWheel(event: WheelEvent) {
+      const current = viewRef.current;
+      const lines = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16 : 1;
+      if (event.ctrlKey) {
+        event.preventDefault();
+        const at = viewPointIn(frame!, event.clientX, event.clientY);
+        if (at) setView(zoomAt(current, Math.exp(-event.deltaY * lines * WHEEL_ZOOM_SPEED), at));
+        return;
+      }
+      if (!isZoomed(current)) return;
+      event.preventDefault();
+      const rect = frame!.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      setView(
+        panView(
+          current,
+          (-event.deltaX * lines) / (rect.width * current.scale),
+          (-event.deltaY * lines) / (rect.height * current.scale),
+        ),
+      );
+    }
+    frame.addEventListener('wheel', handleWheel, { passive: false });
+    return () => frame.removeEventListener('wheel', handleWheel);
+  }, []);
 
   const position = (pixel: Pixel): CSSProperties =>
     size
       ? { left: `${(pixel.x / size.width) * 100}%`, top: `${(pixel.y / size.height) * 100}%` }
       : {};
 
-  // Punteros apoyados sobre la foto, gesto en curso, último punto y espera antes de arrastrar.
-  const pointers = useRef(new Set<number>());
-  const gesture = useRef<Gesture>('idle');
-  const last = useRef<Pixel>(undefined);
-  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  // El `click` que sigue a un arrastre o a un zoom se ignora (ya se resolvió con los punteros).
-  const ignoreClick = useRef(false);
-  useEffect(() => () => clearTimeout(timer.current), []);
-
   /** Punto de la foto bajo el puntero, dentro de sus bordes (al arrastrar se puede salir). */
-  function pixelAt(event: MouseEvent<HTMLButtonElement>): Pixel | undefined {
-    if (!size) return undefined;
-    const rect = event.currentTarget.getBoundingClientRect();
+  function pixelAt(clientX: number, clientY: number): Pixel | undefined {
+    const surface = surfaceRef.current;
+    if (!size || !surface) return undefined;
+    // El rectángulo de la superficie ya incluye el zoom.
+    const rect = surface.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return undefined;
     const clamp = (value: number) => Math.min(1, Math.max(0, value));
     return {
-      x: clamp((event.clientX - rect.left) / rect.width) * size.width,
-      y: clamp((event.clientY - rect.top) / rect.height) * size.height,
+      x: clamp((clientX - rect.left) / rect.width) * size.width,
+      y: clamp((clientY - rect.top) / rect.height) * size.height,
     };
   }
 
+  /** `true` si el click viene de un gesto que ya se resolvió con los punteros. */
+  function consumeIgnoredClick() {
+    if (!ignoreClick.current) return false;
+    ignoreClick.current = false;
+    return true;
+  }
+
   function handlePoint(event: MouseEvent<HTMLButtonElement>) {
-    if (ignoreClick.current) {
-      ignoreClick.current = false;
-      return;
-    }
+    if (consumeIgnoredClick()) return;
     // Con el teclado no hay un punto que ubicar (`detail` es 0).
     if (event.detail === 0) return;
-    const pixel = pixelAt(event);
+    const pixel = pixelAt(event.clientX, event.clientY);
     if (pixel) onPoint(pixel);
   }
 
-  /** Corta el arrastre: si el marcador ya se había movido, vuelve atrás. */
+  /** Corta el arrastre del marcador: si ya se había movido, vuelve atrás. */
   function interrupt() {
     clearTimeout(timer.current);
     if (gesture.current === 'dragging') onPointCancel?.();
     ignoreClick.current = true;
   }
 
-  function handlePointerDown(event: PointerEvent<HTMLButtonElement>) {
-    if (!onPointMove) return;
+  function capture(event: PointerEvent<HTMLDivElement>) {
+    // Los movimientos siguen llegando aunque el puntero salga de la foto (jsdom no lo implementa).
+    frameRef.current?.setPointerCapture?.(event.pointerId);
+  }
+
+  function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
+    if (controlsRef.current?.contains(event.target as Node)) return;
     // El primer dedo de un gesto nuevo: si se perdió algún `pointerup`, no queda colgado.
     if (event.isPrimary) pointers.current.clear();
-    pointers.current.add(event.pointerId);
-    // Un segundo dedo: es un zoom, no un arrastre.
-    if (pointers.current.size > 1) {
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    // Un segundo dedo: pellizco (zoom y desplazamiento), nunca un arrastre.
+    if (pointers.current.size === 2) {
       interrupt();
-      gesture.current = 'zoom';
+      gesture.current = 'pinch';
+      start.current = { view, points: [...pointers.current.values()] };
       return;
     }
+    if (pointers.current.size > 2) return;
+
     ignoreClick.current = false;
-    const pixel = pixelAt(event);
-    if (!pixel || event.button !== 0) return;
-    // Los movimientos siguen llegando aunque el dedo salga de la foto (jsdom no lo implementa).
-    event.currentTarget.setPointerCapture?.(event.pointerId);
-    last.current = pixel;
-    if (event.pointerType !== 'touch') {
-      gesture.current = 'dragging';
-      onPointMove(pixel);
+    gesture.current = 'idle';
+    if (event.button !== 0) return;
+    start.current = { view, points: [{ x: event.clientX, y: event.clientY }] };
+
+    // Sobre la foto, con un marcador para ubicar: arrastre.
+    if (onPointMove && event.target === surfaceRef.current) {
+      const pixel = pixelAt(event.clientX, event.clientY);
+      if (!pixel) return;
+      capture(event);
+      last.current = pixel;
+      if (event.pointerType !== 'touch') {
+        gesture.current = 'dragging';
+        onPointMove(pixel);
+        return;
+      }
+      gesture.current = 'pending';
+      timer.current = setTimeout(() => {
+        if (gesture.current !== 'pending' || !last.current) return;
+        gesture.current = 'dragging';
+        onPointMove(last.current);
+      }, TOUCH_DRAG_DELAY_MS);
       return;
     }
-    gesture.current = 'pending';
-    timer.current = setTimeout(() => {
-      if (gesture.current !== 'pending' || !last.current) return;
-      gesture.current = 'dragging';
-      onPointMove(last.current);
-    }, TOUCH_DRAG_DELAY_MS);
+    // Si no, un toque que puede pasar a desplazar la foto ampliada.
+    gesture.current = 'press';
   }
 
-  function handlePointerMove(event: PointerEvent<HTMLButtonElement>) {
-    if (gesture.current !== 'pending' && gesture.current !== 'dragging') return;
-    const pixel = pixelAt(event);
-    if (!pixel) return;
-    last.current = pixel;
-    if (gesture.current === 'dragging') onPointMove?.(pixel);
+  function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
+    if (!pointers.current.has(event.pointerId)) return;
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    const frame = frameRef.current;
+
+    switch (gesture.current) {
+      case 'pinch': {
+        const [a, b] = [...pointers.current.values()];
+        const [a0, b0] = start.current.points;
+        if (!frame || !a || !b || !a0 || !b0) return;
+        const from = [viewPointIn(frame, a0.x, a0.y), viewPointIn(frame, b0.x, b0.y)];
+        const to = [viewPointIn(frame, a.x, a.y), viewPointIn(frame, b.x, b.y)];
+        if (!from[0] || !from[1] || !to[0] || !to[1]) return;
+        setView(pinchView(start.current.view, [from[0], from[1]], [to[0], to[1]]));
+        return;
+      }
+      case 'pending':
+      case 'dragging': {
+        const pixel = pixelAt(event.clientX, event.clientY);
+        if (!pixel) return;
+        last.current = pixel;
+        if (gesture.current === 'dragging') onPointMove?.(pixel);
+        return;
+      }
+      case 'press': {
+        const origin = start.current.points[0];
+        if (!origin || !isZoomed(start.current.view)) return;
+        const moved = Math.hypot(event.clientX - origin.x, event.clientY - origin.y);
+        if (moved < PAN_THRESHOLD_PX) return;
+        gesture.current = 'pan';
+        ignoreClick.current = true;
+        capture(event);
+        break;
+      }
+      case 'pan':
+        break;
+      default:
+        return;
+    }
+
+    // Desplazamiento con un dedo o el mouse.
+    const origin = start.current.points[0];
+    const rect = frame?.getBoundingClientRect();
+    if (!origin || !rect || rect.width === 0 || rect.height === 0) return;
+    setView(
+      panView(
+        start.current.view,
+        (event.clientX - origin.x) / rect.width,
+        (event.clientY - origin.y) / rect.height,
+      ),
+    );
   }
 
-  function handlePointerUp(event: PointerEvent<HTMLButtonElement>) {
-    pointers.current.delete(event.pointerId);
+  function handlePointerUp(event: PointerEvent<HTMLDivElement>) {
+    if (!pointers.current.delete(event.pointerId)) return;
     const current = gesture.current;
-    if (current === 'zoom') {
-      // El zoom termina cuando se levantan todos los dedos; ninguno ubica el punto.
-      if (pointers.current.size === 0) gesture.current = 'idle';
+    if (current === 'pinch' || current === 'done') {
+      // El pellizco termina cuando se levantan todos los dedos; ninguno ubica un punto.
+      gesture.current = pointers.current.size === 0 ? 'idle' : 'done';
       return;
     }
+    gesture.current = 'idle';
     if (current !== 'pending' && current !== 'dragging') return;
     clearTimeout(timer.current);
-    gesture.current = 'idle';
     // Un toque corto (antes de que empiece el arrastre) también ubica el punto.
-    const pixel = pixelAt(event) ?? last.current;
+    const pixel = pixelAt(event.clientX, event.clientY) ?? last.current;
     if (!pixel) return;
     ignoreClick.current = true;
     onPoint(pixel);
   }
 
-  function handlePointerCancel(event: PointerEvent<HTMLButtonElement>) {
+  function handlePointerCancel(event: PointerEvent<HTMLDivElement>) {
     pointers.current.delete(event.pointerId);
-    // El navegador tomó el gesto (zoom, desplazamiento).
     if (gesture.current === 'pending' || gesture.current === 'dragging') interrupt();
-    gesture.current = pointers.current.size > 0 ? 'zoom' : 'idle';
+    gesture.current = pointers.current.size > 0 ? 'done' : 'idle';
   }
+
+  const contentStyle = {
+    transform: `translate(${percent(view.x)}, ${percent(view.y)}) scale(${round(view.scale)})`,
+    '--zoom': view.scale,
+  } as CSSProperties;
 
   return (
     <div
-      className={cx(styles.frame, className)}
+      ref={frameRef}
+      role="group"
+      aria-label="Visor de la foto"
+      className={cx(styles.frame, (onPointMove || zoomed) && styles.locked, className)}
       style={size ? { aspectRatio: `${size.width} / ${size.height}` } : undefined}
       aria-busy={src.status === 'loading' || Boolean(busy) || undefined}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
     >
-      {src.status === 'ready' && (
-        <img
-          src={src.src}
-          alt={alt}
-          className={styles.image}
-          onLoad={(event) => {
-            const { naturalWidth: width, naturalHeight: height } = event.currentTarget;
-            if (width > 0 && height > 0) onSize({ width, height });
-          }}
-        />
-      )}
-      {src.status === 'error' && (
-        <span role="img" aria-label={`${alt}: no se pudo cargar`} className={styles.error} />
-      )}
+      <div className={styles.content} style={contentStyle}>
+        {src.status === 'ready' && (
+          <img
+            src={src.src}
+            alt={alt}
+            className={styles.image}
+            draggable={false}
+            onLoad={(event) => {
+              const { naturalWidth: width, naturalHeight: height } = event.currentTarget;
+              if (width > 0 && height > 0) onSize({ width, height });
+            }}
+          />
+        )}
+        {src.status === 'error' && (
+          <span role="img" aria-label={`${alt}: no se pudo cargar`} className={styles.error} />
+        )}
+
+        {size && (
+          <>
+            <svg
+              viewBox={`0 0 ${size.width} ${size.height}`}
+              className={styles.layer}
+              aria-hidden="true"
+            >
+              {rings.map((ring) => (
+                <circle
+                  key={ring.key}
+                  cx={ring.center.x}
+                  cy={ring.center.y}
+                  r={ring.radius}
+                  className={styles.ring}
+                />
+              ))}
+              {line && (
+                <line
+                  x1={line[0].x}
+                  y1={line[0].y}
+                  x2={line[1].x}
+                  y2={line[1].y}
+                  className={styles.ring}
+                />
+              )}
+              {group && (
+                <circle
+                  cx={group.center.x}
+                  cy={group.center.y}
+                  r={group.radius}
+                  className={styles.group}
+                />
+              )}
+            </svg>
+
+            <button
+              ref={surfaceRef}
+              type="button"
+              className={styles.surface}
+              aria-label={pointLabel ?? 'Foto del blanco'}
+              disabled={!pointLabel}
+              onClick={handlePoint}
+            />
+
+            {markers.map((marker) => (
+              <span
+                key={marker.key}
+                aria-hidden="true"
+                className={cx(
+                  styles.marker,
+                  marker.active && styles.active,
+                  marker.cross && styles.cross,
+                )}
+                style={position(marker.at)}
+              >
+                {marker.text}
+              </span>
+            ))}
+
+            {impacts.map((impact, index) =>
+              onRemoveImpact ? (
+                <button
+                  key={index}
+                  type="button"
+                  className={cx(styles.impact, styles.removable)}
+                  style={position(impact)}
+                  aria-label={`Quitar ${impactLabel(index).toLocaleLowerCase('es-AR')}`}
+                  onClick={() => {
+                    if (!consumeIgnoredClick()) onRemoveImpact(index);
+                  }}
+                />
+              ) : (
+                <span
+                  key={index}
+                  aria-hidden="true"
+                  className={styles.impact}
+                  style={position(impact)}
+                />
+              ),
+            )}
+
+            {mpi && <span aria-hidden="true" className={styles.mpi} style={position(mpi)} />}
+          </>
+        )}
+      </div>
 
       {size && (
-        <>
-          <svg
-            viewBox={`0 0 ${size.width} ${size.height}`}
-            className={styles.layer}
-            aria-hidden="true"
-          >
-            {rings.map((ring) => (
-              <circle
-                key={ring.key}
-                cx={ring.center.x}
-                cy={ring.center.y}
-                r={ring.radius}
-                className={styles.ring}
-              />
-            ))}
-            {line && (
-              <line
-                x1={line[0].x}
-                y1={line[0].y}
-                x2={line[1].x}
-                y2={line[1].y}
-                className={styles.ring}
-              />
-            )}
-            {group && (
-              <circle
-                cx={group.center.x}
-                cy={group.center.y}
-                r={group.radius}
-                className={styles.group}
-              />
-            )}
-          </svg>
-
+        <div ref={controlsRef} className={styles.zoomControls}>
           <button
             type="button"
-            className={cx(styles.surface, onPointMove && styles.draggable)}
-            aria-label={pointLabel ?? 'Foto del blanco'}
-            disabled={!pointLabel}
-            onClick={handlePoint}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerCancel}
-          />
-
-          {markers.map((marker) => (
-            <span
-              key={marker.key}
-              aria-hidden="true"
-              className={cx(
-                styles.marker,
-                marker.active && styles.active,
-                marker.cross && styles.cross,
-              )}
-              style={position(marker.at)}
+            className={styles.zoomButton}
+            aria-label="Acercar"
+            disabled={view.scale >= MAX_ZOOM}
+            onClick={() => setView(zoomAt(view, ZOOM_STEP, CENTER))}
+          >
+            <ZoomIn aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className={styles.zoomButton}
+            aria-label="Alejar"
+            disabled={!zoomed}
+            onClick={() => setView(zoomAt(view, 1 / ZOOM_STEP, CENTER))}
+          >
+            <ZoomOut aria-hidden="true" />
+          </button>
+          {zoomed && (
+            <button
+              type="button"
+              className={styles.zoomButton}
+              aria-label="Ver la foto entera"
+              onClick={() => setView(FULL_VIEW)}
             >
-              {marker.text}
-            </span>
-          ))}
-
-          {impacts.map((impact, index) =>
-            onRemoveImpact ? (
-              <button
-                key={index}
-                type="button"
-                className={cx(styles.impact, styles.removable)}
-                style={position(impact)}
-                aria-label={`Quitar ${impactLabel(index).toLocaleLowerCase('es-AR')}`}
-                onClick={() => onRemoveImpact(index)}
-              />
-            ) : (
-              <span
-                key={index}
-                aria-hidden="true"
-                className={styles.impact}
-                style={position(impact)}
-              />
-            ),
+              <Maximize2 aria-hidden="true" />
+            </button>
           )}
-
-          {mpi && <span aria-hidden="true" className={styles.mpi} style={position(mpi)} />}
-        </>
+        </div>
       )}
 
       {busy && (

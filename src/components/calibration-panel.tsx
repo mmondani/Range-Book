@@ -64,8 +64,8 @@ export function CalibrationPanel({
         {scoring === 'rings'
           ? 'Para medir en mm, ubicá sobre la foto el centro del blanco y un punto sobre un anillo.'
           : 'Para medir en mm, ubicá sobre la foto el centro del blanco y dos puntos a una distancia conocida.'}{' '}
-        Para ajustar un punto, mantené apretado y arrastralo. La foto tiene que estar sacada de
-        frente.
+        Para ajustar un punto, mantené apretado y arrastralo; para verlo de cerca, acercá la foto
+        con dos dedos o con los botones de zoom. La foto tiene que estar sacada de frente.
       </p>
       <SegmentedControl
         aria-label="Punto a ubicar"

@@ -14,9 +14,27 @@
   overflow: hidden;
   border-radius: var(--radius-card);
   background: var(--paper);
-  /* Evita que tocar la foto seleccione o haga zoom con doble toque. */
-  touch-action: manipulation;
+  /*
+   * El zoom es propio (dentro del recuadro): el navegador no hace zoom sobre la foto. Sin zoom,
+   * un dedo sobre la foto sigue desplazando la página hacia arriba y abajo.
+   */
+  touch-action: pan-y;
   user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Al calibrar (un dedo arrastra el marcador) o con la foto ampliada, los gestos son de la foto. */
+.locked {
+  touch-action: none;
+}
+
+/* La foto y sus superposiciones, con el zoom. `--zoom` deja los marcadores a tamaño fijo. */
+.content {
+  --zoom: 1;
+
+  position: relative;
+  height: 100%;
+  transform-origin: 0 0;
 }
 
 .image {
@@ -41,15 +59,15 @@
 .ring {
   fill: none;
   stroke: var(--calibration);
-  stroke-width: 2;
+  stroke-width: calc(2px / var(--zoom));
   vector-effect: non-scaling-stroke;
 }
 
 .group {
   fill: none;
   stroke: var(--impact);
-  stroke-width: 2;
-  stroke-dasharray: 6 5;
+  stroke-width: calc(2px / var(--zoom));
+  stroke-dasharray: calc(6px / var(--zoom)) calc(5px / var(--zoom));
   vector-effect: non-scaling-stroke;
 }
 
@@ -62,11 +80,6 @@
   border: 0;
   background: transparent;
   cursor: crosshair;
-}
-
-/* Al arrastrar un punto, un dedo no desplaza la página; el zoom con dos dedos sigue andando. */
-.draggable {
-  touch-action: pinch-zoom;
 }
 
 .surface:disabled {
@@ -90,7 +103,7 @@
   background: rgba(11, 13, 15, 0.75);
   color: #fff;
   font: 700 13px var(--font-body);
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(calc(1 / var(--zoom)));
   pointer-events: none;
 }
 
@@ -133,7 +146,7 @@
   border-radius: 50%;
   background: var(--impact);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(calc(1 / var(--zoom)));
   pointer-events: none;
 }
 
@@ -155,7 +168,7 @@
   position: absolute;
   width: 26px;
   height: 26px;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(calc(1 / var(--zoom)));
   pointer-events: none;
 }
 
@@ -177,6 +190,38 @@
   top: 12px;
   width: 26px;
   height: 2px;
+}
+
+.zoomControls {
+  position: absolute;
+  right: var(--space-2);
+  bottom: var(--space-2);
+  display: flex;
+  gap: 6px;
+}
+
+.zoomButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  background: rgba(11, 13, 15, 0.75);
+  color: #f2f4f5;
+  cursor: pointer;
+}
+
+.zoomButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.zoomButton svg {
+  width: 20px;
+  height: 20px;
 }
 
 .busy {

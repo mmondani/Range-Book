@@ -168,6 +168,41 @@ describe('M06 · Análisis con un análisis guardado', () => {
     expect(screen.getByRole('button', { name: 'Deshacer' })).toBeDisabled();
   });
 
+  it('el zoom es dentro de la foto: botones, y con la foto ampliada se desplaza sin marcar', async () => {
+    renderSessions(analysisPath(ROUND_1.id));
+    await screen.findByRole('heading', { name: 'Análisis · Ronda 1' });
+    const content = screen.getByRole('img', {
+      name: 'Foto del blanco de la ronda 1',
+    }).parentElement!;
+    expect(screen.getByRole('button', { name: 'Alejar' })).toBeDisabled();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Acercar' }));
+    expect(content).toHaveStyle({ transform: 'translate(-50%, -50%) scale(2)' });
+
+    // Con la foto ampliada, arrastrar la desplaza y no agrega un impacto.
+    const viewer = screen.getByRole('group', { name: 'Visor de la foto' });
+    vi.spyOn(viewer, 'getBoundingClientRect').mockReturnValue({
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 1000,
+    } as DOMRect);
+    const surface = screen.getByRole('button', { name: 'Agregar impacto en el punto indicado' });
+    const mouse = { button: 0, pointerId: 1, pointerType: 'mouse', isPrimary: true };
+    fireEvent.pointerDown(surface, { ...mouse, clientX: 500, clientY: 500 });
+    fireEvent.pointerMove(surface, { ...mouse, clientX: 600, clientY: 450 });
+    fireEvent.pointerUp(surface, { ...mouse, clientX: 600, clientY: 450 });
+    fireEvent.click(surface, { clientX: 600, clientY: 450, detail: 1 });
+    expect(content).toHaveStyle({ transform: 'translate(-40%, -55%) scale(2)' });
+    expect(
+      screen.getAllByRole('status').find((item) => item.textContent?.includes('impactos marcados')),
+    ).toHaveTextContent('3 impactos marcados');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ver la foto entera' }));
+    expect(content).toHaveStyle({ transform: 'translate(0%, 0%) scale(1)' });
+    expect(screen.queryByRole('button', { name: 'Ver la foto entera' })).not.toBeInTheDocument();
+  });
+
   it('salir con cambios sin guardar pide confirmación', async () => {
     const { router } = renderSessions(analysisPath(ROUND_1.id));
     await userEvent.click(await screen.findByRole('button', { name: 'Quitar' }));
@@ -382,6 +417,41 @@ describe('M06 · Análisis nuevo', () => {
     expect(await screen.findByRole('radio', { name: 'Anillo ✓' })).toBeChecked();
     fireEvent.pointerCancel(edge, touch(1, 700, 500));
     expect(screen.getByRole('radio', { name: 'Anillo' })).toBeChecked();
+  });
+
+  it('al calibrar, dos dedos acercan la foto sin ubicar el marcador', async () => {
+    renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
+    await loadPhoto(2);
+    const viewer = screen.getByRole('group', { name: 'Visor de la foto' });
+    vi.spyOn(viewer, 'getBoundingClientRect').mockReturnValue({
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 1000,
+    } as DOMRect);
+    const surface = photoSurface('Ubicar centro en el punto indicado');
+    const touch = (id: number, x: number) => ({
+      clientX: x,
+      clientY: 500,
+      button: 0,
+      pointerId: id,
+      pointerType: 'touch',
+      isPrimary: id === 1,
+    });
+    fireEvent.pointerDown(surface, touch(1, 400));
+    fireEvent.pointerDown(surface, touch(2, 600));
+    // Los dedos se separan al doble, con el punto medio en el mismo lugar.
+    fireEvent.pointerMove(surface, touch(1, 300));
+    fireEvent.pointerMove(surface, touch(2, 700));
+    fireEvent.pointerUp(surface, touch(1, 300));
+    fireEvent.pointerUp(surface, touch(2, 700));
+    fireEvent.click(surface, { clientX: 700, clientY: 500, detail: 1 });
+
+    const content = screen.getByRole('img', {
+      name: 'Foto del blanco de la ronda 2',
+    }).parentElement!;
+    expect(content).toHaveStyle({ transform: 'translate(-50%, -50%) scale(2)' });
+    expect(screen.getByRole('radio', { name: 'Centro' })).toBeChecked();
   });
 
   it('no deja continuar sin ubicar el punto sobre el anillo', async () => {
