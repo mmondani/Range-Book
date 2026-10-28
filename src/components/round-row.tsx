@@ -19,7 +19,10 @@ export interface RoundRowProps {
   analysisPath: string;
 }
 
-/** Ronda en el detalle de la sesión (mobile): blanco, disparos, puntaje, grupo y estado. */
+/**
+ * Ronda en el detalle de la sesión (mobile): blanco, disparos, puntaje, grupo y estado. Tocar la
+ * tarjeta lleva al análisis; el lápiz, a editarla.
+ */
 export function RoundRow({ item, units, editPath, analysisPath }: RoundRowProps) {
   const { round, number, target, targetLabel, score, analyzed } = item;
   const [photo] = storedPhotos(round.photo ? [round.photo] : []);
