@@ -48,7 +48,7 @@
 ### Entre el paso 3 y el 4 — Se adelanta el proyecto de Firebase
 - **El proyecto `range-book` se crea ahora y no en el paso 14.** Los emuladores no prueban el login real con Google (dominios autorizados, `authDomain`, redirect en la PWA de iOS) ni permiten usar la app desde el celular por HTTPS. Desplegar desde ahora deja probar cada paso en el entorno real.
 - Por ahora queda en el plan **Spark**: Auth (Google), Firestore (`southamerica-east1`) y Hosting. Se pasa a **Blaze** en el paso 5, cuando haga falta Storage; ahí se despliega `storage.rules` y se agrega `storage` al script `deploy`.
-- `pnpm deploy` hace el build y despliega `hosting` y `firestore` (reglas e índices) en `range-book`.
+- `pnpm run deploy` hace el build y despliega `hosting` y `firestore` (reglas e índices) en `range-book`.
 - `pnpm emulators` y `pnpm test:rules` fijan `--project demo-rangebook`, para que nunca toquen el proyecto real. `.firebaserc` tiene `range-book` por defecto y el alias `demo`.
 - La configuración va en `.env.development.local` (emuladores) y `.env.production.local` (proyecto real), ambos fuera de git. `.env.example` documenta los dos.
 - `authDomain` es `range-book.web.app` (el dominio de Hosting) y no `firebaseapp.com`, por la mitigación del riesgo del redirect en iOS. Para eso hubo que agregar `https://range-book.web.app/__/auth/handler` como URI de redirección del cliente OAuth en Google Cloud.
@@ -72,7 +72,7 @@
 - **`getDownloadURL` se cachea en memoria** y las fotos se suben con `Cache-Control: private, max-age=31536000, immutable`: cada foto tiene un id propio y nunca se reemplaza.
 - `PhotoPicker` en mobile muestra Cámara / Galería y miniaturas de 88 px; en desktop, una grilla 4:3 con la zona "Arrastrá o elegí archivos" como última celda (sin botón de cámara). Se puede arrastrar sobre todo el componente. Con `multiple={false}`, elegir otra foto la reemplaza. Con `cover`, la primera es la portada (no hay "usar como portada" para reordenar).
 - `PhotoGallery` muestra miniaturas cuando hay más de una foto. El encabezado de M03 (foto a todo el ancho con volver / editar encima, sin miniaturas) se arma en el paso 9.
-- `pnpm deploy` ahora también despliega `storage` (reglas). `range-book` pasó al plan **Blaze** y el bucket `range-book.firebasestorage.app` se creó en **`us-east1`**: es una de las tres regiones con uso gratuito, y la latencia extra frente a São Paulo (~100–150 ms por pedido) no se nota porque las fotos se cachean. Firestore sigue en `southamerica-east1`; las reglas de Storage lo consultan igual. Las reglas ya están desplegadas.
+- `pnpm run deploy` ahora también despliega `storage` (reglas). `range-book` pasó al plan **Blaze** y el bucket `range-book.firebasestorage.app` se creó en **`us-east1`**: es una de las tres regiones con uso gratuito, y la latencia extra frente a São Paulo (~100–150 ms por pedido) no se nota porque las fotos se cachean. Firestore sigue en `southamerica-east1`; las reglas de Storage lo consultan igual. Las reglas ya están desplegadas.
 - **La prueba manual de la cámara en el celular pasa al paso 7.** En producción no hay todavía ninguna pantalla con `PhotoPicker` (`/componentes` es solo de desarrollo) y el login con Google no acepta la IP local del dev server. En el formulario de arma se prueba de punta a punta: cámara, compresión, subida a Storage y ruta en Firestore. Si la primera subida falla con `403`, revisar que la cuenta de servicio de Storage tenga permiso para leer Firestore (reglas entre servicios).
 
 ### Paso 6 — Inventario: municiones, polígonos y archivado
@@ -108,3 +108,4 @@
 - Al apagar los emuladores, el runtime de reglas de Storage imprime un `NullPointerException` de Java. Es inofensivo (el script sale con código 0).
 
 ## Aprendizajes
+- El script de despliegue se corre con `pnpm run deploy`: `pnpm deploy` es un comando propio de pnpm (para workspaces) y falla con `ERR_PNPM_CANNOT_DEPLOY`.
