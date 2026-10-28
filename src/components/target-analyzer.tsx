@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import { usePhotoSrc } from '@/hooks/use-photos';
-import type { ImageSize, Pixel } from '@/lib/calibration';
+import type { ImageSize, Pixel, PixelEllipse } from '@/lib/calibration';
 import { cx } from '@/lib/cx';
 import type { PhotoDraft } from '@/lib/photos';
 import {
@@ -22,6 +22,7 @@ import {
   type ViewPoint,
   type ZoomView,
 } from '@/lib/zoom';
+import { SvgEllipse } from './svg-ellipse';
 import styles from './target-analyzer.module.css';
 
 /**
@@ -73,8 +74,8 @@ export interface TargetAnalyzerProps {
   /** El arrastre se interrumpió (un segundo dedo, el navegador tomó el gesto): vuelve atrás. */
   onPointCancel?: () => void;
   markers?: readonly AnalyzerMarker[];
-  /** Anillos calibrados, para comparar con los de la foto. */
-  rings?: readonly { key: string; center: Pixel; radius: number }[];
+  /** Anillos calibrados (elipses si la foto está en ángulo), para comparar con los de la foto. */
+  rings?: readonly (PixelEllipse & { key: string })[];
   /** Línea entre los dos puntos de referencia (blancos sin zonas). */
   line?: readonly [Pixel, Pixel];
   impacts?: readonly Pixel[];
@@ -83,8 +84,8 @@ export interface TargetAnalyzerProps {
   onRemoveImpact?: (index: number) => void;
   /** PMI: cruz azul. */
   mpi?: Pixel | null;
-  /** Círculo de grupo, punteado, alrededor del PMI. */
-  group?: { center: Pixel; radius: number } | null;
+  /** Círculo de grupo, punteado, alrededor del PMI (elipse si la foto está en ángulo). */
+  group?: PixelEllipse | null;
   /** Controles propios sobre la foto, arriba a la izquierda (por ejemplo, el punto a ubicar). */
   controls?: ReactNode;
   /** Texto del overlay de progreso (por ejemplo, "Detectando impactos…"). */
@@ -403,13 +404,7 @@ export function TargetAnalyzer({
               aria-hidden="true"
             >
               {rings.map((ring) => (
-                <circle
-                  key={ring.key}
-                  cx={ring.center.x}
-                  cy={ring.center.y}
-                  r={ring.radius}
-                  className={styles.ring}
-                />
+                <SvgEllipse key={ring.key} ellipse={ring} className={styles.ring} />
               ))}
               {line && (
                 <line
@@ -420,14 +415,7 @@ export function TargetAnalyzer({
                   className={styles.ring}
                 />
               )}
-              {group && (
-                <circle
-                  cx={group.center.x}
-                  cy={group.center.y}
-                  r={group.radius}
-                  className={styles.group}
-                />
-              )}
+              {group && <SvgEllipse ellipse={group} className={styles.group} />}
             </svg>
 
             <button

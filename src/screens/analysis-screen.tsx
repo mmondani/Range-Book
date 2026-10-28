@@ -40,12 +40,13 @@ import {
   calibrationDraft,
   calibrationMarkers,
   MARKER_LABELS,
-  mmToPixelLength,
+  pixelEllipse,
   nextMarker,
   previewCalibration,
+  reshapeDraft,
   type Calibration,
   type CalibrationDraft,
-  type CalibrationMarker,
+  type CalibrationTool,
   type ImageSize,
   type Pixel,
 } from '@/lib/calibration';
@@ -166,7 +167,7 @@ function RoundAnalyzer({
   const [calibration, setCalibration] = useState<Calibration | null>(initial.calibration);
   const [calibrating, setCalibrating] = useState(initial.calibration === null);
   const [draft, setDraft] = useState<CalibrationDraft>(initial.draft);
-  const [active, setActive] = useState<CalibrationMarker>(
+  const [active, setActive] = useState<CalibrationTool>(
     () => nextMarker(initial.draft, analyzed.scoring) ?? 'center',
   );
   const [calibrationError, setCalibrationError] = useState<string>();
@@ -221,11 +222,24 @@ function RoundAnalyzer({
 
   // --- Calibración -----------------------------------------------------------------------------
 
-  /** Mientras se arrastra, el marcador activo sigue al dedo sin pasar al siguiente. */
+  /** Para deformar los anillos, primero tienen que estar el centro y el punto del anillo. */
+  function canReshape() {
+    if (draft.center && draft.edge) return true;
+    setCalibrationError('Ubicá el centro y un punto sobre un anillo antes de deformarlos');
+    return false;
+  }
+
+  /**
+   * Mientras se arrastra, el marcador activo sigue al dedo sin pasar al siguiente; con "Forma",
+   * los anillos se deforman hacia el dedo (siempre a partir de cómo estaban al empezar).
+   */
   function moveMarker(pixel: Pixel) {
+    if (active === 'shape' && !canReshape()) return;
     touched.current = true;
     dragOrigin.current ??= draft;
-    setDraft({ ...draft, [active]: pixel });
+    setDraft(
+      active === 'shape' ? reshapeDraft(dragOrigin.current, pixel) : { ...draft, [active]: pixel },
+    );
     setCalibrationError(undefined);
   }
 
@@ -236,6 +250,14 @@ function RoundAnalyzer({
   }
 
   function placeMarker(pixel: Pixel) {
+    if (active === 'shape') {
+      if (!canReshape()) return;
+      touched.current = true;
+      setDraft(reshapeDraft(dragOrigin.current ?? draft, pixel));
+      dragOrigin.current = undefined;
+      setCalibrationError(undefined);
+      return;
+    }
     touched.current = true;
     dragOrigin.current = undefined;
     const next = { ...draft, [active]: pixel };
@@ -417,21 +439,18 @@ function RoundAnalyzer({
     calibrating && preview
       ? analyzed.zones.map((zone) => ({
           key: String(zone.diameterMm),
-          center: preview.center,
-          radius: mmToPixelLength(preview, zone.diameterMm / 2),
+          ...pixelEllipse(preview, zone.diameterMm / 2),
         }))
       : [];
   const line: [Pixel, Pixel] | undefined =
     calibrating && draft.a && draft.b ? [draft.a, draft.b] : undefined;
 
-  // PMI y grupo sobre la foto, en píxeles (la escala es la misma en los dos ejes).
+  // PMI y grupo sobre la foto. El grupo es un círculo en mm: con los anillos deformados se ve
+  // como una elipse, igual que ellos.
   const mpi = calibrating ? null : meanPoint(history.impacts);
   const group =
-    mpi && calibration && history.impacts.length >= 2
-      ? {
-          center: mpi,
-          radius: groupRadius(history.impacts, mpi) + mmToPixelLength(calibration, GROUP_MARGIN_MM),
-        }
+    !calibrating && calibration && metrics.mpi && points.length >= 2
+      ? pixelEllipse(calibration, groupRadius(points, metrics.mpi) + GROUP_MARGIN_MM, metrics.mpi)
       : null;
 
   const primary = calibrating ? (
@@ -553,7 +572,9 @@ function RoundAnalyzer({
               onSize={handleSize}
               pointLabel={
                 calibrating
-                  ? `Ubicar ${MARKER_LABELS[active].toLocaleLowerCase('es-AR')} en el punto indicado`
+                  ? active === 'shape'
+                    ? 'Deformar los anillos hacia el punto indicado'
+                    : `Ubicar ${MARKER_LABELS[active].toLocaleLowerCase('es-AR')} en el punto indicado`
                   : mode === 'add'
                     ? 'Agregar impacto en el punto indicado'
                     : undefined

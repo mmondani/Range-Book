@@ -1,28 +1,31 @@
 import { useId } from 'react';
-import type { CalibrationDraft, CalibrationMarker } from '@/lib/calibration';
+import type { CalibrationDraft, CalibrationTool } from '@/lib/calibration';
 import { cx } from '@/lib/cx';
 import { formatDecimal } from '@/lib/format';
 import type { TargetZone } from '@/lib/target-zones';
 import type { TargetScoring } from '@/lib/targets';
+import { Button } from './button';
 import { Card } from './card';
 import { Field } from './field';
 import { Input } from './input';
 import { Select } from './select';
 import styles from './calibration-panel.module.css';
 
-const INSTRUCTIONS: Record<CalibrationMarker, string> = {
+const INSTRUCTIONS: Record<CalibrationTool, string> = {
   center: 'Tocá el centro del blanco.',
   edge: 'Tocá un punto sobre un anillo que se vea entero y elegí abajo cuál es. Los anillos verdes tienen que coincidir con los de la foto.',
   a: 'Tocá un punto de referencia, por ejemplo el borde izquierdo del blanco.',
   b: 'Tocá el segundo punto y escribí abajo la distancia real entre los dos.',
+  shape:
+    'Si la foto está en ángulo, mantené apretado y arrastrá: los anillos verdes se estiran o se achican hasta el dedo en esa dirección. Repetilo en otra dirección hasta que coincidan con los de la foto.',
 };
 
 export interface CalibrationPanelProps {
   scoring: TargetScoring;
   zones: readonly TargetZone[];
   draft: CalibrationDraft;
-  /** Marcador que se ubica con el próximo toque sobre la foto (se elige sobre la foto). */
-  active: CalibrationMarker;
+  /** Lo que se ajusta con el próximo toque sobre la foto (se elige sobre la foto). */
+  active: CalibrationTool;
   onChange: (changes: Partial<CalibrationDraft>) => void;
   /** El centro del borrador se ubicó solo: se avisa que hay que revisarlo. */
   autoCenter?: boolean;
@@ -68,6 +71,15 @@ export function CalibrationPanel({
           El centro se ubicó automáticamente. Si no coincide con el de la foto, elegí «Centro» y
           tocalo.
         </p>
+      )}
+      {scoring === 'rings' && draft.shape && (
+        <Button
+          variant="ghost"
+          className={styles.reset}
+          onClick={() => onChange({ shape: undefined })}
+        >
+          Volver a círculos
+        </Button>
       )}
       {scoring === 'rings' ? (
         <Field label="Anillo marcado" help="Por defecto, el más grande.">

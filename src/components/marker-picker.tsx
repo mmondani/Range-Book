@@ -1,9 +1,9 @@
 import { useRef, type KeyboardEvent } from 'react';
 import {
-  calibrationMarkers,
+  calibrationTools,
   MARKER_LABELS,
   type CalibrationDraft,
-  type CalibrationMarker,
+  type CalibrationTool,
 } from '@/lib/calibration';
 import { cx } from '@/lib/cx';
 import type { TargetScoring } from '@/lib/targets';
@@ -11,20 +11,21 @@ import styles from './marker-picker.module.css';
 
 export interface MarkerPickerProps {
   scoring: TargetScoring;
-  /** Para marcar con ✓ los puntos ya ubicados. */
+  /** Para marcar con ✓ los puntos ya ubicados y la forma, si se deformó. */
   draft: CalibrationDraft;
-  /** Marcador que se ubica con el próximo toque sobre la foto. */
-  active: CalibrationMarker;
-  onActive: (marker: CalibrationMarker) => void;
+  /** Lo que se ajusta con el próximo toque o arrastre sobre la foto. */
+  active: CalibrationTool;
+  onActive: (tool: CalibrationTool) => void;
   className?: string;
 }
 
 /**
- * Qué punto de la calibración se ubica (centro y anillo, o centro, A y B), sobre la foto. Es un
- * `radiogroup` navegable con las flechas, con los colores fijos de las superposiciones.
+ * Qué se ajusta de la calibración sobre la foto: centro, anillo y forma de los anillos, o centro,
+ * A y B. Es un `radiogroup` navegable con las flechas, con los colores fijos de las
+ * superposiciones.
  */
 export function MarkerPicker({ scoring, draft, active, onActive, className }: MarkerPickerProps) {
-  const markers = calibrationMarkers(scoring);
+  const markers = calibrationTools(scoring);
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
 
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
@@ -45,7 +46,7 @@ export function MarkerPicker({ scoring, draft, active, onActive, className }: Ma
   }
 
   return (
-    <div role="radiogroup" aria-label="Punto a ubicar" className={cx(styles.picker, className)}>
+    <div role="radiogroup" aria-label="Qué ajustar" className={cx(styles.picker, className)}>
       {markers.map((marker, index) => {
         const checked = marker === active;
         return (

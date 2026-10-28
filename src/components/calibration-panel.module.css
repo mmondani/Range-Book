@@ -20,6 +20,10 @@
   font-weight: 600;
 }
 
+.reset {
+  align-self: flex-start;
+}
+
 .note {
   margin: 0;
   color: var(--text-2);

@@ -3,13 +3,17 @@ import {
   buildCalibration,
   calibrationDraft,
   defaultRing,
+  MAX_SHAPE_RATIO,
   mmPerPixel,
   mmToPixel,
   mmToPixelLength,
   nextMarker,
   parseCalibration,
+  pixelEllipse,
   pixelToMm,
+  reshapeDraft,
   type Calibration,
+  type CalibrationDraft,
 } from './calibration';
 import type { TargetZone } from './target-zones';
 
@@ -136,3 +140,86 @@ describe('parseCalibration', () => {
     expect(parseCalibration({ ...saved, edge: saved.center })).toBeNull();
   });
 });
+
+describe('anillos deformados (foto en ángulo)', () => {
+  // El anillo de 500 mm (250 mm de radio) con el punto marcado a 250 px a la derecha.
+  const start: CalibrationDraft = {
+    center: { x: 500, y: 400 },
+    edge: { x: 750, y: 400 },
+    diameterMm: 500,
+    distance: '',
+  };
+
+  it('arrastrar hacia arriba achata los anillos en esa dirección y deja igual la otra', () => {
+    const draft = reshapeDraft(start, { x: 500, y: 300 });
+    expect(draft.shape?.angle).toBeCloseTo(-Math.PI / 2);
+    expect(draft.shape?.ratio).toBeCloseTo(2.5);
+    // El punto marcado ya estaba sobre el eje perpendicular: no se mueve.
+    expect(draft.edge!.x).toBeCloseTo(750);
+    expect(draft.edge!.y).toBeCloseTo(400);
+
+    const result = buildCalibration(draft, 'rings', SIZE);
+    if (!('calibration' in result)) throw new Error(result.error);
+    const calibration = result.calibration;
+    // Hacia arriba, 100 px son 250 mm; hacia la derecha, 250 px son 250 mm.
+    expectPoint(pixelToMm(calibration, { x: 500, y: 300 }), { x: 0, y: 250 });
+    expectPoint(pixelToMm(calibration, { x: 750, y: 400 }), { x: 250, y: 0 });
+    expectPoint(pixelToMm(calibration, { x: 625, y: 350 }), { x: 125, y: 125 });
+    expectPoint(mmToPixel(calibration, { x: -50, y: -100 }), { x: 450, y: 440 });
+    // El anillo de 100 mm de radio: 40 px en vertical y 100 px en horizontal.
+    const ellipse = pixelEllipse(calibration, 100);
+    expect(ellipse.rx).toBeCloseTo(40);
+    expect(ellipse.ry).toBeCloseTo(100);
+    expect(ellipse.angle).toBeCloseTo(-90);
+    // La escala promedio: √(1 × 0,4) px por mm.
+    expect(mmPerPixel(calibration)).toBeCloseTo(1 / Math.sqrt(0.4));
+  });
+
+  it('el punto del anillo se mueve sobre la nueva elipse, en su misma dirección', () => {
+    const draft = reshapeDraft(start, { x: 700, y: 400 });
+    // Hacia la derecha pasa por el dedo: el punto marcado queda a 200 px.
+    expectPoint(draft.edge!, { x: 700, y: 400 });
+    expect(draft.shape?.ratio).toBeCloseTo(1.25);
+  });
+
+  it('volver a ubicar el punto del anillo cambia el tamaño y conserva la forma', () => {
+    const shaped = reshapeDraft(start, { x: 500, y: 300 });
+    const moved = { ...shaped, edge: { x: 1000, y: 400 } };
+    const result = buildCalibration(moved, 'rings', SIZE);
+    if (!('calibration' in result)) throw new Error(result.error);
+    expect(result.calibration).toMatchObject({ shape: shaped.shape });
+    // Ahora el anillo de 250 mm mide 500 px a lo ancho y 200 px de alto.
+    expectPoint(pixelToMm(result.calibration, { x: 500, y: 200 }), { x: 0, y: 250 });
+  });
+
+  it('limita la deformación y no hace nada sin centro o demasiado cerca', () => {
+    expect(reshapeDraft(start, { x: 500, y: 385 }).shape?.ratio).toBe(MAX_SHAPE_RATIO);
+    expect(reshapeDraft(start, { x: 505, y: 400 })).toBe(start);
+    expect(reshapeDraft({ ...start, center: undefined }, { x: 500, y: 300 })).toEqual({
+      ...start,
+      center: undefined,
+    });
+  });
+
+  it('sin deformar, la calibración no lleva `shape` (Firestore no acepta undefined)', () => {
+    const result = buildCalibration(start, 'rings', SIZE);
+    expect('calibration' in result && 'shape' in result.calibration).toBe(false);
+  });
+
+  it('se guarda y se lee; una forma dañada se descarta', () => {
+    const draft = reshapeDraft(start, { x: 500, y: 300 });
+    const result = buildCalibration(draft, 'rings', SIZE);
+    if (!('calibration' in result)) throw new Error(result.error);
+    const saved = JSON.parse(JSON.stringify(result.calibration));
+    expect(parseCalibration(saved)).toEqual(result.calibration);
+    expect(calibrationDraft(RINGS, result.calibration).shape).toEqual(draft.shape);
+    expect(parseCalibration({ ...saved, shape: { angle: 0, ratio: 9 } })).not.toHaveProperty(
+      'shape',
+    );
+  });
+});
+
+function expectPoint(actual: { x: number; y: number }, expected: { x: number; y: number }) {
+  expect(actual.x).toBeCloseTo(expected.x);
+  expect(actual.y).toBeCloseTo(expected.y);
+}

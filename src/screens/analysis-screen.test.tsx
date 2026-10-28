@@ -453,11 +453,11 @@ describe('M06 · Análisis nuevo', () => {
     expect(screen.getByRole('radio', { name: 'Centro' })).toBeChecked();
   });
 
-  it('el punto a ubicar se elige sobre la foto, también para corregir uno ya ubicado', async () => {
+  it('lo que se ajusta se elige sobre la foto, también para corregir uno ya ubicado', async () => {
     renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
     await loadPhoto(2);
     const viewer = screen.getByRole('group', { name: 'Visor de la foto' });
-    const picker = within(viewer).getByRole('radiogroup', { name: 'Punto a ubicar' });
+    const picker = within(viewer).getByRole('radiogroup', { name: 'Qué ajustar' });
     const panel = screen.getByRole('region', { name: 'Calibrar la foto' });
     expect(within(panel).queryByRole('radiogroup')).not.toBeInTheDocument();
 
@@ -468,6 +468,69 @@ describe('M06 · Análisis nuevo', () => {
     tapPhoto('Ubicar centro en el punto indicado', 500, 500);
     // Con el anillo todavía sin ubicar, pasa a él.
     expect(within(picker).getByRole('radio', { name: 'Anillo' })).toBeChecked();
+  });
+
+  it('con "Forma" se deforman los anillos y las medidas los siguen', async () => {
+    const { sessions } = renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
+    await loadPhoto(2);
+    const picker = within(screen.getByRole('group', { name: 'Visor de la foto' })).getByRole(
+      'radiogroup',
+      { name: 'Qué ajustar' },
+    );
+
+    // Sin el centro y el anillo, todavía no se puede deformar.
+    await userEvent.click(within(picker).getByRole('radio', { name: 'Forma' }));
+    tapPhoto('Deformar los anillos hacia el punto indicado', 500, 400);
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Ubicá el centro y un punto sobre un anillo antes de deformarlos',
+    );
+
+    // El anillo de 500 mm, 250 px a la derecha del centro: 1 mm por px.
+    await userEvent.click(within(picker).getByRole('radio', { name: 'Centro' }));
+    tapPhoto('Ubicar centro en el punto indicado', 500, 500);
+    tapPhoto('Ubicar anillo en el punto indicado', 750, 500);
+
+    // La foto se sacó desde abajo: los anillos se ven achatados. Se arrastra hacia arriba hasta
+    // que el anillo de 500 mm mide 100 px de alto.
+    await userEvent.click(within(picker).getByRole('radio', { name: 'Forma' }));
+    const surface = photoSurface('Deformar los anillos hacia el punto indicado');
+    const mouse = { button: 0, pointerId: 1, pointerType: 'mouse', isPrimary: true };
+    fireEvent.pointerDown(surface, { ...mouse, clientX: 500, clientY: 300 });
+    fireEvent.pointerMove(surface, { ...mouse, clientX: 500, clientY: 350 });
+    fireEvent.pointerUp(surface, { ...mouse, clientX: 500, clientY: 400 });
+    fireEvent.click(surface, { clientX: 500, clientY: 400, detail: 1 });
+    expect(within(picker).getByRole('radio', { name: 'Forma ✓' })).toBeChecked();
+    expect(screen.getByRole('button', { name: 'Volver a círculos' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+
+    // 40 px hacia arriba son 100 mm; 100 px a la derecha, 100 mm.
+    tapPhoto('Agregar impacto en el punto indicado', 500, 460);
+    tapPhoto('Agregar impacto en el punto indicado', 600, 500);
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar análisis' }));
+    const result = vi.mocked(sessions.saveAnalysis).mock.calls[0]![3];
+    expect(result.analysis.calibration).toMatchObject({
+      kind: 'ring',
+      shape: { angle: expect.closeTo(-Math.PI / 2), ratio: expect.closeTo(2.5) },
+    });
+    const [first, second] = result.analysis.impacts;
+    expect(first!.x).toBeCloseTo(0);
+    expect(first!.y).toBeCloseTo(100);
+    expect(second!.x).toBeCloseTo(100);
+    expect(second!.y).toBeCloseTo(0);
+  });
+
+  it('"Volver a círculos" deshace la deformación', async () => {
+    renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
+    await loadPhoto(2);
+    tapPhoto('Ubicar centro en el punto indicado', 500, 500);
+    tapPhoto('Ubicar anillo en el punto indicado', 750, 500);
+    await userEvent.click(screen.getByRole('radio', { name: 'Forma' }));
+    tapPhoto('Deformar los anillos hacia el punto indicado', 500, 400);
+    expect(screen.getByRole('radio', { name: 'Forma ✓' })).toBeChecked();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Volver a círculos' }));
+    expect(screen.getByRole('radio', { name: 'Forma' })).toBeChecked();
+    expect(screen.queryByRole('button', { name: 'Volver a círculos' })).not.toBeInTheDocument();
   });
 
   it('no deja continuar sin ubicar el punto sobre el anillo', async () => {

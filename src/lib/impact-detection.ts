@@ -1,4 +1,4 @@
-import { mmPerPixel, mmToPixelLength, type Calibration, type Pixel } from './calibration';
+import { mmPerPixel, pixelEllipse, type Calibration, type Pixel } from './calibration';
 import { boxSum, grayscale, integral, type PixelImage } from './pixel-image';
 import type { TargetZone } from './target-zones';
 import { MM_PER_INCH } from './units';
@@ -157,14 +157,15 @@ export function detectionOptions(
   scale: number,
 ): DetectionOptions {
   const outer = zones.reduce((max, zone) => Math.max(max, zone.diameterMm), 0);
+  // Con los anillos deformados, el círculo que contiene a la elipse del anillo exterior.
+  const ring = outer > 0 ? pixelEllipse(calibration, outer / 2) : undefined;
   return {
     holeDiameterPx: (holeMm / mmPerPixel(calibration)) * scale,
-    region:
-      outer > 0
-        ? {
-            center: { x: calibration.center.x * scale, y: calibration.center.y * scale },
-            radius: mmToPixelLength(calibration, outer / 2) * REGION_MARGIN * scale,
-          }
-        : undefined,
+    region: ring
+      ? {
+          center: { x: calibration.center.x * scale, y: calibration.center.y * scale },
+          radius: Math.max(ring.rx, ring.ry) * REGION_MARGIN * scale,
+        }
+      : undefined,
   };
 }
