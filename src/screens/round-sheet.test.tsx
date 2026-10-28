@@ -67,6 +67,40 @@ describe('Rondas en el detalle de la sesión', () => {
   });
 });
 
+describe('Abrir una ronda desde el detalle', () => {
+  it('en mobile, la tarjeta lleva al análisis y el lápiz a editar', async () => {
+    renderSessions(DETAIL);
+    await screen.findByRole('heading', { name: 'Rondas · 2' });
+    const [first] = rounds().getAllByRole('listitem');
+    // El link del análisis se estira sobre toda la tarjeta (CSS); es el único link además del lápiz.
+    expect(
+      within(first!)
+        .getAllByRole('link')
+        .map((link) => link.getAttribute('href')),
+    ).toEqual(['/sesiones/hoy/rondas/r1/analisis', '/sesiones/hoy/rondas/r1/editar']);
+  });
+
+  it('en desktop, un clic en la fila lleva al análisis; el lápiz sigue llevando a editar', async () => {
+    setDesktop(true);
+    const { router } = renderSessions(DETAIL);
+    const table = await screen.findByRole('table', { name: 'Rondas' });
+    await userEvent.click(within(table).getByRole('cell', { name: '1 · ISSF Pistola Precisión' }));
+    await waitFor(() =>
+      expect(router.state.location.pathname).toBe('/sesiones/hoy/rondas/r1/analisis'),
+    );
+  });
+
+  it('en desktop, el lápiz de la fila no lleva al análisis', async () => {
+    setDesktop(true);
+    const { router } = renderSessions(DETAIL);
+    const table = await screen.findByRole('table', { name: 'Rondas' });
+    await userEvent.click(within(table).getByRole('link', { name: 'Editar ronda 1' }));
+    await waitFor(() =>
+      expect(router.state.location.pathname).toBe('/sesiones/hoy/rondas/r1/editar'),
+    );
+  });
+});
+
 describe('M05 · Agregar ronda', () => {
   it('precarga el blanco, la distancia y los disparos de la ronda anterior', async () => {
     const { dialog } = await openNewRound();

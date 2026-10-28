@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 import { cx } from '@/lib/cx';
 import styles from './data-table.module.css';
 
@@ -19,6 +19,11 @@ export interface DataTableProps<T> {
   'aria-label': string;
   /** Filas atenuadas (por ejemplo, archivadas). */
   dimmed?: (row: T) => boolean;
+  /**
+   * Clic en cualquier parte de la fila (salvo sus links y botones). Es un atajo para el mouse: la
+   * fila tiene que tener también un link o botón con la misma acción, para el teclado.
+   */
+  onRowClick?: (row: T) => void;
   className?: string;
 }
 
@@ -29,8 +34,14 @@ export function DataTable<T>({
   rowKey,
   'aria-label': ariaLabel,
   dimmed,
+  onRowClick,
   className,
 }: DataTableProps<T>) {
+  function handleRowClick(event: MouseEvent<HTMLTableRowElement>, row: T) {
+    if ((event.target as Element).closest('a, button, input, select, textarea, label')) return;
+    onRowClick?.(row);
+  }
+
   return (
     <div className={cx(styles.container, className)}>
       <table className={styles.table} aria-label={ariaLabel}>
@@ -49,7 +60,11 @@ export function DataTable<T>({
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={rowKey(row)} className={cx(dimmed?.(row) && styles.dimmed)}>
+            <tr
+              key={rowKey(row)}
+              className={cx(dimmed?.(row) && styles.dimmed, onRowClick && styles.clickable)}
+              onClick={onRowClick && ((event) => handleRowClick(event, row))}
+            >
               {columns.map((column) => (
                 <td key={column.key} className={column.kind && styles[column.kind]}>
                   {column.cell(row)}

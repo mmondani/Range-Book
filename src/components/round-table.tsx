@@ -1,4 +1,5 @@
 import { Pencil } from 'lucide-react';
+import { useNavigate } from 'react-router';
 import { OPENED_FROM_LIST } from '@/hooks/use-inventory';
 import { formatDecimal, formatInteger } from '@/lib/format';
 import { storedPhotos } from '@/lib/photos';
@@ -18,8 +19,12 @@ export interface RoundTableProps {
   analysisPath: (item: RoundItem) => string;
 }
 
-/** Rondas del detalle de la sesión en desktop (W02): `RoundRow` como fila de tabla. */
+/**
+ * Rondas del detalle de la sesión en desktop (W02): `RoundRow` como fila de tabla. Un clic en la
+ * fila lleva al análisis, igual que el botón de la columna de acciones.
+ */
 export function RoundTable({ items, units, editPath, analysisPath }: RoundTableProps) {
+  const navigate = useNavigate();
   const columns: DataTableColumn<RoundItem>[] = [
     {
       key: 'photo',
@@ -112,6 +117,7 @@ export function RoundTable({ items, units, editPath, analysisPath }: RoundTableP
       columns={columns}
       rows={items}
       rowKey={(item) => item.round.id}
+      onRowClick={(item) => navigate(analysisPath(item))}
     />
   );
 }

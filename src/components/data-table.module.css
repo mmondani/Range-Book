@@ -43,6 +43,14 @@
   white-space: nowrap;
 }
 
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover td {
+  background: var(--surface-2);
+}
+
 .dimmed td:not(.actions) {
   color: var(--text-3);
 }
