@@ -1,6 +1,6 @@
 # Arquitectura — Range Book
 
-Estado del sistema al cierre de la iteración 000 (MVP). Las decisiones de fondo están en [`decisiones/`](./decisiones/); el diseño de la UI, en [`diseno/`](./diseno/).
+Estado del sistema al cierre de la iteración 001 (Fixes). Las decisiones de fondo están en [`decisiones/`](./decisiones/); el diseño de la UI, en [`diseno/`](./diseno/).
 
 ## Resumen
 SPA en **React 19 + TypeScript + Vite**, instalable como **PWA**, desplegada en **Firebase Hosting** (`range-book.web.app`). No hay backend propio: el cliente usa directamente **Authentication** (Google), **Firestore** y **Storage**, y las **reglas de seguridad** son la única barrera de privacidad ([ADR 0001](./decisiones/0001-firebase-desde-el-cliente.md)). Toda la lógica de negocio (métricas de tiro, calibración, detección de impactos, rendimiento, validaciones) son funciones puras en `src/lib/`, con tests.
@@ -22,9 +22,9 @@ Navegador / PWA
 | `src/main.tsx`, `src/app.tsx`, `src/routes.tsx` | Entrada, registro del service worker, providers y rutas (React Router 7, `createBrowserRouter`) |
 | `src/screens/` | Una pantalla (o sheet con ruta propia) por archivo, con sus tests de criterios de aceptación |
 | `src/components/` | Componentes del sistema de diseño y de dominio (uno por archivo, CSS Modules). Los `*-provider.tsx` exponen los repositorios por contexto |
-| `src/hooks/` | `useAuth`, `useProfile`, `useTheme`, `useCollection`, `useSessionData`, `useItemForm`, `useModal`, `useOnline`, `useInstall`, `useAppUpdate`, etc. |
+| `src/hooks/` | `useAuth`, `useProfile`, `useTheme`, `useCollection`, `useSessionData`, `useItemForm`, `useModal`, `useOnline`, `useInstall`, `useAppUpdate`, `usePhotoViewer`, `useElementWidth`, etc. |
 | `src/data/` | Inicialización perezosa de Firebase (`firebase.ts`) y repositorios: `auth`, `profile`, `inventory` (genérico), `session`, `photo` y `upload-store` (IndexedDB) |
-| `src/lib/` | Lógica pura: `metrics`, `calibration`, `impact-detection`, `target-center`, `target-zones`, `analysis`, `rounds`, `sessions`, `firearms`, `targets`, `inventory`, `performance`, `chart`, `zoom`, `format`, `units`, `theme`, `photos`, `image-compression`, `upload-queue`, `offline-write`, `install`, `auth`, `profile` |
+| `src/lib/` | Lógica pura: `metrics`, `calibration`, `homography`, `impact-detection`, `target-center`, `target-zones`, `analysis`, `rounds`, `sessions`, `session-evolution`, `firearms`, `targets`, `inventory`, `performance`, `chart`, `zoom`, `format`, `units`, `theme`, `photos`, `image-compression`, `upload-queue`, `offline-write`, `install`, `auth`, `profile`, `app-info` (nombre de la app, también para el manifest) |
 | `src/styles/` | `tokens.css` (temas oscuro y claro) y `base.css` |
 | `src/test/` | Dobles de los repositorios (`fake-*.ts`), `matchMedia` simulado, blancos sintéticos |
 | `tests/rules/` | Tests de `firestore.rules` y `storage.rules` contra los emuladores |
@@ -36,7 +36,7 @@ Navegador / PWA
 | Ruta | Pantalla |
 |---|---|
 | `/login` | Login con Google |
-| `/sesiones` (+ `:id`, `:id/rondas/nueva`, `:id/rondas/:roundId/editar`) | Lista de sesiones; detalle (en desktop, al lado de la lista); sheets de ronda |
+| `/sesiones` (+ `:id`, `:id/rondas/nueva`, `:id/rondas/:roundId/editar`) | Lista de sesiones; detalle (en desktop, al lado de la lista) con pestañas Rondas / Evolución (`?vista=evolucion`); sheets de ronda |
 | `/sesiones/nueva`, `/sesiones/:id/editar` | Formulario de sesión (página completa) |
 | `/sesiones/:id/rondas/:roundId/analisis` | Análisis del blanco (página completa) |
 | `/rendimiento` | Rendimiento; filtros en la query string |
@@ -45,7 +45,7 @@ Navegador / PWA
 | `/perfil` | Perfil |
 | `/componentes` | Catálogo de componentes (solo en desarrollo) |
 
-Todo lo que no es `/login` pasa por `RequireAuth`. Los sheets y diálogos tienen URL propia, así "atrás" los cierra (salvo las instrucciones de instalación en iOS, que son solo informativas).
+Todo lo que no es `/login` pasa por `RequireAuth`. Los sheets y diálogos tienen URL propia, así "atrás" los cierra (salvo las instrucciones de instalación en iOS, que son solo informativas). El visor de fotos a pantalla completa no cambia la URL: guarda la foto abierta en el estado del historial (`usePhotoViewer`), así "atrás" lo cierra y los formularios con cambios sin guardar no lo toman como salir.
 
 ## Modelo de datos (Firestore)
 ```
@@ -63,7 +63,7 @@ users/{uid}                           displayName, photoURL, units ('mm'|'in'), 
                                               photo|null, comments, analysis?}]
 ```
 - **Rondas embebidas** en la sesión ([ADR 0002](./decisiones/0002-rondas-embebidas.md)). Se modifican leyendo y reescribiendo el array crudo, sin transacción, para que funcione sin conexión.
-- **`analysis`** = `{ calibration, impacts (mm desde el centro), metrics, scoreConfirmed }`. La calibración guarda los píxeles de los marcadores, el tamaño de la foto y, si se deformó, la elipse (`shape`).
+- **`analysis`** = `{ calibration, impacts (mm desde el centro), metrics, scoreConfirmed }`. La calibración guarda los píxeles de los marcadores, el tamaño de la foto y, si la foto está en ángulo, la inclinación del blanco (`tilt: { x, y }`, radianes). Las calibraciones anteriores a la iteración 001 pueden tener la elipse afín (`shape`), que se sigue leyendo.
 - **Snapshots:** las personalizaciones de la sesión y las métricas del análisis se copian al guardar ([ADR 0003](./decisiones/0003-snapshots-del-historial.md)).
 - **Nada del inventario se borra:** se archiva. Las sesiones y las rondas sí se eliminan (con "Deshacer").
 - No hay índices compuestos: cada pantalla lee la colección completa del usuario y filtra en el cliente.
@@ -81,13 +81,15 @@ Google con popup en el navegador y redirect en la PWA instalada. `authDomain` es
 
 ## Análisis de blancos
 Todo en el cliente, con canvas y sin librerías ([ADR 0004](./decisiones/0004-analisis-en-el-cliente.md)):
-1. **Calibración** (`calibration.ts`): centro + un punto sobre un anillo conocido (o dos puntos + distancia en blancos sin zonas). Opcionalmente, una elipse para compensar fotos en ángulo. Da la transformación píxeles ↔ mm. El centro se propone solo en blancos de anillos (`target-center.ts`, votación de gradientes).
+1. **Calibración** (`calibration.ts`): centro + un punto sobre un anillo conocido (o dos puntos + distancia en blancos sin zonas). Opcionalmente, la inclinación del blanco para fotos en ángulo: una homografía (`homography.ts`) de cámara estenopeica con el blanco girado en 3D, donde los anillos se ven como cónicas proyectadas ([ADR 0006](./decisiones/0006-inclinacion-con-perspectiva.md)). Da la transformación píxeles ↔ mm. El centro se propone solo en blancos de anillos (`target-center.ts`, votación de gradientes).
 2. **Detección** (`impact-detection.ts`): umbral adaptativo, erosión y componentes conexas con el tamaño de agujero esperado según el calibre.
 3. **Métricas** (`metrics.ts`): puntaje y distribución por zonas, tamaño de grupo (mm y MOA), PMI (mm y hora de reloj) y distancia media al centro.
 El editor trabaja en píxeles y convierte a mm al calcular y al guardar.
 
 ## Rendimiento
-`performance.ts` agrega **rondas** filtradas (configuración, munición, blanco, polígono, distancia, período) en KPIs con delta contra el período anterior, series por sesión, comparación por munición, tabla ordenable y CSV (`;`, coma decimal, BOM). Si se mezclan distancias, el grupo y el PMI se comparan en MOA. Gráficos en SVG propio.
+`performance.ts` agrega **rondas** filtradas (configuración, munición, blanco, polígono, distancia, período) en KPIs con delta contra el período anterior, series por sesión, comparación por munición, tabla ordenable y CSV (`;`, coma decimal, BOM). Si se mezclan distancias, el grupo y el PMI se comparan en MOA. Gráficos de línea en SVG propio (`LineChart`): cada punto lleva su valor y, si no entran (menos de 52 px por punto), el gráfico se desplaza en horizontal con el eje y fijo.
+
+**Evolución de la sesión** (`session-evolution.ts`): las métricas guardadas de cada ronda analizada de una sesión (desvío y coordenadas del PMI, grupo, distancia al centro), en mm o en MOA a la distancia de cada ronda. Se ven en la pestaña Evolución del detalle: líneas por ronda y la dispersión de los PMI (`MpiScatter`).
 
 ## Offline y PWA
 - **Service worker** generado con `vite-plugin-pwa` (Workbox): precache de la app, `navigateFallback` a `index.html`, Google Fonts (`StaleWhileRevalidate`) y fotos de Storage (`CacheFirst`, 150 entradas). Una versión nueva queda esperando y se ofrece con un toast "Actualizar".

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sesiones — web · RangeBook</title>
+<title>Sesiones — web · Range Book</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Barlow:wght@400;500;600;700&amp;display=swap">
 <style>
 body{margin:0;background:#0B0D0F}
@@ -45,6 +45,8 @@ td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:middle
 .i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 .sm{width:18px;height:18px}
 a{color:var(--accent)}a:hover{color:var(--accent-hover)}
+.seg{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;border:0;border-radius:10px;background:transparent;color:var(--text-2);font:600 15px 'Barlow',sans-serif;cursor:pointer}.seg.on{background:var(--surface-3);color:var(--text)}
+.tabb{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 4px;margin-bottom:-1px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--text-2);font:600 16px 'Barlow',sans-serif;cursor:pointer}.tabb:hover{color:var(--text)}.tabb.on{color:var(--text);border-bottom-color:var(--accent)}.tabb .c{font-size:13px;color:var(--text-3);font-weight:500}
 </style>
 <link rel="stylesheet" href="../assets/frame.css">
 </head>
@@ -53,7 +55,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
   <aside style="flex:1 1 240px;background:var(--sunken);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;gap:24px">
     <div style="display:flex;align-items:center;gap:10px;padding:0 8px">
       <div style="width:36px;height:36px;border-radius:10px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4.5"></circle><path d="M12 1v5"></path><path d="M12 18v5"></path><path d="M1 12h5"></path><path d="M18 12h5"></path></svg></div>
-      <span class="display" style="font-size:24px">RangeBook</span>
+      <span class="display" style="font-size:24px">Range Book</span>
     </div>
     <a href="sesion-form.html" class="btn btn-primary"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Nueva sesión</a>
     <nav aria-label="Principal" style="display:flex;flex-direction:column;gap:4px">
@@ -131,14 +133,18 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
       </div>
 
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
-        <div class="ph" style="height:150px;border-radius:14px">[Foto del polígono 1]</div>
-        <div class="ph" style="height:150px;border-radius:14px">[Foto del polígono 2]</div>
-        <div class="ph" style="height:150px;border-radius:14px">[Foto del polígono 3]</div>
+        <a href="visor-fotos.html" class="ph" aria-label="Ver la foto 1 de 3 en pantalla completa" style="height:150px;border-radius:14px;text-decoration:none">[Foto del polígono 1]</a>
+        <a href="visor-fotos.html" class="ph" aria-label="Ver la foto 2 de 3 en pantalla completa" style="height:150px;border-radius:14px;text-decoration:none">[Foto del polígono 2]</a>
+        <a href="visor-fotos.html" class="ph" aria-label="Ver la foto 3 de 3 en pantalla completa" style="height:150px;border-radius:14px;text-decoration:none">[Foto del polígono 3]</a>
       </div>
 
-      <section class="card" style="overflow:hidden">
+      <div role="tablist" aria-label="Vista de la sesión" style="display:flex;gap:24px;border-bottom:1px solid var(--border)">
+        <button type="button" role="tab" aria-selected="true" class="tabb on" data-tab="rondas">Rondas <span class="c num">2</span></button>
+        <button type="button" role="tab" aria-selected="false" class="tabb" data-tab="evolucion">Evolución</button>
+      </div>
+      <section class="card" role="tabpanel" aria-label="Rondas" data-panel="rondas" style="overflow:hidden">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:16px">
-          <h3 class="display" style="font-size:22px">Rondas <span class="num" style="color:var(--text-3)">· 2</span></h3>
+          <span></span>
           <button class="btn btn-primary"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Agregar ronda</button>
         </div>
         <div style="overflow-x:auto">
@@ -170,6 +176,37 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
         </div>
       </section>
 
+      <section class="card" role="tabpanel" aria-label="Evolución" data-panel="evolucion" hidden style="padding:16px;display:flex;flex-direction:column;gap:12px;max-width:760px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
+          
+          <span style="font-size:13px;color:var(--text-3)">Por ronda analizada · 5 de 6</span>
+          <div role="radiogroup" aria-label="Unidad" data-unit style="display:inline-flex;gap:2px;padding:3px;border-radius:12px;background:var(--surface-2)">
+            <button type="button" role="radio" class="seg on" aria-checked="true" data-value="mm" style="min-height:36px;padding:0 12px;font-size:14px">mm</button>
+            <button type="button" role="radio" class="seg" aria-checked="false" data-value="moa" style="min-height:36px;padding:0 12px;font-size:14px">MOA</button>
+          </div>
+        </div>
+        <div role="radiogroup" aria-label="Qué graficar" data-evo style="display:flex;gap:4px;padding:4px;border-radius:14px;background:var(--surface-2)">
+          <button type="button" role="radio" class="seg on" aria-checked="true" data-value="pmi">PMI</button>
+          <button type="button" role="radio" class="seg" aria-checked="false" data-value="grupo">Grupo</button>
+          <button type="button" role="radio" class="seg" aria-checked="false" data-value="centro">Al centro</button>
+        </div>
+        <div data-evo-panel="pmi" style="display:flex;flex-direction:column;gap:12px">
+          <h4 style="font-size:15px;font-weight:600">Desvío del PMI (<span data-unit-label>mm</span>)</h4>
+          <div data-chart='{"type":"line","decimals":1,"label":"Desvío del PMI por ronda en mm: de 14,0 a 4,2","points":[["R1",14],["R2",11.2],["R3",8.5],["R4",6.1],["R5",4.2]]}'></div>
+          <h4 style="font-size:15px;font-weight:600">PMI de cada ronda</h4>
+          <div data-chart='{"type":"scatter","label":"PMI de las rondas 1 a 5 respecto del centro: se acercan desde abajo a la izquierda","points":[["1",-4.1,-13.4],["2",-2,-11],["3",1.5,-8.4],["4",3,-5.3],["5",1.2,-4]]}'></div>
+          <p style="font-size:13px;color:var(--text-3)">Cada punto es el PMI de una ronda (X a la derecha, Y hacia arriba); la última, resaltada.</p>
+        </div>
+        <div data-evo-panel="grupo" hidden>
+          <h4 style="font-size:15px;font-weight:600;margin-bottom:8px">Tamaño de grupo (<span data-unit-label>mm</span>)</h4>
+          <div data-chart='{"type":"line","decimals":0,"label":"Tamaño de grupo por ronda en mm: de 46 a 35","points":[["R1",46],["R2",52],["R3",41],["R4",39],["R5",35]]}'></div>
+        </div>
+        <div data-evo-panel="centro" hidden>
+          <h4 style="font-size:15px;font-weight:600;margin-bottom:8px">Distancia al centro (<span data-unit-label>mm</span>)</h4>
+          <div data-chart='{"type":"line","decimals":0,"label":"Distancia media al centro por ronda en mm: de 31 a 21","points":[["R1",31],["R2",33],["R3",27],["R4",24],["R5",21]]}'></div>
+        </div>
+      </section>
+
       <section class="card" style="padding:16px;display:flex;flex-direction:column;gap:6px;max-width:760px">
         <h3 class="eyebrow">Notas</h3>
         <p style="color:var(--text-2)">Práctica de dobles a 7 m y precisión a 25 m. Viento leve desde la izquierda.</p>
@@ -183,5 +220,39 @@ document.querySelectorAll('tr[data-href]').forEach(function (tr) {
 });
 </script>
 <script src="../assets/app.js"></script>
+<script src="../assets/charts.js"></script>
+<script>
+// Evolución: el control segmentado muestra un panel y dibuja sus gráficos.
+document.querySelector('[data-evo]').addEventListener('mk-change', function (e) {
+  document.querySelectorAll('[data-evo-panel]').forEach(function (p) { p.hidden = p.dataset.evoPanel !== e.detail; });
+  window.mkCharts();
+});
+</script>
+<script>
+// Unidad de la evolución: mm (del perfil) o MOA (a la distancia de cada ronda; acá, 25 m).
+(function () {
+  var MM_PER_MOA = 25 * 0.2909;
+  var boxes = document.querySelectorAll('[data-chart]');
+  boxes.forEach(function (b) { b.dataset.orig = b.dataset.chart; });
+  document.querySelector('[data-unit]').addEventListener('mk-change', function (e) {
+    var moa = e.detail === 'moa';
+    var k = moa ? 1 / MM_PER_MOA : 1;
+    boxes.forEach(function (b) {
+      var cfg = JSON.parse(b.dataset.orig);
+      cfg.points = cfg.points.map(function (p) { return [p[0]].concat(p.slice(1).map(function (v) { return v * k; })); });
+      if (moa) cfg.decimals = 1;
+      cfg.unit = moa ? 'MOA' : 'mm';
+      b.dataset.chart = JSON.stringify(cfg);
+      b.innerHTML = '';
+      delete b.dataset.done;
+    });
+    document.querySelectorAll('[data-unit-label]').forEach(function (s) { s.textContent = moa ? 'MOA' : 'mm'; });
+    window.mkCharts();
+  });
+})();
+</script>
+<script>
+document.querySelector('[aria-label="Vista de la sesión"]').addEventListener('click', function () { setTimeout(window.mkCharts); });
+</script>
 </body>
 </html>

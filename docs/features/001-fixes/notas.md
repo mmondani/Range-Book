@@ -49,7 +49,25 @@
 - **Blancos sin zonas:** no tienen inclinación; su panel sigue diciendo "La foto tiene que estar sacada de frente."
 - **Prueba con fotos reales pendiente** (riesgo del plan): ver si la distancia focal supuesta (0,75 × el lado mayor) y la sensibilidad del arrastre (0,02 rad por 1 %) se sienten bien.
 
+### Paso 8 — Cierre
+- `docs/diseno/` actualizado: la maqueta general toma las pantallas de esta iteración (y el visor, M13 / W08), `pantallas.md` y `design-system.md` describen lo implementado. El nombre pasó a "Range Book" también en la documentación de diseño.
+- ADR 0006 (inclinación con perspectiva); el ADR 0004 apunta a él para la compensación de fotos en ángulo.
+
+## Desvíos respecto de la maqueta aprobada
+Ya llevados a `docs/diseno/maqueta/` (la maqueta de la iteración queda como se aprobó):
+- **PMI:** "(−4,1; −13,2)" en 13 px, igual en mobile y desktop, en lugar de "X −4,1 · Y −13,2" (y con la unidad en desktop). Pedido por el usuario al probarlo.
+- **Visor mobile:** suma las flechas anterior / siguiente. Al deslizar no hay animación: la foto cambia al soltar. Zoom hasta 10× (no 8×).
+- **Detalle de sesión en desktop:** sin el texto "N rondas · N analizadas" junto a "Agregar ronda" (la cantidad va en la pestaña).
+- **Unidad de la Evolución en pulgadas:** "in", no "pulg".
+
 ## Pendientes
+- **Probar la inclinación con fotos reales sacadas en ángulo** (y con zoom): si los anillos coinciden en toda la vuelta y si la sensibilidad del arrastre se siente bien. Si no, ajustar `FOCAL_LENGTH` o `TILT_PER_SIDE` en `calibration.ts`.
+- **Centro automático con perspectiva:** `target-center.ts` busca el centro de los anillos en la foto, que con el blanco inclinado no coincide exactamente con su centro real. Se corrige a mano; si molesta, buscar el centro después de inclinar.
+- **Detección con perspectiva fuerte:** usa un solo tamaño de agujero (el del centro del blanco); los agujeros lejanos miden un poco distinto.
+- **"Agregar ronda" desde la pestaña Evolución:** detrás del sheet se ve la pestaña Rondas (el link no lleva `?vista=`). Al cerrar vuelve a Evolución.
+- **Pellizco y doble toque del visor** no tienen tests automáticos.
 
 ## Aprendizajes
+- **Los scripts con comillas invertidas no van en `node -e "…"` dentro de bash:** el shell las interpreta como comandos y el texto queda roto (pasó tres veces, una llegó a un commit). Para ediciones con texto Markdown o template strings, usar Edit o un heredoc con el delimitador entre comillas (`<<'EOF'`).
+- **Los tests de foco encontraron un bug real del visor:** un botón deshabilitado que tenía el foco lo saca del diálogo. Vale la pena probar el teclado en los extremos (primera y última foto).
 - **Un cambio en el manifest no llega a una reinstalación hasta que se acepta la versión nueva.** El service worker precachea `index.html` y `manifest.webmanifest`, y con `registerType: 'prompt'` la versión nueva espera. Al reinstalar la PWA, el navegador lee las copias viejas. Probado en producción: hay que abrir el sitio en el navegador, tocar "Actualizar" y recién después reinstalar.

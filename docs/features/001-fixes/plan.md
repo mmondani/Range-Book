@@ -1,6 +1,6 @@
 # Plan — 001 Fixes
 
-**Estado:** En curso
+**Estado:** Terminado
 **Requerimientos:** [./requerimientos.md](./requerimientos.md)
 **Diseño:** [cambios.md](./diseno/cambios.md) · [maqueta](./diseno/maqueta/index.html)
 
@@ -79,7 +79,7 @@ Decisiones tomadas con el usuario antes del plan: perspectiva real (no afín); e
 - [x] **7. Inclinación en la pantalla de calibración**
   - Qué: "Forma" → **Inclinación** (`MarkerPicker`); el arrastre usa `tiltDraft` (tocar sin arrastrar no cambia nada; el punto del anillo queda fijo); `CalibrationPanel` muestra "Inclinación: 30° hacia abajo" y **Quitar la inclinación**; textos según `cambios.md`. Abrir "Inclinación" en un análisis con `shape` viejo arranca sin inclinación (y lo avisa el texto del panel); al guardar, `shape` se reemplaza por `tilt`.
   - Verificación: tests de `analysis-screen` (arrastrar con "Inclinación" cambia los anillos y muestra el texto; Quitar la inclinación; guardar persiste `tilt`). Manual con fotos reales sacadas en ángulo (ver Riesgos).
-- [ ] **8. Cierre**
+- [x] **8. Cierre**
   - Qué: verificar criterios, `pnpm test`, `pnpm lint`, `pnpm build`; actualizar `docs/arquitectura.md`, `docs/diseno/` (según `cambios.md`), ADR 0006 y `notas.md`.
   - Verificación: checklist "Al terminar".
 
@@ -111,9 +111,9 @@ Decisiones tomadas con el usuario antes del plan: perspectiva real (no afín); e
   5. **Gráficos de línea:** el tamaño de grupo es de línea en la Evolución y en Rendimiento → pasos 3 y 4.
 
 ## Al terminar
-- [ ] Todos los criterios de aceptación verificados
-- [ ] Tests y lint pasan
-- [ ] `docs/arquitectura.md` actualizado
-- [ ] `docs/diseno/` actualizado si la iteración cambió la UI
-- [ ] ADR creado si corresponde
-- [ ] `notas.md` completado
+- [x] Todos los criterios de aceptación verificados
+- [x] Tests y lint pasan
+- [x] `docs/arquitectura.md` actualizado
+- [x] `docs/diseno/` actualizado si la iteración cambió la UI
+- [x] ADR creado si corresponde
+- [x] `notas.md` completado

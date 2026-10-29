@@ -1,13 +1,13 @@
 # ADR 0004 — Análisis de blancos en el cliente, sin librerías de visión
 
-**Estado:** Aceptada · **Fecha:** 2026-10-28 · **Iteración:** 000 MVP
+**Estado:** Aceptada (la compensación de fotos en ángulo la reemplaza el [ADR 0006](./0006-inclinacion-con-perspectiva.md)) · **Fecha:** 2026-10-28 · **Iteración:** 000 MVP
 
 ## Contexto
 El análisis tiene que medir en mm sobre una foto sacada con el celular, detectar impactos y calcular puntaje, grupo, PMI y distancias (`shooting_metrics.md`). La app no tiene backend ([ADR 0001](./0001-firebase-desde-el-cliente.md)) y tiene que andar sin conexión.
 
 ## Decisión
 Todo corre en el navegador con canvas y funciones puras en `src/lib/`:
-- **Calibración manual asistida:** el usuario marca el centro y un punto sobre un anillo conocido (o dos puntos y su distancia en blancos sin zonas). El centro se propone solo en blancos de anillos. Una elipse opcional compensa fotos en ángulo (aproximación afín, sin corrección de perspectiva).
+- **Calibración manual asistida:** el usuario marca el centro y un punto sobre un anillo conocido (o dos puntos y su distancia en blancos sin zonas). El centro se propone solo en blancos de anillos. Una elipse opcional compensaba fotos en ángulo (aproximación afín, sin corrección de perspectiva); desde la iteración 001 es una inclinación con perspectiva ([ADR 0006](./0006-inclinacion-con-perspectiva.md)).
 - **Detección automática que solo propone:** umbral adaptativo, erosión y componentes conexas con el tamaño de agujero según el calibre. El usuario siempre puede agregar, quitar y deshacer.
 - **El usuario confirma el puntaje:** el análisis lo propone y "Usar el puntaje calculado" decide si reemplaza al manual.
 

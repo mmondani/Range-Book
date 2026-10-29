@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RangeBook · Maqueta</title>
+<title>Range Book · Maqueta</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&amp;family=Barlow:wght@400;500;600&amp;display=swap">
 <style>
 :root{--bg:#050607;--surface:#14181C;--border:#2E353D;--text:#F2F4F5;--text-2:#B4BCC5;--text-3:#8A949F;--accent:#FF6A1A}
@@ -39,8 +39,8 @@ html[data-theme="light"]{--bg:#E6E9EC;--surface:#FFFFFF;--border:#C5CBD2;--text:
 <main>
   <header style="display:flex;flex-direction:column;gap:12px">
     <span class="code" style="letter-spacing:.08em;text-transform:uppercase">Maqueta navegable · no es la app</span>
-    <h1>RangeBook · Pantallas</h1>
-    <p>Hacé clic en una pantalla para abrirla. Dentro de cada pantalla los botones y la navegación llevan a las demás. Las pantallas mobile se ven en un marco de teléfono en desktop y ocupan toda la pantalla en un celular. Especificación: <code>../pantallas.md</code> y <code>../design-system.md</code>.</p>
+    <h1>Range Book · Pantallas</h1>
+    <p>Hacé clic en una pantalla para abrirla. Dentro de cada pantalla los botones y la navegación llevan a las demás. La maqueta refleja lo implementado hasta la iteración 001. Las pantallas mobile se ven en un marco de teléfono en desktop y ocupan toda la pantalla en un celular. Especificación: <code>../pantallas.md</code> y <code>../design-system.md</code>.</p>
     <div class="theme" role="radiogroup" aria-label="Tema de las pantallas"><button type="button" role="radio" data-value="oscuro">Tema oscuro (por defecto)</button><button type="button" role="radio" data-value="claro">Tema claro</button></div>
   </header>
 
@@ -61,11 +61,11 @@ html[data-theme="light"]{--bg:#E6E9EC;--surface:#FFFFFF;--border:#C5CBD2;--text:
     ['M04', 'Nueva / editar sesión', 'sesion-form'], ['M05', 'Agregar ronda', 'ronda-form'], ['M06a', 'Análisis: calibración', 'analisis-calibracion'],
     ['M06', 'Análisis de blanco', 'analisis'],
     ['M07', 'Rendimiento', 'rendimiento'], ['M08', 'Inventario', 'inventario'], ['M09', 'Detalle de arma', 'arma-detalle'],
-    ['M10', 'Alta / edición de arma', 'arma-form'], ['M11', 'Perfil', 'perfil'], ['M12', 'Alta / edición de blanco', 'blanco-form']
+    ['M10', 'Alta / edición de arma', 'arma-form'], ['M11', 'Perfil', 'perfil'], ['M12', 'Alta / edición de blanco', 'blanco-form'], ['M13', 'Visor de fotos', 'visor-fotos']
   ];
   var WEB = [
     ['W01', 'Login (no autorizado)', 'login'], ['W02', 'Sesiones: lista + detalle', 'sesiones'], ['W03', 'Nueva / editar sesión', 'sesion-form'],
-    ['W04a', 'Análisis: calibración', 'analisis-calibracion'], ['W04', 'Análisis de blanco', 'analisis'], ['W05', 'Rendimiento', 'rendimiento'], ['W06', 'Inventario', 'inventario'], ['W07', 'Detalle de arma', 'arma-detalle']
+    ['W04a', 'Análisis: calibración', 'analisis-calibracion'], ['W04', 'Análisis de blanco', 'analisis'], ['W05', 'Rendimiento', 'rendimiento'], ['W06', 'Inventario', 'inventario'], ['W07', 'Detalle de arma', 'arma-detalle'], ['W08', 'Visor de fotos', 'visor-fotos']
   ];
   function fill(id, folder, list) {
     var box = document.getElementById(id);

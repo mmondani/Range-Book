@@ -1,6 +1,6 @@
-# Sistema de diseño — RangeBook
+# Sistema de diseño — Range Book
 
-**Estado:** Borrador para revisión
+**Estado:** Implementado hasta la iteración 001 (Fixes)
 **Maqueta:** [`maqueta/index.html`](./maqueta/index.html)
 **Fuente de verdad:** este documento. Si la maqueta y este documento difieren, prevalece este documento.
 
@@ -74,7 +74,7 @@ Reglas:
 - Margen lateral: 16 px en mobile; 32–40 px en desktop.
 - Radios: inputs y botones `12px`, tarjetas `16px`, sheets `24px` (arriba), chips `999px`, miniaturas `8–10px`.
 - Elevación: casi plana. Las tarjetas se separan con borde, no con sombra. Solo el FAB y los sheets llevan sombra (`0 8px 24px rgba(0,0,0,.5)`).
-- Capas (z-index): contenido 0, header fijo 10, barra inferior 20, FAB 30, scrim y sheet 40, toast 50.
+- Capas (z-index): contenido 0, header fijo 10, barra inferior 20, FAB 30, scrim y sheet 40, visor de fotos 45, toast 50.
 
 ### Movimiento
 
@@ -85,7 +85,7 @@ Reglas:
 ## Íconos
 
 - Set: **Lucide** (`lucide-react`), trazo 2 px y 24 px (18 px en chips y botones chicos). Es el set que se dibujó en la maqueta.
-- Mapeo: Sesiones `Crosshair`, Rendimiento `TrendingUp`, Inventario `Package`, Perfil `User`, Cámara `Camera`, Galería `Image`, Modificación `Wrench`, Configuración `Layers`, Detectar `WandSparkles`, Agregar impacto `CirclePlus`, Quitar impacto `CircleMinus`, Deshacer `Undo2`, Recalibrar la foto `Crosshair`, Acercar `ZoomIn`, Alejar `ZoomOut`, Ver la foto entera `Maximize2`, Editar `Pencil`, Polígono `MapPin`, Eliminar `Trash2`, Sin conexión `WifiOff`, Instalar `Download`, Compartir (iOS) `Share`, Versión `Info`, Cerrar sesión `LogOut`. Clima: `Sun`, `Cloud`, `CloudRain`, `CloudFog`, `Wind`.
+- Mapeo: Sesiones `Crosshair`, Rendimiento `TrendingUp`, Inventario `Package`, Perfil `User`, Cámara `Camera`, Galería `Image`, Modificación `Wrench`, Configuración `Layers`, Detectar `WandSparkles`, Agregar impacto `CirclePlus`, Quitar impacto `CircleMinus`, Deshacer `Undo2`, Recalibrar la foto `Crosshair`, Acercar `ZoomIn`, Alejar `ZoomOut`, Ver la foto entera `Maximize2`, Editar `Pencil`, Polígono `MapPin`, Eliminar `Trash2`, Sin conexión `WifiOff`, Instalar `Download`, Compartir (iOS) `Share`, Versión `Info`, Cerrar sesión `LogOut`, Cerrar el visor `X`, Foto anterior `ChevronLeft`, Foto siguiente `ChevronRight`. Clima: `Sun`, `Cloud`, `CloudRain`, `CloudFog`, `Wind`.
 - Un ícono decorativo junto a un texto lleva `aria-hidden`. Un botón que solo tiene ícono lleva `aria-label`.
 - Logo provisorio: diana con cruz dentro de un cuadrado redondeado naranja (se ve en Login y en el sidebar). Es también el ícono de la PWA y el favicon (`public/icons/`, generados con `scripts/generate-icons.ps1`).
 
@@ -120,14 +120,14 @@ Reglas:
 | `Input`, `Select`, `Textarea`, `DateInput` | Alto 48 px en mobile y 44 px en desktop | Controles nativos (`type="date"`, `inputmode="numeric"`, `datalist` para calibre) |
 | `Stepper` | − valor + | Para cantidad de disparos |
 | `SegmentedControl` | 2–3 opciones | Unidades, tema |
-| `Tabs` | Mobile: chips seleccionables; desktop: tabs subrayados | Inventario. El contador va separado por un espacio, para el nombre accesible |
+| `Tabs` | Mobile: chips seleccionables; desktop: tabs subrayados | Inventario y el detalle de sesión (Rondas / Evolución). El contador va separado por un espacio, para el nombre accesible |
 | `WeatherPicker` | Chips de clima con ícono; tocar el elegido lo desmarca | M04 |
 | `ModificationPicker`, `ModificationChecklist` | Chips de personalizaciones con quitar y "Agregar" (despliega las que faltan); checkboxes de modificaciones | M04 y sheet de configuración |
 | `ZoneEditor` | Filas puntaje + diámetro, Generar anillos uniformes, vista previa | Alta de blanco (M12) |
 | `PhotoPicker` | Botones Cámara / Galería, miniaturas con quitar, portada | Cámara: `<input type=file accept=image/* capture=environment>`. Galería: igual pero sin `capture`. En desktop, zona para arrastrar archivos |
 | `PhotoGallery` | Imagen principal + miniaturas, contador "1 / 3" | Imágenes con `aspect-ratio` reservado |
 | `PhotoStrip` | Fotos a todo el ancho que se deslizan de a una, con "1 / 3 fotos" y botones encima | Encabezado de M03 en mobile |
-| `Photo` | Foto guardada o pendiente de subir; placeholder rayado mientras carga e ícono si falla | Base de las anteriores |
+| `Photo` | Foto guardada o pendiente de subir; placeholder rayado mientras carga e ícono si falla | Base de las anteriores. En `PhotoGallery` (foto principal), `PhotoStrip` y `PhotoPicker` va dentro de un `PhotoButton` |
 | `BottomSheet` / `Dialog` | Sheet en mobile y diálogo centrado en desktop (un solo componente, resuelto con CSS) | Agarrador, botón cerrar, scrim .7. Pide confirmación si hay cambios sin guardar. Las acciones del pie reciben `requestClose`, así "Cancelar" también confirma |
 | `InventorySheet`, `FilterSheet` | Sheet de alta y edición del inventario (con "Archivar …" o "Eliminar …"); opciones de un filtro de Rendimiento como chips | — |
 | `ConfirmDialog` | Destructivo | Para eliminar cualquier entidad |
@@ -139,13 +139,17 @@ Reglas:
 | `RoundRow` | Miniatura del blanco, ronda, disparos · puntaje · grupo, blanco · distancia · comentarios, estado de análisis, link "Ver análisis" / "Analizar blanco" y lápiz "Editar" | Toda la tarjeta lleva al análisis. En desktop es una fila de tabla (`RoundTable`), que también lleva al análisis con un clic |
 | `TargetThumb` | Foto del blanco o dibujo de sus anillos (silueta de cartón para los blancos sin zonas) | — |
 | `TargetAnalyzer` | Visor de la foto: recuadro 5:6 (mobile) o 1:1 (desktop), la foto arranca cubriéndolo y centrada; zoom propio (botones Acercar / Alejar / Ver la foto entera abajo a la derecha, dos dedos, Ctrl + rueda) y desplazamiento; controles propios arriba a la izquierda (`controls`); impactos (anillo naranja de 2 px sin relleno, 18 px en mobile y 20 px en desktop, con un filo oscuro de cada lado; rojo en Quitar), PMI (cruz azul), grupo (punteado naranja), anillos de calibración y marcadores (verde); overlay de progreso | Marcadores y trazos mantienen su tamaño con cualquier zoom. Arrastre de marcadores con los punteros (con el dedo, a los 100 ms; un segundo dedo es zoom). Ver `pantallas.md` → Análisis |
-| `MarkerPicker` | Botones sobre la foto (40 px, redondeados): Centro / Anillo / Forma o Centro / Punto A / Punto B; activo con borde verde, ✓ en los ya ubicados | `radiogroup` "Qué ajustar", navegable con las flechas |
-| `CalibrationPanel` | Tarjeta "Calibrar la foto": explicación, instrucción del punto activo, aviso del centro automático, "Volver a círculos", anillo marcado o distancia A–B, error | — |
+| `MarkerPicker` | Botones sobre la foto (40 px, redondeados): Centro / Anillo / Inclinación o Centro / Punto A / Punto B; activo con borde verde, ✓ en los ya ubicados | `radiogroup` "Qué ajustar", navegable con las flechas |
+| `CalibrationPanel` | Tarjeta "Calibrar la foto": explicación, instrucción del punto activo, aviso del centro automático, la inclinación ("Inclinación: 30° hacia abajo"), aviso de la forma vieja, "Quitar la inclinación", anillo marcado o distancia A–B, error | — |
 | `AnalyzerToolbar` | Detectar / Agregar / Quitar (`aria-pressed`); "Detectar automáticamente" en desktop | `toolbar` "Modo de edición" |
 | `ScoreTile` | Puntaje / máximo, promedio por tiro y distribución por zona; lugar para la confirmación del puntaje | — |
-| `MetricTile` | Tamaño de grupo (mm + MOA), desvío del PMI (hora de reloj o "Centrado"), distancia al centro | Una `StatTile` en tarjeta. Unidad en mm o pulgadas, según el perfil |
+| `MetricTile` | Tamaño de grupo (mm + MOA), desvío del PMI (hora de reloj o "Centrado", y debajo sus coordenadas "(x; y)" con signo, en 13 px), distancia al centro | Una `StatTile` en tarjeta. Unidad en mm o pulgadas, según el perfil |
 | `ImpactTable` | #, zona, X / Y desde el centro, quitar | Solo en desktop; alternativa accesible para quitar impactos |
-| `LineChart`, `BarChart` | Ejes con unidad, último punto destacado, `aria-label` con el resumen | Grilla tenue. Tooltip al tocar o pasar el mouse |
+| `LineChart` | Valor sobre cada punto (12 px; el destacado, 14 px), el último destacado (o el que se toca o se señala) con su etiqueta del eje x resaltada; etiquetas del eje x que no se pisan; `aria-label` con el resumen | Grilla tenue. Dibuja en px reales: cada punto ocupa al menos 52 px y, si no entran, el área se desplaza en horizontal (enfocable con el teclado) con el eje y fijo (`ChartYAxis`). Etiquetas del eje x: fechas ("2 ago") o rondas ("R1"). Es el único gráfico por sesión o ronda (no hay barras) |
+| `MpiScatter` | Dispersión de los PMI de cada ronda alrededor del centro: ejes, dos círculos de referencia con su medida, puntos `--info` numerados (el número en `--surface`), recorrido punteado, la última resaltada | Evolución de la sesión. Hasta 280 px de ancho |
+| `SessionEvolution` | Nota "Por ronda analizada · N de M", control mm | MOA, control PMI / Grupo / Al centro, gráficos y estados | Pestaña Evolución de M03 / W02 |
+| `PhotoViewer` | Visor a pantalla completa: contador, Cerrar, anterior / siguiente, Acercar / Alejar; deslizar, dos dedos, doble toque, Ctrl + rueda | Fondo negro y botones de "sobre la foto" (no cambia con el tema). Capa entre sheet (40) y toast (50) |
+| `PhotoButton` | Foto que se toca para verla a pantalla completa; cursor `zoom-in` | Nombre "Ver la foto N de M en pantalla completa"; la foto conserva su texto alternativo |
 | `DataTable` | Ordenable (`aria-sort`, botón en el encabezado), columnas `numeric` (a la derecha, cifras tabulares), scroll horizontal en su contenedor; filas clickeables (`onRowClick`, con resaltado al pasar el mouse) | Rendimiento, inventario, rondas, impactos. La fila clickeable es un atajo para el mouse: la misma acción tiene que estar en un link o botón de la fila |
 | `AmmunitionComparison` | Barras horizontales por munición; la mejor ocupa todo el ancho | Rendimiento en mobile |
 
@@ -155,4 +159,4 @@ Reglas:
 - Áreas táctiles ≥ 44×44 px, con ≥ 8 px entre una y otra.
 - Foco visible: `outline: 2px solid var(--accent); outline-offset: 2px`.
 - Jerarquía de headings sin saltos. Cada ruta mueve el foco al `<h1>`.
-- Todo lo que se hace con gestos tiene un control visible. En el analizador, quitar un impacto también se puede hacer desde la tabla de impactos, el zoom tiene botones y el punto a ubicar se elige con botones sobre la foto.
+- Todo lo que se hace con gestos tiene un control visible. En el analizador, quitar un impacto también se puede hacer desde la tabla de impactos, el zoom tiene botones y el punto a ubicar se elige con botones sobre la foto. En el visor de fotos, deslizar tiene las flechas anterior / siguiente y el zoom, sus botones.

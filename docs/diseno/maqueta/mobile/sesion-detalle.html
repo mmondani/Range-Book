@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Detalle de sesión — mobile · RangeBook</title>
+<title>Detalle de sesión — mobile · Range Book</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Barlow:wght@400;500;600;700&amp;display=swap">
 <style>
 body{margin:0;background:#0B0D0F}
@@ -32,6 +32,8 @@ body{margin:0;background:#0B0D0F}
 .tgt{position:relative;width:64px;height:64px;border-radius:10px;background:#E9E4D6;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .dot{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--accent);border:1px solid #fff}
 a{color:var(--accent)}a:hover{color:var(--accent-hover)}
+.seg{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;border:0;border-radius:10px;background:transparent;color:var(--text-2);font:600 15px 'Barlow',sans-serif;cursor:pointer}.seg.on{background:var(--surface-3);color:var(--text)}
+.tabchip{min-height:40px;padding:0 14px;font-size:15px;cursor:pointer}.chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--text)}.chip .c{font-size:13px;color:var(--text-3)}
 </style>
 <link rel="stylesheet" href="../assets/frame.css">
 </head>
@@ -39,7 +41,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
 <div class="rb phone" style="width:390px;height:844px;position:relative;overflow:hidden">
   <main style="position:absolute;inset:0 0 88px 0;overflow-y:auto;display:flex;flex-direction:column">
     <div style="position:relative;height:200px;flex-shrink:0">
-      <div class="ph" style="position:absolute;inset:0">[Foto del polígono]</div>
+      <a href="visor-fotos.html" class="ph" aria-label="Ver la foto 1 de 3 en pantalla completa" style="position:absolute;inset:0;text-decoration:none">[Foto del polígono] · tocar para ampliar</a>
       <div style="position:absolute;top:12px;left:8px;right:8px;display:flex;justify-content:space-between">
         <a href="sesiones.html" class="icon-btn" aria-label="Volver a sesiones" style="background:rgba(11,13,15,.75)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></a>
         <div style="display:flex;gap:8px">
@@ -73,10 +75,11 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
         <div class="card" style="padding:12px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Grupo</span><span class="display num" style="font-size:28px">46<span style="font-size:16px;color:var(--text-3)"> mm</span></span></div>
       </section>
 
-      <section style="display:flex;flex-direction:column;gap:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <h2 class="display" style="font-size:22px">Rondas <span class="num" style="color:var(--text-3)">· 2</span></h2>
-        </div>
+      <div role="tablist" aria-label="Vista de la sesión" style="display:flex;gap:8px">
+        <button type="button" role="tab" aria-selected="true" class="chip tabchip on" data-tab="rondas">Rondas <span class="c num">2</span></button>
+        <button type="button" role="tab" aria-selected="false" class="chip tabchip" data-tab="evolucion">Evolución</button>
+      </div>
+      <section role="tabpanel" aria-label="Rondas" data-panel="rondas" style="display:flex;flex-direction:column;gap:12px">
 
         <div class="card round">
           <div class="tgt" aria-hidden="true">
@@ -107,6 +110,37 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
         </div>
       </section>
 
+      <section class="card" role="tabpanel" aria-label="Evolución" data-panel="evolucion" hidden style="padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
+          
+          <span style="font-size:13px;color:var(--text-3)">Por ronda analizada · 5 de 6</span>
+          <div role="radiogroup" aria-label="Unidad" data-unit style="display:inline-flex;gap:2px;padding:3px;border-radius:12px;background:var(--surface-2)">
+            <button type="button" role="radio" class="seg on" aria-checked="true" data-value="mm" style="min-height:36px;padding:0 12px;font-size:14px">mm</button>
+            <button type="button" role="radio" class="seg" aria-checked="false" data-value="moa" style="min-height:36px;padding:0 12px;font-size:14px">MOA</button>
+          </div>
+        </div>
+        <div role="radiogroup" aria-label="Qué graficar" data-evo style="display:flex;gap:4px;padding:4px;border-radius:14px;background:var(--surface-2)">
+          <button type="button" role="radio" class="seg on" aria-checked="true" data-value="pmi">PMI</button>
+          <button type="button" role="radio" class="seg" aria-checked="false" data-value="grupo">Grupo</button>
+          <button type="button" role="radio" class="seg" aria-checked="false" data-value="centro">Al centro</button>
+        </div>
+        <div data-evo-panel="pmi" style="display:flex;flex-direction:column;gap:12px">
+          <h3 style="font-size:15px;font-weight:600">Desvío del PMI (<span data-unit-label>mm</span>)</h3>
+          <div data-chart='{"type":"line","decimals":1,"label":"Desvío del PMI por ronda en mm: de 14,0 a 4,2","points":[["R1",14],["R2",11.2],["R3",8.5],["R4",6.1],["R5",4.2]]}'></div>
+          <h3 style="font-size:15px;font-weight:600">PMI de cada ronda</h3>
+          <div data-chart='{"type":"scatter","label":"PMI de las rondas 1 a 5 respecto del centro: se acercan desde abajo a la izquierda","points":[["1",-4.1,-13.4],["2",-2,-11],["3",1.5,-8.4],["4",3,-5.3],["5",1.2,-4]]}'></div>
+          <p style="font-size:13px;color:var(--text-3)">Cada punto es el PMI de una ronda (X a la derecha, Y hacia arriba); la última, resaltada.</p>
+        </div>
+        <div data-evo-panel="grupo" hidden>
+          <h3 style="font-size:15px;font-weight:600;margin-bottom:8px">Tamaño de grupo (<span data-unit-label>mm</span>)</h3>
+          <div data-chart='{"type":"line","decimals":0,"label":"Tamaño de grupo por ronda en mm: de 46 a 35","points":[["R1",46],["R2",52],["R3",41],["R4",39],["R5",35]]}'></div>
+        </div>
+        <div data-evo-panel="centro" hidden>
+          <h3 style="font-size:15px;font-weight:600;margin-bottom:8px">Distancia al centro (<span data-unit-label>mm</span>)</h3>
+          <div data-chart='{"type":"line","decimals":0,"label":"Distancia media al centro por ronda en mm: de 31 a 21","points":[["R1",31],["R2",33],["R3",27],["R4",24],["R5",21]]}'></div>
+        </div>
+      </section>
+
       <section class="card" style="padding:16px;display:flex;flex-direction:column;gap:6px">
         <h2 class="eyebrow">Notas</h2>
         <p style="color:var(--text-2)">Práctica de dobles a 7 m y precisión a 25 m. Viento leve desde la izquierda.</p>
@@ -122,5 +156,39 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
   </div>
 </div>
 <script src="../assets/app.js"></script>
+<script src="../assets/charts.js"></script>
+<script>
+// Evolución: el control segmentado muestra un panel y dibuja sus gráficos.
+document.querySelector('[data-evo]').addEventListener('mk-change', function (e) {
+  document.querySelectorAll('[data-evo-panel]').forEach(function (p) { p.hidden = p.dataset.evoPanel !== e.detail; });
+  window.mkCharts();
+});
+</script>
+<script>
+// Unidad de la evolución: mm (del perfil) o MOA (a la distancia de cada ronda; acá, 25 m).
+(function () {
+  var MM_PER_MOA = 25 * 0.2909;
+  var boxes = document.querySelectorAll('[data-chart]');
+  boxes.forEach(function (b) { b.dataset.orig = b.dataset.chart; });
+  document.querySelector('[data-unit]').addEventListener('mk-change', function (e) {
+    var moa = e.detail === 'moa';
+    var k = moa ? 1 / MM_PER_MOA : 1;
+    boxes.forEach(function (b) {
+      var cfg = JSON.parse(b.dataset.orig);
+      cfg.points = cfg.points.map(function (p) { return [p[0]].concat(p.slice(1).map(function (v) { return v * k; })); });
+      if (moa) cfg.decimals = 1;
+      cfg.unit = moa ? 'MOA' : 'mm';
+      b.dataset.chart = JSON.stringify(cfg);
+      b.innerHTML = '';
+      delete b.dataset.done;
+    });
+    document.querySelectorAll('[data-unit-label]').forEach(function (s) { s.textContent = moa ? 'MOA' : 'mm'; });
+    window.mkCharts();
+  });
+})();
+</script>
+<script>
+document.querySelector('[aria-label="Vista de la sesión"]').addEventListener('click', function () { setTimeout(window.mkCharts); });
+</script>
 </body>
 </html>
