@@ -25,6 +25,16 @@
 - **La lista de rondas dejó de tener título.** El `<h2>`/`<h3>` "Rondas · N" lo reemplaza la pestaña "Rondas N"; los tests que buscaban el título ahora buscan la pestaña.
 - **Al abrir "Agregar ronda" desde la pestaña Evolución,** detrás del sheet se ve la pestaña Rondas (el link no lleva `?vista=`). Al cerrar el sheet se vuelve atrás en el historial y la Evolución vuelve a estar.
 
+### Paso 5 — Visor de fotos
+- **Componente extra, `PhotoButton`:** la foto como botón ("Ver la foto N de M en pantalla completa", cursor `zoom-in`) que abre el visor. La foto conserva su texto alternativo, así el aviso "no se pudo cargar" sigue diciendo cuál es.
+- **El visor usa su propio `<img>` (con `usePhotoSrc`), como `TargetAnalyzer`,** porque necesita el tamaño natural de la foto para el zoom; `Photo` no cambió.
+- **Anterior / siguiente también en mobile.** La maqueta mobile solo tenía deslizar, pero el sistema de diseño pide un control visible para todo gesto.
+- **Hasta 10×, no 8×:** se reutiliza `MAX_ZOOM` de `zoom.ts`.
+- **Sin animación al deslizar:** la foto cambia al soltar el dedo (la maqueta usaba `scroll-snap`). Con zoom, deslizar desplaza la foto en vez de cambiarla.
+- **Foco:** en la primera o la última foto su flecha se deshabilita; si tenía el foco, el foco vuelve al visor (si no, se escapaba del diálogo y dejaban de andar las flechas del teclado y Escape). Lo encontraron los tests.
+- **El visor queda arriba de los sheets** (se abre también desde el selector de fotos de un formulario) y debajo de los toasts.
+- **Pellizco y doble toque no tienen test automático** (jsdom no los simula bien); hay que probarlos en el celular.
+
 ## Pendientes
 
 ## Aprendizajes

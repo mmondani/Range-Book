@@ -9,8 +9,9 @@ import { EmptyState } from '@/components/empty-state';
 import { IconButton } from '@/components/icon-button';
 import { IconLink } from '@/components/icon-link';
 import { LinkButton } from '@/components/link-button';
-import { Photo } from '@/components/photo';
+import { PhotoButton } from '@/components/photo-button';
 import { PhotoStrip } from '@/components/photo-strip';
+import { PhotoViewer } from '@/components/photo-viewer';
 import { RoundRow } from '@/components/round-row';
 import { RoundTable } from '@/components/round-table';
 import { SessionEvolution } from '@/components/session-evolution';
@@ -22,6 +23,7 @@ import { TagList } from '@/components/tag-list';
 import { WeatherIcon } from '@/components/weather-icon';
 import { OPENED_FROM_LIST } from '@/hooks/use-inventory';
 import { useIsDesktop } from '@/hooks/use-media-query';
+import { usePhotoViewer } from '@/hooks/use-photo-viewer';
 import { useUnits } from '@/hooks/use-profile';
 import {
   useDeleteSession,
@@ -50,6 +52,7 @@ const VIEW_TABS_ID = 'session-view';
 export function SessionDetail() {
   const { id = '' } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
+  const viewer = usePhotoViewer();
   const view: SessionView = searchParams.get('vista') === 'evolucion' ? 'evolucion' : 'rondas';
   const { data, listPath } = useSessionsOutlet();
   const isDesktop = useIsDesktop();
@@ -266,14 +269,24 @@ export function SessionDetail() {
         <ul aria-label="Fotos del polígono" className={styles.photos}>
           {photos.map((photo, index) => (
             <li key={photoKey(photo)}>
-              <Photo
+              <PhotoButton
                 photo={photo}
                 alt={`Foto ${index + 1} de ${photos.length}`}
+                label={`Ver la foto ${index + 1} de ${photos.length} en pantalla completa`}
                 className={styles.photo}
+                onClick={() => viewer.open(index)}
               />
             </li>
           ))}
         </ul>
+      )}
+      {isDesktop && viewer.index !== null && (
+        <PhotoViewer
+          photos={photos}
+          start={viewer.index}
+          label="Fotos del polígono"
+          onClose={viewer.close}
+        />
       )}
 
       <div className={styles.section}>

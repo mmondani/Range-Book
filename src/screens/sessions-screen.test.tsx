@@ -210,6 +210,28 @@ describe('SessionDetail', () => {
     expect(router.state.historyAction).toBe('REPLACE');
   });
 
+  it('tocar una foto del polígono la abre a pantalla completa; "atrás" la cierra', async () => {
+    const { router } = renderSessions(`/sesiones/${TODAY_SESSION.id}`);
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Ver la foto 2 de 2 en pantalla completa' }),
+    );
+    const viewer = screen.getByRole('dialog', { name: 'Fotos del polígono' });
+    expect(viewer).toHaveTextContent('2 / 2');
+    expect(router.state.location.pathname).toBe(`/sesiones/${TODAY_SESSION.id}`);
+
+    await act(() => router.navigate(-1));
+    expect(screen.queryByRole('dialog', { name: 'Fotos del polígono' })).not.toBeInTheDocument();
+  });
+
+  it('en desktop, las fotos de la grilla también abren el visor', async () => {
+    setDesktop(true);
+    renderSessions(`/sesiones/${TODAY_SESSION.id}`);
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Ver la foto 1 de 2 en pantalla completa' }),
+    );
+    expect(screen.getByRole('dialog', { name: 'Fotos del polígono' })).toHaveTextContent('1 / 2');
+  });
+
   it('entrar con ?vista=evolucion abre esa pestaña', async () => {
     renderSessions(`/sesiones/${TODAY_SESSION.id}?vista=evolucion`);
     expect(await screen.findByRole('tab', { name: 'Evolución' })).toHaveAttribute(

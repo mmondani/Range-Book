@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
+import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { compressImage } from '@/lib/image-compression';
 import { storedPhotos, type PhotoDraft } from '@/lib/photos';
@@ -48,12 +49,15 @@ function Harness({
 
 function renderPicker(props: Parameters<typeof Harness>[0] = {}) {
   const { repository } = createFakePhotos();
+  // El visor a pantalla completa usa el historial.
   return render(
-    <PhotoProvider repository={repository}>
-      <ToastProvider>
-        <Harness {...props} />
-      </ToastProvider>
-    </PhotoProvider>,
+    <MemoryRouter>
+      <PhotoProvider repository={repository}>
+        <ToastProvider>
+          <Harness {...props} />
+        </ToastProvider>
+      </PhotoProvider>
+    </MemoryRouter>,
   );
 }
 
@@ -109,6 +113,19 @@ describe('PhotoPicker', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Quitar foto 1' }));
     expect(latest).toEqual(storedPhotos(['users/ana/sessions/s1/b.jpg']));
     expect(screen.queryByRole('button', { name: 'Quitar foto 2' })).not.toBeInTheDocument();
+    // Quitar no abre el visor.
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('tocar una foto la abre a pantalla completa, también si está pendiente de subir', async () => {
+    renderPicker({ initial: storedPhotos(['users/ana/sessions/s1/a.jpg']) });
+    await userEvent.upload(galleryInput(), image('nueva.jpg'));
+    await waitFor(() => expect(latest).toHaveLength(2));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Ver la foto 2 en pantalla completa' }),
+    );
+    const viewer = screen.getByRole('dialog', { name: 'Fotos elegidas' });
+    expect(viewer).toHaveTextContent('2 / 2');
   });
 
   it('con una sola foto, elegir otra la reemplaza', async () => {
