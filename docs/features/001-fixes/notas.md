@@ -6,6 +6,9 @@
 - **El nombre quedó en una constante, `APP_NAME` (`src/lib/app-info.ts`).** La usan el manifest (`vite.config.ts` la importa con la extensión `.ts`, como pide el cargador de configuración de Vite), `Logo`, el login y las instrucciones de instalación de Perfil. `index.html` no puede importarla: ahí el nombre sigue escrito a mano (`<title>` y `apple-mobile-web-app-title`).
 - **El manifest se verifica con el build, no con un test unitario.** `vite-plugin-pwa` no expone el manifest desde la configuración sin correr Vite. Se comprobó en `dist/manifest.webmanifest` (`name` y `short_name` "Range Book"). Los tests cubren el nombre visible (`logo.test.tsx`, login y perfil).
 
+### Paso 2 — Coordenadas del PMI
+- **`formatSignedLength` quedó en `units.ts`, no en `format.ts` (`formatSigned`).** Formatea una medida en mm en la unidad del perfil, con sus decimales (1 en mm, 2 en pulgadas), igual que `formatLengthValue`, que ya está ahí.
+
 ## Pendientes
 
 ## Aprendizajes

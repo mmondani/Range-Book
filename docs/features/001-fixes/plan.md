@@ -60,7 +60,7 @@ Decisiones tomadas con el usuario antes del plan: perspectiva real (no afín); e
 - [x] **1. Nombre "Range Book"**
   - Qué: `name` y `short_name` "Range Book" en el manifest; `apple-mobile-web-app-title` en `index.html`; textos visibles en `logo.tsx` (nombre y texto oculto), `login-screen.tsx` y las instrucciones de instalación de `profile-screen.tsx`.
   - Verificación: test que lee la config del manifest de `vite.config.ts`; tests de `Logo`, login y perfil con el nombre nuevo; `pnpm build` y revisar `dist/manifest.webmanifest`. Manual: reinstalar la PWA (el nombre de una ya instalada se actualiza recién al reinstalar en iOS).
-- [ ] **2. Coordenadas del PMI**
+- [x] **2. Coordenadas del PMI**
   - Qué: `formatSigned` en `format.ts` (signo `+` / `−` U+2212, coma decimal, sin signo en 0). En la tarjeta del PMI, la línea "X −4,1 · Y −13,2" (mobile) o "X −4,1 mm · Y −13,2 mm" (desktop), en la unidad del perfil. Con 0 impactos no se muestra.
   - Verificación: tests de `formatSigned`; test de `analysis-screen` con impactos conocidos que comprueba X e Y (y en pulgadas).
 - [ ] **3. Valores en los gráficos de Rendimiento**

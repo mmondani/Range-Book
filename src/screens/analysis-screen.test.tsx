@@ -105,6 +105,24 @@ describe('M06 · Análisis con un análisis guardado', () => {
     expect(screen.getByRole('toolbar', { name: 'Modo de edición' })).toBeInTheDocument();
   });
 
+  it('el PMI muestra, además del desvío y la dirección, sus coordenadas X / Y con signo', async () => {
+    renderSessions(analysisPath(ROUND_1.id));
+    const metrics = within(await screen.findByRole('region', { name: 'Métricas' }));
+    // Impactos en (0, 10), (0, −36) y (−20, −13): PMI en (−6,7; −13,0).
+    expect(metrics.getByText('PMI').parentElement).toHaveTextContent(
+      'Hacia las 7 hX −6,7 · Y −13,0',
+    );
+  });
+
+  it('en desktop, las coordenadas del PMI llevan la unidad', async () => {
+    setDesktop(true);
+    renderSessions(analysisPath(ROUND_1.id));
+    const metrics = within(await screen.findByRole('region', { name: 'Métricas' }));
+    expect(metrics.getByText('Desvío PMI').parentElement).toHaveTextContent(
+      'X −6,7 mm · Y −13,0 mm',
+    );
+  });
+
   it('con el puntaje calculado marcado, la ronda usa el calculado', async () => {
     const { sessions, sessionItems } = renderSessions(analysisPath(ROUND_1.id));
     const checkbox = await screen.findByRole('checkbox', {

@@ -65,7 +65,7 @@ import { sessionLabels, type Round, type Session } from '@/lib/sessions';
 import { centerDetectionScale, detectTargetCenter } from '@/lib/target-center';
 import { zoneScore } from '@/lib/target-zones';
 import { maxZoneScore, targetName, type Target } from '@/lib/targets';
-import { formatLengthValue, UNIT_SYMBOLS } from '@/lib/units';
+import { formatLengthValue, formatSignedLength, UNIT_SYMBOLS } from '@/lib/units';
 import styles from './analysis-screen.module.css';
 
 /** Margen del círculo de grupo alrededor del impacto más lejano al PMI. */
@@ -419,6 +419,9 @@ function RoundAnalyzer({
   };
   const unit = UNIT_SYMBOLS[units];
   const length = (mm: number | null) => (mm === null ? '—' : formatLengthValue(mm, units));
+  // Coordenada del PMI con signo; en desktop, con la unidad.
+  const coordinate = (mm: number) =>
+    `${formatSignedLength(mm, units)}${isDesktop ? ` ${unit}` : ''}`;
   const mismatch = impactMismatch(history.impacts.length, round.shots);
   const canUndo = history.past.length > 0;
 
@@ -705,11 +708,18 @@ function RoundAnalyzer({
                       value={length(metrics.mpiOffsetMm)}
                       unit={unit}
                       help={
-                        metrics.mpiClock === null
-                          ? metrics.mpi
-                            ? 'Centrado'
-                            : '—'
-                          : `Hacia las ${metrics.mpiClock} h`
+                        <>
+                          {metrics.mpiClock === null
+                            ? metrics.mpi
+                              ? 'Centrado'
+                              : '—'
+                            : `Hacia las ${metrics.mpiClock} h`}
+                          {metrics.mpi && (
+                            <span className={cx('num', styles.coordinates)}>
+                              X {coordinate(metrics.mpi.x)} · Y {coordinate(metrics.mpi.y)}
+                            </span>
+                          )}
+                        </>
                       }
                     />
                     <MetricTile
