@@ -61,7 +61,8 @@ Ya llevados a `docs/diseno/maqueta/` (la maqueta de la iteración queda como se 
 - **Unidad de la Evolución en pulgadas:** "in", no "pulg".
 
 ## Pendientes
-- **Probar la inclinación con fotos reales sacadas en ángulo** (y con zoom): si los anillos coinciden en toda la vuelta y si la sensibilidad del arrastre se siente bien. Si no, ajustar `FOCAL_LENGTH` o `TILT_PER_SIDE` en `calibration.ts`.
+Verificados por el usuario en producción (2026-10-29): funcionan bien, no hace falta ajustar nada. Se dejan anotados como límites conocidos del enfoque.
+- **Inclinación con fotos reales sacadas en ángulo** (y con zoom): los anillos coinciden y la sensibilidad del arrastre se siente bien. Si en el futuro hiciera falta, se ajustan `FOCAL_LENGTH` o `TILT_PER_SIDE` en `calibration.ts`.
 - **Centro automático con perspectiva:** `target-center.ts` busca el centro de los anillos en la foto, que con el blanco inclinado no coincide exactamente con su centro real. Se corrige a mano; si molesta, buscar el centro después de inclinar.
 - **Detección con perspectiva fuerte:** usa un solo tamaño de agujero (el del centro del blanco); los agujeros lejanos miden un poco distinto.
 - **"Agregar ronda" desde la pestaña Evolución:** detrás del sheet se ve la pestaña Rondas (el link no lleva `?vista=`). Al cerrar vuelve a Evolución.
