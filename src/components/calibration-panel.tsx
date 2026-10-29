@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import type { CalibrationDraft, CalibrationTool } from '@/lib/calibration';
+import { describeTilt, type CalibrationDraft, type CalibrationTool } from '@/lib/calibration';
 import { cx } from '@/lib/cx';
 import { formatDecimal } from '@/lib/format';
 import type { TargetZone } from '@/lib/target-zones';
@@ -17,7 +17,7 @@ const INSTRUCTIONS: Record<CalibrationTool, string> = {
   a: 'Tocá un punto de referencia, por ejemplo el borde izquierdo del blanco.',
   b: 'Tocá el segundo punto y escribí abajo la distancia real entre los dos.',
   shape:
-    'Si la foto está en ángulo, mantené apretado y arrastrá: los anillos verdes se estiran o se achican hasta el dedo en esa dirección. Repetilo en otra dirección hasta que coincidan con los de la foto.',
+    'Si la foto está en ángulo, mantené apretado y arrastrá: el blanco se inclina hacia donde arrastrás (ese lado se acerca y se ve más grande). Ajustá hasta que los anillos verdes coincidan con los de la foto.',
 };
 
 export interface CalibrationPanelProps {
@@ -61,7 +61,10 @@ export function CalibrationPanel({
           : 'Para medir en mm, ubicá sobre la foto el centro del blanco y dos puntos a una distancia conocida.'}{' '}
         Con los botones de arriba de la foto elegís qué punto ubicar. Para ajustarlo, mantené
         apretado y arrastralo; para verlo de cerca, acercá la foto con dos dedos o con los botones
-        de zoom. La foto tiene que estar sacada de frente.
+        de zoom.{' '}
+        {scoring === 'rings'
+          ? 'Si la foto está sacada en ángulo, elegí «Inclinación» y arrastrá hasta que los anillos coincidan.'
+          : 'La foto tiene que estar sacada de frente.'}
       </p>
       <p role="status" className={styles.instruction}>
         {INSTRUCTIONS[active]}
@@ -72,13 +75,22 @@ export function CalibrationPanel({
           tocalo.
         </p>
       )}
-      {scoring === 'rings' && draft.shape && (
+      {scoring === 'rings' && draft.tilt && (
+        <p className={cx('num', styles.note)}>{describeTilt(draft.tilt)}</p>
+      )}
+      {scoring === 'rings' && !draft.tilt && draft.shape && (
+        <p className={styles.note}>
+          Esta foto se calibró con la forma anterior de los anillos. Si la inclinás, se reemplaza
+          por la inclinación.
+        </p>
+      )}
+      {scoring === 'rings' && (draft.tilt || draft.shape) && (
         <Button
           variant="ghost"
           className={styles.reset}
-          onClick={() => onChange({ shape: undefined })}
+          onClick={() => onChange({ tilt: undefined, shape: undefined })}
         >
-          Volver a círculos
+          Quitar la inclinación
         </Button>
       )}
       {scoring === 'rings' ? (

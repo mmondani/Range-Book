@@ -42,6 +42,13 @@
 - **`mmPerPixel` es la escala local en el centro del blanco** (la raíz del determinante de la derivada de la homografía). Con perspectiva, un agujero lejos del centro mide un poco distinto en píxeles; la detección usa este valor promedio.
 - `reshapeDraft` sigue hasta el paso 7, que la reemplaza en la pantalla.
 
+### Paso 7 — Inclinación en la pantalla de calibración
+- **Se eliminó `reshapeDraft`** (y sus tests). Los tests de la forma vieja quedaron como "calibraciones guardadas antes de la inclinación": se siguen midiendo igual, se guardan y se leen.
+- **El arrastre cuenta desde el primer movimiento del dedo**, no desde donde se apoyó (el analizador avisa los movimientos, no el apoyo). Un toque sin arrastrar no cambia nada.
+- **Calibración vieja con forma:** "Inclinación" aparece con ✓, el panel avisa "Esta foto se calibró con la forma anterior de los anillos. Si la inclinás, se reemplaza por la inclinación." y "Quitar la inclinación" también quita la forma. Al empezar a inclinar, los anillos arrancan de círculos (no se convierte la forma vieja en inclinación).
+- **Blancos sin zonas:** no tienen inclinación; su panel sigue diciendo "La foto tiene que estar sacada de frente."
+- **Prueba con fotos reales pendiente** (riesgo del plan): ver si la distancia focal supuesta (0,75 × el lado mayor) y la sensibilidad del arrastre (0,02 rad por 1 %) se sienten bien.
+
 ## Pendientes
 
 ## Aprendizajes

@@ -508,7 +508,7 @@ describe('M06 · Análisis nuevo', () => {
     expect(within(picker).getByRole('radio', { name: 'Anillo' })).toBeChecked();
   });
 
-  it('con "Forma" se deforman los anillos y las medidas los siguen', async () => {
+  it('con "Inclinación" se inclina el blanco y las medidas lo siguen', async () => {
     const { sessions } = renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
     await loadPhoto(2);
     const picker = within(screen.getByRole('group', { name: 'Visor de la foto' })).getByRole(
@@ -516,11 +516,11 @@ describe('M06 · Análisis nuevo', () => {
       { name: 'Qué ajustar' },
     );
 
-    // Sin el centro y el anillo, todavía no se puede deformar.
-    await userEvent.click(within(picker).getByRole('radio', { name: 'Forma' }));
-    tapPhoto('Deformar los anillos hacia el punto indicado', 500, 400);
+    // Sin el centro y el anillo, todavía no se puede inclinar.
+    await userEvent.click(within(picker).getByRole('radio', { name: 'Inclinación' }));
+    tapPhoto('Inclinar el blanco arrastrando sobre la foto', 500, 400);
     expect(screen.getByRole('alert')).toHaveTextContent(
-      'Ubicá el centro y un punto sobre un anillo antes de deformarlos',
+      'Ubicá el centro y un punto sobre un anillo antes de inclinar el blanco',
     );
 
     // El anillo de 500 mm, 250 px a la derecha del centro: 1 mm por px.
@@ -529,47 +529,96 @@ describe('M06 · Análisis nuevo', () => {
     tapPhoto('Ubicar centro en el punto indicado', 500, 500);
     tapPhoto('Ubicar anillo en el punto indicado', 750, 500);
 
-    // La foto se sacó desde abajo: los anillos se ven achatados. Se arrastra hacia arriba hasta
-    // que el anillo de 500 mm mide 100 px de alto.
-    await userEvent.click(within(picker).getByRole('radio', { name: 'Forma' }));
-    const surface = photoSurface('Deformar los anillos hacia el punto indicado');
+    // Un toque sin arrastrar no inclina nada.
+    await userEvent.click(within(picker).getByRole('radio', { name: 'Inclinación' }));
+    tapPhoto('Inclinar el blanco arrastrando sobre la foto', 500, 300);
+    expect(within(picker).getByRole('radio', { name: 'Inclinación' })).toBeChecked();
+
+    // La foto se sacó desde abajo: se arrastra hacia abajo.
+    const surface = photoSurface('Inclinar el blanco arrastrando sobre la foto');
     const mouse = { button: 0, pointerId: 1, pointerType: 'mouse', isPrimary: true };
     fireEvent.pointerDown(surface, { ...mouse, clientX: 500, clientY: 300 });
     fireEvent.pointerMove(surface, { ...mouse, clientX: 500, clientY: 350 });
     fireEvent.pointerUp(surface, { ...mouse, clientX: 500, clientY: 400 });
     fireEvent.click(surface, { clientX: 500, clientY: 400, detail: 1 });
-    expect(within(picker).getByRole('radio', { name: 'Forma ✓' })).toBeChecked();
-    expect(screen.getByRole('button', { name: 'Volver a círculos' })).toBeInTheDocument();
+    expect(within(picker).getByRole('radio', { name: 'Inclinación ✓' })).toBeChecked();
+    const panel = screen.getByRole('region', { name: 'Calibrar la foto' });
+    expect(panel).toHaveTextContent(/Inclinación: \d+° hacia abajo/);
+    expect(
+      within(panel).getByRole('button', { name: 'Quitar la inclinación' }),
+    ).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
 
-    // 40 px hacia arriba son 100 mm; 100 px a la derecha, 100 mm.
-    tapPhoto('Agregar impacto en el punto indicado', 500, 460);
-    tapPhoto('Agregar impacto en el punto indicado', 600, 500);
+    // La fila del centro no cambia con una inclinación vertical: 250 px a la derecha son 250 mm.
+    tapPhoto('Agregar impacto en el punto indicado', 750, 500);
+    tapPhoto('Agregar impacto en el punto indicado', 500, 400);
     await userEvent.click(screen.getByRole('button', { name: 'Guardar análisis' }));
     const result = vi.mocked(sessions.saveAnalysis).mock.calls[0]![3];
     expect(result.analysis.calibration).toMatchObject({
       kind: 'ring',
-      shape: { angle: expect.closeTo(-Math.PI / 2), ratio: expect.closeTo(2.5) },
+      tilt: { x: expect.closeTo(0), y: expect.any(Number) },
     });
-    const [first, second] = result.analysis.impacts;
-    expect(first!.x).toBeCloseTo(0);
-    expect(first!.y).toBeCloseTo(100);
-    expect(second!.x).toBeCloseTo(100);
-    expect(second!.y).toBeCloseTo(0);
+    expect(result.analysis.calibration).not.toHaveProperty('shape');
+    const [right, up] = result.analysis.impacts;
+    expect(right!.x).toBeCloseTo(250);
+    expect(right!.y).toBeCloseTo(0);
+    expect(up!.x).toBeCloseTo(0);
+    expect(up!.y).toBeGreaterThan(100);
   });
 
-  it('"Volver a círculos" deshace la deformación', async () => {
+  it('"Quitar la inclinación" vuelve a círculos', async () => {
     renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
     await loadPhoto(2);
     tapPhoto('Ubicar centro en el punto indicado', 500, 500);
     tapPhoto('Ubicar anillo en el punto indicado', 750, 500);
-    await userEvent.click(screen.getByRole('radio', { name: 'Forma' }));
-    tapPhoto('Deformar los anillos hacia el punto indicado', 500, 400);
-    expect(screen.getByRole('radio', { name: 'Forma ✓' })).toBeChecked();
+    await userEvent.click(screen.getByRole('radio', { name: 'Inclinación' }));
+    const surface = photoSurface('Inclinar el blanco arrastrando sobre la foto');
+    const mouse = { button: 0, pointerId: 1, pointerType: 'mouse', isPrimary: true };
+    fireEvent.pointerDown(surface, { ...mouse, clientX: 300, clientY: 500 });
+    fireEvent.pointerMove(surface, { ...mouse, clientX: 400, clientY: 500 });
+    fireEvent.pointerUp(surface, { ...mouse, clientX: 450, clientY: 500 });
+    fireEvent.click(surface, { clientX: 450, clientY: 500, detail: 1 });
+    expect(screen.getByRole('radio', { name: 'Inclinación ✓' })).toBeChecked();
+    expect(screen.getByText(/Inclinación: \d+° hacia la derecha/)).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Volver a círculos' }));
-    expect(screen.getByRole('radio', { name: 'Forma' })).toBeChecked();
-    expect(screen.queryByRole('button', { name: 'Volver a círculos' })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Quitar la inclinación' }));
+    expect(screen.getByRole('radio', { name: 'Inclinación' })).toBeChecked();
+    expect(screen.queryByRole('button', { name: 'Quitar la inclinación' })).not.toBeInTheDocument();
+  });
+
+  it('una calibración vieja con forma se ve igual, avisa al recalibrar y se puede quitar', async () => {
+    const legacy: Session[] = [
+      {
+        ...TODAY_SESSION,
+        rounds: [
+          {
+            ...ROUND_1,
+            analysis: {
+              ...ROUND_1.analysis!,
+              // La de ROUND_1, con los anillos achatados en vertical.
+              calibration: {
+                kind: 'ring',
+                width: 1000,
+                height: 1000,
+                center: { x: 500, y: 500 },
+                edge: { x: 750, y: 500 },
+                diameterMm: 500,
+                shape: { angle: 0, ratio: 0.8 },
+              },
+            },
+          },
+          ROUND_2,
+        ],
+      },
+    ];
+    renderSessions(analysisPath(ROUND_1.id), { sessions: legacy });
+    await userEvent.click(await screen.findByRole('button', { name: 'Recalibrar la foto' }));
+    expect(screen.getByRole('radio', { name: 'Inclinación ✓' })).toBeInTheDocument();
+    expect(
+      screen.getByText(/Esta foto se calibró con la forma anterior de los anillos/),
+    ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Quitar la inclinación' }));
+    expect(screen.getByRole('radio', { name: 'Inclinación' })).toBeInTheDocument();
   });
 
   it('no deja continuar sin ubicar el punto sobre el anillo', async () => {

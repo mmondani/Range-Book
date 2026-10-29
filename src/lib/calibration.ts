@@ -71,7 +71,7 @@ export const MARKER_LABELS: Record<CalibrationTool, string> = {
   edge: 'Anillo',
   a: 'Punto A',
   b: 'Punto B',
-  shape: 'Forma',
+  shape: 'Inclinación',
 };
 
 /** Límites de la deformación: más allá, la foto está demasiado inclinada para medir. */
@@ -374,38 +374,6 @@ export function pixelEllipse(
     rx: radius,
     ry: radius * (shape?.ratio ?? 1),
     angle: shape ? (shape.angle * 180) / Math.PI : 0,
-  };
-}
-
-/**
- * Deforma los anillos hacia `toward`: en esa dirección pasan por ese punto y en la perpendicular
- * conservan la medida de `start` (el borrador al empezar a arrastrar). El punto del anillo se
- * mueve sobre la nueva elipse, en su misma dirección, para que la escala siga saliendo de él.
- */
-export function reshapeDraft(start: CalibrationDraft, toward: Pixel): CalibrationDraft {
-  const { center, edge } = start;
-  if (!center || !edge) return start;
-  const along = { x: toward.x - center.x, y: toward.y - center.y };
-  const radius = length(along);
-  const offset = { x: edge.x - center.x, y: edge.y - center.y };
-  if (radius < MIN_MARKER_DISTANCE_PX || length(offset) < MIN_MARKER_DISTANCE_PX) return start;
-
-  const u = { x: along.x / radius, y: along.y / radius };
-  const perpendicular = { x: -u.y, y: u.x };
-  // Radio de la elipse actual en la dirección perpendicular.
-  const inverse = invert(shapeMatrix(start.shape));
-  const across = length(apply(inverse, offset)) / length(apply(inverse, perpendicular));
-  const ratio = Math.min(MAX_SHAPE_RATIO, Math.max(MIN_SHAPE_RATIO, across / radius));
-  const shape = { angle: Math.atan2(u.y, u.x), ratio };
-
-  const direction = { x: offset.x / length(offset), y: offset.y / length(offset) };
-  const p = direction.x * u.x + direction.y * u.y;
-  const q = direction.x * perpendicular.x + direction.y * perpendicular.y;
-  const distance = 1 / Math.hypot(p / radius, q / (radius * ratio));
-  return {
-    ...start,
-    shape,
-    edge: { x: center.x + direction.x * distance, y: center.y + direction.y * distance },
   };
 }
 
