@@ -419,9 +419,6 @@ function RoundAnalyzer({
   };
   const unit = UNIT_SYMBOLS[units];
   const length = (mm: number | null) => (mm === null ? '—' : formatLengthValue(mm, units));
-  // Coordenada del PMI con signo; en desktop, con la unidad.
-  const coordinate = (mm: number) =>
-    `${formatSignedLength(mm, units)}${isDesktop ? ` ${unit}` : ''}`;
   const mismatch = impactMismatch(history.impacts.length, round.shots);
   const canUndo = history.past.length > 0;
 
@@ -716,7 +713,14 @@ function RoundAnalyzer({
                             : `Hacia las ${metrics.mpiClock} h`}
                           {metrics.mpi && (
                             <span className={cx('num', styles.coordinates)}>
-                              X {coordinate(metrics.mpi.x)} · Y {coordinate(metrics.mpi.y)}
+                              <span aria-hidden="true">
+                                ({formatSignedLength(metrics.mpi.x, units)};{' '}
+                                {formatSignedLength(metrics.mpi.y, units)})
+                              </span>
+                              <span className="visually-hidden">
+                                X {formatSignedLength(metrics.mpi.x, units)}, Y{' '}
+                                {formatSignedLength(metrics.mpi.y, units)}
+                              </span>
                             </span>
                           )}
                         </>

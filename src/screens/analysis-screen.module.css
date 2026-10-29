@@ -165,6 +165,7 @@
 /* Coordenadas del PMI, debajo de su dirección. */
 .coordinates {
   display: block;
+  font-size: 13px;
   color: var(--text-2);
 }
 

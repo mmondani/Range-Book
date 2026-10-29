@@ -41,7 +41,7 @@
 - En la maqueta, la foto de ejemplo está sacada desde abajo con 30° de inclinación: sin inclinar, los anillos verdes no coinciden.
 
 ### M06 / W04 · Análisis: PMI con X / Y
-- La tarjeta del PMI suma una línea con sus coordenadas desde el centro, con signo: "X −4,1 · Y −13,2" (mobile) y "X −4,1 mm · Y −13,2 mm" (desktop). X positiva a la derecha, Y positiva hacia arriba (como la tabla de impactos). Unidad del perfil; un decimal.
+- La tarjeta del PMI suma una línea con sus coordenadas desde el centro, con signo, como un par: "(−4,1; −13,2)", igual en mobile y desktop, en 13 px. X positiva a la derecha, Y positiva hacia arriba (como la tabla de impactos). Unidad del perfil (la de la tarjeta); un decimal en mm, dos en pulgadas. Los lectores de pantalla leen "X −4,1, Y −13,2".
 
 ### M07 / W05 · Rendimiento — valor en cada punto
 - **Tamaño de grupo pasa de barras a línea**, como el puntaje (escala ajustada a los valores, no desde 0; sigue la nota "Menor es mejor"). Los dos gráficos usan el acento naranja.

@@ -8,6 +8,7 @@
 
 ### Paso 2 — Coordenadas del PMI
 - **`formatSignedLength` quedó en `units.ts`, no en `format.ts` (`formatSigned`).** Formatea una medida en mm en la unidad del perfil, con sus decimales (1 en mm, 2 en pulgadas), igual que `formatLengthValue`, que ya está ahí.
+- **Formato de las coordenadas, cambiado después de probarlo (pedido del usuario):** de "X −4,1 · Y −13,2" (y con la unidad en desktop) a "(−4,1; −13,2)" en los dos tamaños, para que ocupe menos, en 13 px (el tamaño de las etiquetas; el sistema de diseño no usa menos de 14 px en textos secundarios salvo esas). Difiere de la maqueta aprobada; `cambios.md` ya lo refleja.
 
 ## Pendientes
 

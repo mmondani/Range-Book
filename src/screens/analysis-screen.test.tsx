@@ -109,18 +109,19 @@ describe('M06 · Análisis con un análisis guardado', () => {
     renderSessions(analysisPath(ROUND_1.id));
     const metrics = within(await screen.findByRole('region', { name: 'Métricas' }));
     // Impactos en (0, 10), (0, −36) y (−20, −13): PMI en (−6,7; −13,0).
-    expect(metrics.getByText('PMI').parentElement).toHaveTextContent(
-      'Hacia las 7 hX −6,7 · Y −13,0',
-    );
+    const tile = within(metrics.getByText('PMI').parentElement!);
+    expect(tile.getByText('Hacia las 7 h', { exact: false })).toBeInTheDocument();
+    expect(tile.getByText('(−6,7; −13,0)')).toHaveAttribute('aria-hidden', 'true');
+    // Los lectores de pantalla leen cuál es cada una.
+    expect(tile.getByText('X −6,7, Y −13,0')).toHaveClass('visually-hidden');
   });
 
-  it('en desktop, las coordenadas del PMI llevan la unidad', async () => {
+  it('en desktop, las coordenadas del PMI van igual, sin la unidad', async () => {
     setDesktop(true);
     renderSessions(analysisPath(ROUND_1.id));
     const metrics = within(await screen.findByRole('region', { name: 'Métricas' }));
-    expect(metrics.getByText('Desvío PMI').parentElement).toHaveTextContent(
-      'X −6,7 mm · Y −13,0 mm',
-    );
+    const tile = within(metrics.getByText('Desvío PMI').parentElement!);
+    expect(tile.getByText('(−6,7; −13,0)')).toBeInTheDocument();
   });
 
   it('con el puntaje calculado marcado, la ronda usa el calculado', async () => {
