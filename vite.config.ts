@@ -3,6 +3,7 @@ import { fileURLToPath, URL } from 'node:url';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vitest/config';
+import { APP_NAME } from './src/lib/app-info.ts';
 
 const { version } = JSON.parse(
   readFileSync(new URL('./package.json', import.meta.url), 'utf-8'),
@@ -19,8 +20,8 @@ export default defineConfig({
       registerType: 'prompt',
       injectRegister: false,
       manifest: {
-        name: 'RangeBook',
-        short_name: 'RangeBook',
+        name: APP_NAME,
+        short_name: APP_NAME,
         description: 'Registro de entrenamientos en el polígono y análisis de blancos.',
         lang: 'es-AR',
         start_url: '/',

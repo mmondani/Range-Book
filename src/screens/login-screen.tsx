@@ -5,6 +5,7 @@ import { Button } from '@/components/button';
 import { GoogleButton } from '@/components/google-button';
 import { Logo } from '@/components/logo';
 import { useAuth } from '@/hooks/use-auth';
+import { APP_NAME } from '@/lib/app-info';
 import type { AuthError } from '@/lib/auth';
 import styles from './login-screen.module.css';
 
@@ -73,7 +74,7 @@ export function LoginScreen() {
             <Logo size={72} />
           </div>
           <h1 className={`display ${styles.title}`}>
-            <span className={styles.mobileOnly}>RangeBook</span>
+            <span className={styles.mobileOnly}>{APP_NAME}</span>
             <span className={styles.desktopOnly}>Cada disparo, registrado.</span>
           </h1>
           <p className={styles.tagline}>

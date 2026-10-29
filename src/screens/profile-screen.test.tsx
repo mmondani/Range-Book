@@ -187,6 +187,7 @@ describe('ProfileScreen', () => {
 
     const sheet = screen.getByRole('dialog', { name: 'Instalar en el iPhone' });
     expect(sheet).toHaveTextContent('Agregar a inicio');
+    expect(sheet).toHaveTextContent('Range Book queda en la pantalla de inicio');
     await userEvent.click(within(sheet).getByRole('button', { name: 'Entendido' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });

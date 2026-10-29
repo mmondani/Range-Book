@@ -13,6 +13,7 @@ import { useInstall } from '@/hooks/use-install';
 import { useProfile, useProfileSummary, useUnits, type SummaryState } from '@/hooks/use-profile';
 import { useTheme } from '@/hooks/use-theme';
 import { useToast } from '@/hooks/use-toast';
+import { APP_NAME } from '@/lib/app-info';
 import { formatInteger } from '@/lib/format';
 import type { Preferences, ProfileSummary } from '@/lib/profile';
 import type { ThemePreference } from '@/lib/theme';
@@ -173,7 +174,7 @@ export function ProfileScreen() {
             Elegí <strong>Agregar a inicio</strong>.
           </li>
           <li>
-            Tocá <strong>Agregar</strong>. RangeBook queda en la pantalla de inicio y se abre como
+            Tocá <strong>Agregar</strong>. {APP_NAME} queda en la pantalla de inicio y se abre como
             una app.
           </li>
         </ol>
