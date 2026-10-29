@@ -1,3 +1,4 @@
+import { APP_NAME } from '@/lib/app-info';
 import { cx } from '@/lib/cx';
 import styles from './logo.module.css';
 
@@ -19,9 +20,9 @@ export function Logo({ size = 36, withName = false, className }: LogoProps) {
         </svg>
       </span>
       {withName ? (
-        <span className={cx('display', styles.name)}>RangeBook</span>
+        <span className={cx('display', styles.name)}>{APP_NAME}</span>
       ) : (
-        <span className="visually-hidden">RangeBook</span>
+        <span className="visually-hidden">{APP_NAME}</span>
       )}
     </span>
   );

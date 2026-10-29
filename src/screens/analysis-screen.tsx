@@ -43,7 +43,7 @@ import {
   pixelEllipse,
   nextMarker,
   previewCalibration,
-  reshapeDraft,
+  tiltDraft,
   type Calibration,
   type CalibrationDraft,
   type CalibrationTool,
@@ -65,7 +65,7 @@ import { sessionLabels, type Round, type Session } from '@/lib/sessions';
 import { centerDetectionScale, detectTargetCenter } from '@/lib/target-center';
 import { zoneScore } from '@/lib/target-zones';
 import { maxZoneScore, targetName, type Target } from '@/lib/targets';
-import { formatLengthValue, UNIT_SYMBOLS } from '@/lib/units';
+import { formatLengthValue, formatSignedLength, UNIT_SYMBOLS } from '@/lib/units';
 import styles from './analysis-screen.module.css';
 
 /** Margen del círculo de grupo alrededor del impacto más lejano al PMI. */
@@ -183,6 +183,8 @@ function RoundAnalyzer({
   const touched = useRef(false);
   // Borrador de antes de empezar a arrastrar un marcador, para volver si el gesto era un zoom.
   const dragOrigin = useRef<CalibrationDraft>(undefined);
+  // Con "Inclinación", dónde empezó el arrastre: lo que inclina es cuánto se movió el dedo.
+  const dragFrom = useRef<Pixel>(undefined);
   const [history, setHistory] = useState(() => impactHistory(initial.impacts));
   const [mode, setMode] = useState<AnalyzerMode>('add');
   const [detection, setDetection] = useState<Detection>('idle');
@@ -227,39 +229,48 @@ function RoundAnalyzer({
 
   // --- Calibración -----------------------------------------------------------------------------
 
-  /** Para deformar los anillos, primero tienen que estar el centro y el punto del anillo. */
-  function canReshape() {
-    if (draft.center && draft.edge) return true;
-    setCalibrationError('Ubicá el centro y un punto sobre un anillo antes de deformarlos');
+  /** Para inclinar el blanco, primero tienen que estar el centro y el punto del anillo. */
+  function canTilt() {
+    if (draft.center && draft.edge && size) return true;
+    setCalibrationError('Ubicá el centro y un punto sobre un anillo antes de inclinar el blanco');
     return false;
   }
 
   /**
-   * Mientras se arrastra, el marcador activo sigue al dedo sin pasar al siguiente; con "Forma",
-   * los anillos se deforman hacia el dedo (siempre a partir de cómo estaban al empezar).
+   * Mientras se arrastra, el marcador activo sigue al dedo sin pasar al siguiente; con
+   * "Inclinación", el blanco se inclina según cuánto se movió el dedo (siempre a partir de cómo
+   * estaba al empezar).
    */
   function moveMarker(pixel: Pixel) {
-    if (active === 'shape' && !canReshape()) return;
+    if (active === 'shape' && !canTilt()) return;
     touched.current = true;
     dragOrigin.current ??= draft;
-    setDraft(
-      active === 'shape' ? reshapeDraft(dragOrigin.current, pixel) : { ...draft, [active]: pixel },
-    );
+    if (active === 'shape') {
+      dragFrom.current ??= pixel;
+      setDraft(tiltDraft(dragOrigin.current, dragFrom.current, pixel, size!));
+    } else {
+      setDraft({ ...draft, [active]: pixel });
+    }
     setCalibrationError(undefined);
   }
 
-  /** Arrastre interrumpido por un zoom: el marcador vuelve a donde estaba. */
+  /** Arrastre interrumpido por un zoom: el marcador (o la inclinación) vuelve a como estaba. */
   function cancelMarkerMove() {
     if (dragOrigin.current) setDraft(dragOrigin.current);
     dragOrigin.current = undefined;
+    dragFrom.current = undefined;
   }
 
   function placeMarker(pixel: Pixel) {
     if (active === 'shape') {
-      if (!canReshape()) return;
-      touched.current = true;
-      setDraft(reshapeDraft(dragOrigin.current ?? draft, pixel));
+      if (!canTilt()) return;
+      // Un toque sin arrastrar no inclina nada.
+      if (dragOrigin.current && dragFrom.current) {
+        touched.current = true;
+        setDraft(tiltDraft(dragOrigin.current, dragFrom.current, pixel, size!));
+      }
       dragOrigin.current = undefined;
+      dragFrom.current = undefined;
       setCalibrationError(undefined);
       return;
     }
@@ -578,7 +589,7 @@ function RoundAnalyzer({
               pointLabel={
                 calibrating
                   ? active === 'shape'
-                    ? 'Deformar los anillos hacia el punto indicado'
+                    ? 'Inclinar el blanco arrastrando sobre la foto'
                     : `Ubicar ${MARKER_LABELS[active].toLocaleLowerCase('es-AR')} en el punto indicado`
                   : mode === 'add'
                     ? 'Agregar impacto en el punto indicado'
@@ -705,11 +716,25 @@ function RoundAnalyzer({
                       value={length(metrics.mpiOffsetMm)}
                       unit={unit}
                       help={
-                        metrics.mpiClock === null
-                          ? metrics.mpi
-                            ? 'Centrado'
-                            : '—'
-                          : `Hacia las ${metrics.mpiClock} h`
+                        <>
+                          {metrics.mpiClock === null
+                            ? metrics.mpi
+                              ? 'Centrado'
+                              : '—'
+                            : `Hacia las ${metrics.mpiClock} h`}
+                          {metrics.mpi && (
+                            <span className={cx('num', styles.coordinates)}>
+                              <span aria-hidden="true">
+                                ({formatSignedLength(metrics.mpi.x, units)};{' '}
+                                {formatSignedLength(metrics.mpi.y, units)})
+                              </span>
+                              <span className="visually-hidden">
+                                X {formatSignedLength(metrics.mpi.x, units)}, Y{' '}
+                                {formatSignedLength(metrics.mpi.y, units)}
+                              </span>
+                            </span>
+                          )}
+                        </>
                       }
                     />
                     <MetricTile

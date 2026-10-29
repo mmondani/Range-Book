@@ -1,7 +1,9 @@
 import { useState, type ReactNode, type UIEvent } from 'react';
+import { usePhotoViewer } from '@/hooks/use-photo-viewer';
 import { cx } from '@/lib/cx';
 import { photoKey, type PhotoDraft } from '@/lib/photos';
-import { Photo } from './photo';
+import { PhotoButton } from './photo-button';
+import { PhotoViewer } from './photo-viewer';
 import styles from './photo-strip.module.css';
 
 export interface PhotoStripProps {
@@ -19,6 +21,7 @@ export interface PhotoStripProps {
  */
 export function PhotoStrip({ photos, label, actions, className }: PhotoStripProps) {
   const [current, setCurrent] = useState(0);
+  const viewer = usePhotoViewer();
 
   function handleScroll(event: UIEvent<HTMLUListElement>) {
     const { scrollLeft, clientWidth } = event.currentTarget;
@@ -37,10 +40,12 @@ export function PhotoStrip({ photos, label, actions, className }: PhotoStripProp
         >
           {photos.map((photo, index) => (
             <li key={photoKey(photo)} className={styles.slide}>
-              <Photo
+              <PhotoButton
                 photo={photo}
                 alt={`Foto ${index + 1} de ${photos.length}`}
+                label={`Ver la foto ${index + 1} de ${photos.length} en pantalla completa`}
                 className={styles.photo}
+                onClick={() => viewer.open(index)}
               />
             </li>
           ))}
@@ -51,6 +56,9 @@ export function PhotoStrip({ photos, label, actions, className }: PhotoStripProp
         <span className={cx('num', styles.counter)} aria-hidden="true">
           {Math.min(current, photos.length - 1) + 1} / {photos.length} fotos
         </span>
+      )}
+      {viewer.index !== null && (
+        <PhotoViewer photos={photos} start={viewer.index} label={label} onClose={viewer.close} />
       )}
     </div>
   );

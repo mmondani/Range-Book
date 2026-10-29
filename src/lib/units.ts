@@ -53,3 +53,13 @@ export function formatLengthValue(mm: number, units: Units): string {
 export function formatLength(mm: number, units: Units): string {
   return `${formatLengthValue(mm, units)} ${UNIT_SYMBOLS[units]}`;
 }
+
+/**
+ * Coordenada en mm con signo explícito, en la unidad elegida: `+3,2`, `−12,8` (signo menos
+ * tipográfico), `0,0`. Lo que redondea a 0 va sin signo.
+ */
+export function formatSignedLength(mm: number, units: Units): string {
+  const text = formatLengthValue(Math.abs(mm), units);
+  if (Number(fromMm(Math.abs(mm), units).toFixed(UNIT_DECIMALS[units])) === 0) return text;
+  return `${mm > 0 ? '+' : '−'}${text}`;
+}

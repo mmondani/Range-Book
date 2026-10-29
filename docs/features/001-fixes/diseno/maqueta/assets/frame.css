@@ -1,0 +1,102 @@
+/* Temas. Los tokens base (oscuro) están en el bloque .rb de cada página; acá se completan
+   los que faltan y se redefinen todos para el tema claro. Ver design-system.md → Tokens. */
+.rb {
+  --accent-hover: #FF7F3A;
+  --sunken: #0E1114;
+  --ph-2: #20262C;
+  --border-strong: #3E4650;
+  --axis: #3A424B;
+  --scheme: dark;
+}
+html[data-theme="light"] .rb {
+  --bg: #F6F7F8;
+  --surface: #FFFFFF;
+  --surface-2: #EEF0F2;
+  --surface-3: #E2E5E9;
+  --sunken: #EEF0F2;
+  --ph-2: #E6E9EC;
+  --border: #D5DAE0;
+  --border-strong: #AEB6BF;
+  --axis: #AEB6BF;
+  --text: #14181C;
+  --text-2: #444C55;
+  --text-3: #5E6772;
+  --accent: #B93D0B;
+  --accent-hover: #9F340A;
+  --accent-soft: rgba(185, 61, 11, .10);
+  --on-accent: #FFFFFF;
+  --success: #157042;
+  --warning: #8A5A00;
+  --danger: #B42318;
+  --info: #1F6FD1;
+  --scheme: light;
+}
+html[data-theme="light"] body { background: #F6F7F8; }
+html[data-theme="light"] body.mk-mobile { background: #DADEE3; }
+html[data-theme="light"] .rb.phone { box-shadow: 0 0 0 1px #C5CBD2, 0 30px 80px rgba(20, 24, 28, .18); }
+.btn-google { border: 1px solid #DADCE0 !important; }
+
+/* Marco de la maqueta: no forma parte del diseño de la app. */
+[hidden] { display: none !important; }
+
+body.mk-mobile {
+  margin: 0;
+  min-height: 100vh;
+  padding: 24px 0;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: #050607;
+}
+body.mk-mobile .rb.phone {
+  border-radius: 28px;
+  box-shadow: 0 0 0 1px #1E2328, 0 30px 80px rgba(0, 0, 0, .6);
+}
+/* En un teléfono real (o dentro del índice) la pantalla ocupa todo el viewport */
+@media (max-width: 430px) {
+  body.mk-mobile { padding: 0; display: block; }
+  body.mk-mobile .rb.phone {
+    width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .mk-index { display: none; }
+}
+
+body.mk-web { margin: 0; }
+
+.mk-index {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 100;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: #F2F4F5;
+  color: #0B0D0F !important;
+  font: 600 14px 'Barlow', system-ui, sans-serif;
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .5);
+}
+.mk-index:focus-visible, .mk-theme:focus-visible { outline: 2px solid #FF6A1A; outline-offset: 2px; }
+.mk-theme {
+  position: fixed;
+  left: 16px;
+  bottom: 64px;
+  z-index: 100;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: #F2F4F5;
+  color: #0B0D0F;
+  font: 600 14px 'Barlow', system-ui, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .5);
+}
+html[data-theme="light"] .mk-index, html[data-theme="light"] .mk-theme { background: #14181C; color: #F2F4F5 !important; }
+@media (max-width: 430px) { .mk-theme { display: none; } }
+
+.rb :focus-visible { outline: 2px solid #FF6A1A; outline-offset: 2px; }

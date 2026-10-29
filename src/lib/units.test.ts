@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { formatLength, fromMm, inchesToMm, mmToInches, parseUnits, toMm } from './units';
+import {
+  formatLength,
+  formatSignedLength,
+  fromMm,
+  inchesToMm,
+  mmToInches,
+  parseUnits,
+  toMm,
+} from './units';
 
 describe('conversión mm ↔ pulgadas', () => {
   it('25,4 mm son 1 pulgada', () => {
@@ -28,6 +36,23 @@ describe('formatLength', () => {
   it('en pulgadas convierte y usa dos decimales', () => {
     expect(formatLength(25.4, 'in')).toBe('1,00 in');
     expect(formatLength(38.1, 'in')).toBe('1,50 in');
+  });
+});
+
+describe('formatSignedLength', () => {
+  it('lleva signo explícito: + a la derecha o arriba, − (signo menos) a la izquierda o abajo', () => {
+    expect(formatSignedLength(3.24, 'mm')).toBe('+3,2');
+    expect(formatSignedLength(-12.8, 'mm')).toBe('−12,8');
+  });
+
+  it('lo que redondea a 0 va sin signo', () => {
+    expect(formatSignedLength(0, 'mm')).toBe('0,0');
+    expect(formatSignedLength(-0.04, 'mm')).toBe('0,0');
+    expect(formatSignedLength(0.002, 'in')).toBe('0,00');
+  });
+
+  it('en pulgadas convierte y usa dos decimales', () => {
+    expect(formatSignedLength(-25.4, 'in')).toBe('−1,00');
   });
 });
 

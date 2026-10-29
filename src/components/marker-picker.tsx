@@ -64,7 +64,7 @@ export function MarkerPicker({ scoring, draft, active, onActive, className }: Ma
             onKeyDown={handleKeyDown}
           >
             {MARKER_LABELS[marker]}
-            {draft[marker] ? ' ✓' : ''}
+            {(marker === 'shape' ? (draft.tilt ?? draft.shape) : draft[marker]) ? ' ✓' : ''}
           </button>
         );
       })}

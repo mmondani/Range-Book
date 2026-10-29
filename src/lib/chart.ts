@@ -1,8 +1,6 @@
-import { formatDayMonth } from './format';
-
 /**
- * Escalas de los gráficos de Rendimiento (`LineChart`, `BarChart`): marcas "redondas" del eje y y
- * qué puntos llevan etiqueta en el eje x.
+ * Escalas de los gráficos de línea (`LineChart`): marcas "redondas" del eje y, ancho del área
+ * de dibujo y qué puntos llevan etiqueta en el eje x.
  */
 
 const STEPS = [1, 2, 2.5, 5, 10];
@@ -17,19 +15,16 @@ function niceStep(span: number, count: number): number {
 
 /**
  * Marcas del eje y que cubren `[min, max]`, con paso redondo y como mucho `count` intervalos.
- * `zero` fuerza que el eje arranque en 0 (barras). Con todos los valores iguales, abre un margen.
+ * Con todos los valores iguales, abre un margen.
  */
-export function niceTicks(
-  values: readonly number[],
-  { count = 2, zero = false }: { count?: number; zero?: boolean } = {},
-): number[] {
+export function niceTicks(values: readonly number[], count = 2): number[] {
   if (values.length === 0) return [0, 1];
-  let min = zero ? Math.min(0, ...values) : Math.min(...values);
+  let min = Math.min(...values);
   let max = Math.max(...values);
   if (max === min) {
     const pad = max === 0 ? 1 : Math.abs(max) * 0.1;
     max += pad;
-    if (!zero) min -= pad;
+    min -= pad;
   }
   const step = niceStep(max - min, count);
   const first = Math.floor(min / step) * step;
@@ -42,45 +37,72 @@ export function niceTicks(
   return ticks;
 }
 
-/** Índices de los puntos que llevan fecha en el eje x: el primero, el del medio y el último. */
-export function labelIndexes(length: number): number[] {
-  if (length <= 0) return [];
-  return [...new Set([0, Math.floor((length - 1) / 2), length - 1])];
-}
-
-/** Un punto de un gráfico por sesión. */
+/** Un punto de un gráfico: una sesión o una ronda. */
 export interface ChartPoint {
   key: string;
-  /** `AAAA-MM-DD`. */
-  date: string;
+  /** Etiqueta del eje x: la fecha (`2 ago`) o la ronda (`R1`). */
+  axisLabel: string;
   value: number;
-  /** El valor formateado (`9,3`, `46,0 mm`). */
+  /** El valor formateado, sin unidad (`9,3`, `46,0`). */
   label: string;
 }
 
-/** Resumen para `aria-label`: «Puntaje promedio por tiro en 10 sesiones, del 2 ago al 25 oct: de 8,1 a 9,3». */
-export function chartSummary(title: string, points: readonly ChartPoint[]): string {
+/**
+ * Resumen para `aria-label`: «Puntaje promedio por tiro en 10 sesiones, del 2 ago al 25 oct: de
+ * 8,1 a 9,3». `noun` es lo que representa cada punto, en plural.
+ */
+export function chartSummary(
+  title: string,
+  points: readonly ChartPoint[],
+  noun = 'sesiones',
+): string {
   const first = points[0];
   const last = points[points.length - 1];
   if (!first || !last) return `${title}: sin datos`;
-  if (points.length === 1) return `${title} el ${formatDayMonth(first.date)}: ${first.label}`;
-  return `${title} en ${points.length} sesiones, del ${formatDayMonth(first.date)} al ${formatDayMonth(
-    last.date,
-  )}: de ${first.label} a ${last.label}`;
+  if (points.length === 1) return `${title}, ${first.axisLabel}: ${first.label}`;
+  return `${title} en ${points.length} ${noun}, del ${first.axisLabel} al ${last.axisLabel}: de ${
+    first.label
+  } a ${last.label}`;
 }
 
-/** Márgenes del área de dibujo: lugar para las marcas del eje y, el valor destacado y las fechas. */
-const PADDING = { left: 32, right: 8, top: 28, bottom: 26 };
+/** Ancho mínimo de cada punto: lo que ocupa su valor sin pisar al de al lado. */
+export const MIN_BAND = 52;
+
+/** Ancho del eje y, que queda fijo a la izquierda mientras el gráfico se desplaza. */
+export const Y_AXIS_WIDTH = 34;
+
+/** Lo que ocupa una fecha del eje x (`25 oct`). */
+const AXIS_LABEL_WIDTH = 56;
+
+/** Ancho del área de dibujo: todo el disponible o, si los puntos no entran, el mínimo por punto. */
+export function chartWidth(count: number, available: number): number {
+  return Math.max(available, count * MIN_BAND);
+}
+
+/**
+ * Índices de los puntos que llevan su etiqueta en el eje x: el destacado siempre y, del resto,
+ * los que entran sin superponerse, contando desde el último.
+ */
+export function axisLabelIndexes(count: number, band: number, active: number): number[] {
+  const every = Math.max(1, Math.ceil(AXIS_LABEL_WIDTH / band));
+  const indexes: number[] = [];
+  for (let index = 0; index < count; index++) {
+    const regular = (count - 1 - index) % every === 0 && Math.abs(index - active) >= every;
+    if (index === active || regular) indexes.push(index);
+  }
+  return indexes;
+}
+
+/** Márgenes del área de dibujo: lugar para los valores arriba y las etiquetas del eje x abajo. */
+const PADDING = { top: 28, bottom: 26 };
 
 export interface ChartLayout {
   width: number;
   height: number;
   ticks: number[];
-  left: number;
-  right: number;
   top: number;
   bottom: number;
-  /** Ancho de la franja de cada punto (las barras ocupan una parte; el toque, toda). */
+  /** Ancho de la franja de cada punto (el toque ocupa toda la franja). */
   band: number;
   /** Centro horizontal del punto `index`. */
   x: (index: number) => number;
@@ -88,29 +110,36 @@ export interface ChartLayout {
   y: (value: number) => number;
 }
 
-/** Ubicación de los puntos en un `viewBox` de `width` × `height`. */
+/** Ubicación de los puntos en un área de `width` × `height` px. */
 export function chartLayout(
   values: readonly number[],
-  { width, height, zero = false }: { width: number; height: number; zero?: boolean },
+  { width, height }: { width: number; height: number },
 ): ChartLayout {
-  const ticks = niceTicks(values, { zero });
+  const ticks = niceTicks(values);
   const min = ticks[0] ?? 0;
   const max = ticks[ticks.length - 1] ?? 1;
-  const left = PADDING.left;
-  const right = width - PADDING.right;
   const top = PADDING.top;
   const bottom = height - PADDING.bottom;
-  const band = (right - left) / Math.max(values.length, 1);
+  const band = width / Math.max(values.length, 1);
   return {
     width,
     height,
     ticks,
-    left,
-    right,
     top,
     bottom,
     band,
-    x: (index) => left + band * (index + 0.5),
+    x: (index) => band * (index + 0.5),
     y: (value) => bottom - ((value - min) / (max - min || 1)) * (bottom - top),
   };
+}
+
+/**
+ * Radios de los dos círculos de referencia de la dispersión del PMI (`MpiScatter`): uno redondo y
+ * su doble, que alcanza para el punto más alejado del centro.
+ */
+export function scatterRings(maxDistance: number): [number, number] {
+  const half = maxDistance / 2;
+  if (!(half > 0)) return [1, 2];
+  const radius = niceStep(half, 1);
+  return [radius, radius * 2];
 }

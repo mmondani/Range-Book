@@ -1,8 +1,11 @@
 import { ImageOff } from 'lucide-react';
 import { useState } from 'react';
+import { usePhotoViewer } from '@/hooks/use-photo-viewer';
 import { cx } from '@/lib/cx';
 import { photoKey, type PhotoDraft } from '@/lib/photos';
 import { Photo } from './photo';
+import { PhotoButton } from './photo-button';
+import { PhotoViewer } from './photo-viewer';
 import styles from './photo-gallery.module.css';
 
 export interface PhotoGalleryProps {
@@ -15,6 +18,7 @@ export interface PhotoGalleryProps {
 /** Imagen principal, contador "1 / 3" y miniaturas para cambiar de foto. */
 export function PhotoGallery({ photos, label, className }: PhotoGalleryProps) {
   const [selected, setSelected] = useState(0);
+  const viewer = usePhotoViewer();
   // Si se quitan fotos, no queda apuntando fuera de la lista.
   const current = Math.min(selected, photos.length - 1);
   const photo = photos[current];
@@ -33,10 +37,12 @@ export function PhotoGallery({ photos, label, className }: PhotoGalleryProps) {
   return (
     <div role="group" aria-label={label} className={cx(styles.gallery, className)}>
       <div className={styles.main}>
-        <Photo
+        <PhotoButton
           photo={photo}
           alt={`Foto ${current + 1} de ${photos.length}`}
+          label={`Ver la foto ${current + 1} de ${photos.length} en pantalla completa`}
           className={styles.mainPhoto}
+          onClick={() => viewer.open(current)}
         />
         {photos.length > 1 && (
           <span className={cx('num', styles.counter)} aria-hidden="true">
@@ -61,6 +67,10 @@ export function PhotoGallery({ photos, label, className }: PhotoGalleryProps) {
             </li>
           ))}
         </ul>
+      )}
+
+      {viewer.index !== null && (
+        <PhotoViewer photos={photos} start={viewer.index} label={label} onClose={viewer.close} />
       )}
     </div>
   );

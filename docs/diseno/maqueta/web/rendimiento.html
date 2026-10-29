@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Rendimiento — web · RangeBook</title>
+<title>Rendimiento — web · Range Book</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Barlow:wght@400;500;600;700&amp;display=swap">
 <style>
 body{margin:0;background:#0B0D0F}
@@ -41,7 +41,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
   <aside style="flex:1 1 240px;background:var(--sunken);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;gap:24px">
     <div style="display:flex;align-items:center;gap:10px;padding:0 8px">
       <div style="width:36px;height:36px;border-radius:10px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4.5"></circle><path d="M12 1v5"></path><path d="M12 18v5"></path><path d="M1 12h5"></path><path d="M18 12h5"></path></svg></div>
-      <span class="display" style="font-size:24px">RangeBook</span>
+      <span class="display" style="font-size:24px">Range Book</span>
     </div>
     <nav aria-label="Principal" style="display:flex;flex-direction:column;gap:4px">
       <a href="sesiones.html" class="side"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M22 12h-4"></path><path d="M6 12H2"></path><path d="M12 6V2"></path><path d="M12 22v-4"></path></svg>Sesiones</a>
@@ -73,37 +73,11 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:12px">
       <section class="card" style="padding:18px;display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2 style="font-size:18px;font-weight:600">Puntaje promedio por tiro</h2><span style="font-size:13px;color:var(--text-3)">Por sesión · a 25 m</span></div>
-        <svg viewBox="0 0 600 240" role="img" aria-label="Puntaje promedio por tiro en 10 sesiones, del 2 de agosto al 25 de octubre: sube de 8,1 a 9,3" style="width:100%;height:auto">
-          <line x1="30" y1="16" x2="600" y2="16" style="stroke:var(--surface-3)"></line>
-          <line x1="30" y1="90" x2="600" y2="90" style="stroke:var(--surface-3)"></line>
-          <line x1="30" y1="163" x2="600" y2="163" style="stroke:var(--surface-3)"></line>
-          <text class="ax" x="0" y="20">10</text><text class="ax" x="8" y="94">9</text><text class="ax" x="8" y="167">8</text>
-          <polyline fill="none" stroke-width="3" stroke-linejoin="round" points="40,156 101,134 162,149 223,112 284,97 346,119 407,90 468,75 529,82 590,68" style="stroke:var(--accent)"></polyline>
-          <circle cx="40" cy="156" r="4.5" style="fill:var(--accent)"></circle><circle cx="101" cy="134" r="4.5" style="fill:var(--accent)"></circle><circle cx="162" cy="149" r="4.5" style="fill:var(--accent)"></circle><circle cx="223" cy="112" r="4.5" style="fill:var(--accent)"></circle><circle cx="284" cy="97" r="4.5" style="fill:var(--accent)"></circle><circle cx="346" cy="119" r="4.5" style="fill:var(--accent)"></circle><circle cx="407" cy="90" r="4.5" style="fill:var(--accent)"></circle><circle cx="468" cy="75" r="4.5" style="fill:var(--accent)"></circle><circle cx="529" cy="82" r="4.5" style="fill:var(--accent)"></circle><circle cx="590" cy="68" r="6" stroke-width="2" style="fill:var(--accent);stroke:var(--surface)"></circle>
-          <text x="590" y="52" text-anchor="end" style="font:700 14px 'Barlow',sans-serif;fill:var(--text)">9,3</text>
-          <text class="ax" x="40" y="232" text-anchor="middle">2 ago</text><text class="ax" x="223" y="232" text-anchor="middle">30 ago</text><text class="ax" x="407" y="232" text-anchor="middle">27 sep</text><text class="ax" x="590" y="232" text-anchor="end">25 oct</text>
-        </svg>
+        <div data-chart='{"type":"line","decimals":1,"label":"Puntaje promedio por tiro en 16 sesiones, del 5 de junio al 25 de octubre: de 7,9 a 9,3","points":[["5 jun",7.9],["12 jun",8.2],["26 jun",8],["3 jul",8.4],["17 jul",8.1],["24 jul",8.6],["2 ago",8.1],["16 ago",8.5],["23 ago",8.3],["30 ago",8.8],["13 sep",8.9],["20 sep",8.7],["4 oct",9],["11 oct",9.1],["18 oct",8.9],["25 oct",9.3]]}'></div>
       </section>
       <section class="card" style="padding:18px;display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h2 style="font-size:18px;font-weight:600">Tamaño de grupo (mm)</h2><span style="font-size:13px;color:var(--text-3)">Por sesión · a 25 m · menor es mejor</span></div>
-        <svg viewBox="0 0 600 240" role="img" aria-label="Tamaño de grupo por sesión en milímetros: baja de 72 a 46" style="width:100%;height:auto">
-          <line x1="30" y1="16" x2="600" y2="16" style="stroke:var(--surface-3)"></line>
-          <line x1="30" y1="108" x2="600" y2="108" style="stroke:var(--surface-3)"></line>
-          <line x1="30" y1="200" x2="600" y2="200" style="stroke:var(--axis)"></line>
-          <text class="ax" x="0" y="20">80</text><text class="ax" x="0" y="112">40</text><text class="ax" x="12" y="204">0</text>
-          <rect x="45" y="34" width="30" height="166" rx="4" opacity=".55" style="fill:var(--info)"></rect>
-          <rect x="103" y="44" width="30" height="156" rx="4" opacity=".55" style="fill:var(--info)"></rect>
-          <rect x="161" y="39" width="30" height="161" rx="4" opacity=".55" style="fill:var(--info)"></rect>
-          <rect x="219" y="60" width="30" height="140" rx="4" opacity=".55" style="fill:var(--info)"></rect>
-          <rect x="277" y="67" width="30" height="133" rx="4" opacity=".55" style="fill:var(--info)"></rect>
-          <rect x="335" y="62" width="30" height="138" rx="4" opacity=".55" style="fill:var(--info)"></rect>
-          <rect x="393" y="76" width="30" height="124" rx="4" opacity=".55" style="fill:var(--info)"></rect>
-          <rect x="451" y="85" width="30" height="115" rx="4" opacity=".55" style="fill:var(--info)"></rect>
-          <rect x="509" y="80" width="30" height="120" rx="4" opacity=".55" style="fill:var(--info)"></rect>
-          <rect x="567" y="94" width="30" height="106" rx="4" style="fill:var(--info)"></rect>
-          <text x="582" y="86" text-anchor="middle" style="font:700 14px 'Barlow',sans-serif;fill:var(--text)">46</text>
-          <text class="ax" x="60" y="222" text-anchor="middle">2 ago</text><text class="ax" x="234" y="222" text-anchor="middle">30 ago</text><text class="ax" x="408" y="222" text-anchor="middle">27 sep</text><text class="ax" x="597" y="222" text-anchor="end">25 oct</text>
-        </svg>
+        <div data-chart='{"type":"line","decimals":0,"label":"Tamaño de grupo por sesión en milímetros, de 81 a 46","points":[["5 jun",81],["12 jun",76],["26 jun",79],["3 jul",70],["17 jul",74],["24 jul",66],["2 ago",72],["16 ago",68],["23 ago",70],["30 ago",61],["13 sep",58],["20 sep",60],["4 oct",52],["11 oct",49],["18 oct",55],["25 oct",46]]}'></div>
       </section>
     </div>
 
@@ -133,5 +107,6 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
   </main>
 </div>
 <script src="../assets/app.js"></script>
+<script src="../assets/charts.js"></script>
 </body>
 </html>

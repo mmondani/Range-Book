@@ -179,13 +179,72 @@ describe('SessionDetail', () => {
     expect(totals).toHaveTextContent('Puntaje267 / 300');
     expect(totals).toHaveTextContent('Grupo46,0 mm');
 
-    expect(screen.getByRole('heading', { name: 'Rondas · 2' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Rondas 2' })).toBeInTheDocument();
     expect(screen.getByRole('list', { name: 'Fotos del polígono' }).children).toHaveLength(2);
     expect(screen.getByText('Práctica de dobles a 7 m.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Editar sesión' })).toHaveAttribute(
       'href',
       '/sesiones/hoy/editar',
     );
+  });
+
+  it('pestañas Rondas / Evolución: Rondas por defecto y la elegida queda en la URL', async () => {
+    const { router } = renderSessions(`/sesiones/${TODAY_SESSION.id}`);
+    const roundsTab = await screen.findByRole('tab', { name: 'Rondas 2' });
+    expect(roundsTab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('list', { name: 'Rondas' })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Evolución' }));
+    expect(router.state.location.search).toBe('?vista=evolucion');
+    expect(screen.getByRole('tab', { name: 'Evolución' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel', { name: 'Evolución' })).toHaveTextContent(
+      'Con dos rondas analizadas o más vas a ver la evolución.',
+    );
+    expect(screen.queryByRole('list', { name: 'Rondas' })).not.toBeInTheDocument();
+    // Las notas se ven con las dos pestañas.
+    expect(screen.getByText('Práctica de dobles a 7 m.')).toBeInTheDocument();
+
+    // Cambiar de pestaña no apila historial.
+    await userEvent.click(roundsTab);
+    expect(router.state.location.search).toBe('');
+    expect(router.state.historyAction).toBe('REPLACE');
+  });
+
+  it('tocar una foto del polígono la abre a pantalla completa; "atrás" la cierra', async () => {
+    const { router } = renderSessions(`/sesiones/${TODAY_SESSION.id}`);
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Ver la foto 2 de 2 en pantalla completa' }),
+    );
+    const viewer = screen.getByRole('dialog', { name: 'Fotos del polígono' });
+    expect(viewer).toHaveTextContent('2 / 2');
+    expect(router.state.location.pathname).toBe(`/sesiones/${TODAY_SESSION.id}`);
+
+    await act(() => router.navigate(-1));
+    expect(screen.queryByRole('dialog', { name: 'Fotos del polígono' })).not.toBeInTheDocument();
+  });
+
+  it('en desktop, las fotos de la grilla también abren el visor', async () => {
+    setDesktop(true);
+    renderSessions(`/sesiones/${TODAY_SESSION.id}`);
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Ver la foto 1 de 2 en pantalla completa' }),
+    );
+    expect(screen.getByRole('dialog', { name: 'Fotos del polígono' })).toHaveTextContent('1 / 2');
+  });
+
+  it('entrar con ?vista=evolucion abre esa pestaña', async () => {
+    renderSessions(`/sesiones/${TODAY_SESSION.id}?vista=evolucion`);
+    expect(await screen.findByRole('tab', { name: 'Evolución' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+  });
+
+  it('en desktop, cambiar de pestaña conserva los filtros de la lista', async () => {
+    setDesktop(true);
+    const { router } = renderSessions(`/sesiones/${TODAY_SESSION.id}?q=glock`);
+    await userEvent.click(await screen.findByRole('tab', { name: 'Evolución' }));
+    expect(router.state.location.search).toBe('?q=glock&vista=evolucion');
   });
 
   it('una sesión sin rondas ni puntaje', async () => {

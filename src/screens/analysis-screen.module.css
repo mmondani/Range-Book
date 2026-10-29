@@ -162,6 +162,13 @@
   gap: var(--space-2);
 }
 
+/* Coordenadas del PMI, debajo de su dirección. */
+.coordinates {
+  display: block;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
 .recalibrate {
   align-self: flex-start;
 }

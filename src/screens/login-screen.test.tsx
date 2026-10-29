@@ -29,6 +29,11 @@ describe('LoginScreen', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
+  it('muestra el nombre de la app, "Range Book"', () => {
+    renderLogin();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Range Book');
+  });
+
   it('cargando: el botón muestra el spinner mientras está abierto el selector de cuentas', async () => {
     const { auth } = renderLogin();
     auth.signIn.mockReturnValueOnce(never());

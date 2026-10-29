@@ -146,6 +146,10 @@
     set('moa', RONDA.distanciaM ? (es / (RONDA.distanciaM * 0.2909)).toFixed(1).replace('.', ',') : '–');
     set('off', fmt(off));
     set('clock', Math.round(ang / 30) || 12);
+    // 001: coordenadas del PMI (x a la derecha, y hacia arriba), con signo.
+    var signed = function (v) { return (v > 0.05 ? '+' : v < -0.05 ? '−' : '') + Math.abs(v).toFixed(1).replace('.', ','); };
+    set('mx', n ? signed(mx) : '–');
+    set('my', n ? signed(my) : '–');
     set('dc', n ? fmt(dc / n) : 0);
 
     var distBox = root.querySelector('[data-dist]');

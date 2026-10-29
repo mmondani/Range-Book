@@ -1,12 +1,14 @@
 import { Camera, Images, Upload, X } from 'lucide-react';
 import { useRef, useState, type ChangeEvent, type DragEvent } from 'react';
+import { usePhotoViewer } from '@/hooks/use-photo-viewer';
 import { useToast } from '@/hooks/use-toast';
 import { cx } from '@/lib/cx';
 import { compressImage } from '@/lib/image-compression';
 import { pendingPhoto, photoKey, type PhotoDraft } from '@/lib/photos';
 import { Button } from './button';
 import { useFieldContext } from './field-context';
-import { Photo } from './photo';
+import { PhotoButton } from './photo-button';
+import { PhotoViewer } from './photo-viewer';
 import styles from './photo-picker.module.css';
 
 export interface PhotoPickerProps {
@@ -40,6 +42,7 @@ export function PhotoPicker({
   const galleryInput = useRef<HTMLInputElement>(null);
   const [processing, setProcessing] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const viewer = usePhotoViewer();
 
   async function addFiles(files: File[]) {
     if (files.length === 0 || processing) return;
@@ -123,10 +126,12 @@ export function PhotoPicker({
           const isCover = cover && index === 0;
           return (
             <li key={photoKey(photo)} className={cx(styles.item, isCover && styles.cover)}>
-              <Photo
+              <PhotoButton
                 photo={photo}
                 alt={isCover ? 'Portada' : `Foto ${index + 1}`}
+                label={`Ver ${isCover ? 'la portada' : `la foto ${index + 1}`} en pantalla completa`}
                 className={styles.photo}
+                onClick={() => viewer.open(index)}
               />
               {isCover && (
                 <span className={styles.coverLabel} aria-hidden="true">
@@ -176,6 +181,15 @@ export function PhotoPicker({
         data-testid="photo-gallery-input"
         onChange={handleInput}
       />
+
+      {viewer.index !== null && (
+        <PhotoViewer
+          photos={value}
+          start={viewer.index}
+          label="Fotos elegidas"
+          onClose={viewer.close}
+        />
+      )}
     </div>
   );
 }

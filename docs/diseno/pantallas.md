@@ -1,6 +1,6 @@
-# Pantallas — RangeBook
+# Pantallas — Range Book
 
-**Estado:** Implementado en la iteración 000 (MVP)
+**Estado:** Implementado hasta la iteración 001 (Fixes)
 **Requerimientos:** [requerimientos del MVP](../features/000-mvp/requerimientos.md) · **Métricas:** [shooting_metrics.md](../features/000-mvp/shooting_metrics.md) · **Sistema de diseño:** [design-system.md](./design-system.md)
 **Maqueta:** [`maqueta/index.html`](./maqueta/index.html): HTML estático; se abre con doble clic en el navegador.
 
@@ -24,6 +24,8 @@
 | `/inventario/armas/:id` (+ `modificaciones/nueva`, `modificaciones/:id/editar`, `configuraciones/nueva`, `configuraciones/:id/editar`) | M09 | W07 | `mobile/arma-detalle.html`, `web/arma-detalle.html` |
 | `/inventario/blancos/nuevo`, `/inventario/blancos/:id/editar` | M12 | diálogo | `mobile/blanco-form.html` |
 | `/perfil` | M11 | columna de 640 px | `mobile/perfil.html` |
+| Visor de fotos (sin ruta propia: va en el estado del historial) | M13 | W08 | `mobile/visor-fotos.html`, `web/visor-fotos.html` |
+| `/sesiones/:id?vista=evolucion` | M03, pestaña Evolución | W02, pestaña Evolución | `mobile/sesion-detalle.html`, `web/sesiones.html` |
 
 - Todas las rutas, menos `/login`, requieren sesión **y** que el email esté en la colección de autorizados.
 - Los sheets y diálogos tienen su propia URL, así el botón "atrás" del sistema los cierra. Al cerrar o guardar, si se abrieron desde la lista se vuelve atrás en el historial; si se entró directo por URL, se reemplaza la entrada. La única excepción son las instrucciones de instalación en iOS (M11), que son solo informativas.
@@ -46,12 +48,17 @@
 - **Estados:** vacío ("Todavía no registraste sesiones" + Nueva sesión) · cargando (skeletons) · sin resultados de búsqueda.
 
 ### M03 · Detalle de sesión
-- Fotos del polígono arriba (`PhotoStrip`: se desliza de a una, con "1 / 3 fotos"), con los botones volver, editar y **eliminar** encima. Sin fotos, los botones quedan arriba sin fondo. En desktop, "Editar" y "Eliminar" van en el encabezado y las fotos en una grilla.
+- Fotos del polígono arriba (`PhotoStrip`: se desliza de a una, con "1 / 3 fotos"), con los botones volver, editar y **eliminar** encima. Sin fotos, los botones quedan arriba sin fondo. En desktop, "Editar" y "Eliminar" van en el encabezado y las fotos en una grilla. Tocar una foto la abre en el visor (M13 / W08).
 - Fecha, configuración (título) y chips de personalizaciones.
 - Datos: polígono, clima y munición en una tarjeta; los totales, en otra fila.
 - Totales: disparos, puntaje (obtenido / máximo) y tamaño de grupo promedio de las rondas analizadas.
-- **Rondas:** `RoundRow` con miniatura (la foto de la ronda o el dibujo del blanco), "disparos · puntaje · grupo", "blanco · **distancia** · comentarios", estado *Analizada* o *Sin analizar* y el link "Ver análisis" / "Analizar blanco". **Toda la tarjeta lleva al análisis**; el lápiz "Editar ronda N" abre M05.
-- Notas.
+- **Pestañas Rondas / Evolución** (`Tabs`: chips en mobile, subrayadas en desktop), debajo de los totales. "Rondas N" viene elegida; la elegida va en la query string (`?vista=evolucion`; Rondas no aparece) sin pisar los filtros de la lista, y cambiar de pestaña reemplaza la entrada del historial. Así se conserva al volver del análisis o al recargar.
+- **Rondas:** `RoundRow` con miniatura (la foto de la ronda o el dibujo del blanco), "disparos · puntaje · grupo", "blanco · **distancia** · comentarios", estado *Analizada* o *Sin analizar* y el link "Ver análisis" / "Analizar blanco". **Toda la tarjeta lleva al análisis**; el lápiz "Editar ronda N" abre M05. En desktop, "Agregar ronda" va a la derecha de las pestañas, solo con Rondas.
+- **Evolución** (`SessionEvolution`), una ronda analizada por punto (eje x "R1, R2…", con el número de la ronda en la sesión):
+  - Nota "Por ronda analizada · N de M" y, a la derecha, el control **mm | MOA** ("in | MOA" en pulgadas). MOA se calcula a la distancia de cada ronda. Por defecto, la unidad del perfil; MOA si las rondas analizadas son a distancias distintas. La elección no se guarda.
+  - Control segmentado **PMI / Grupo / Al centro**. PMI: línea con el desvío del PMI y, debajo, la dispersión de los PMI de cada ronda alrededor del centro (`MpiScatter`: ejes, dos círculos de referencia con su medida, puntos numerados por ronda, recorrido punteado y la última resaltada). Grupo y Al centro: una línea cada uno. Los títulos dicen la unidad.
+  - **Estados:** sin rondas analizadas, EmptyState "Todavía no hay rondas analizadas"; con una, "Con dos rondas analizadas o más vas a ver la evolución."
+- Notas, debajo de las pestañas (se ven con las dos).
 - Barra fija: **Agregar ronda** (reemplaza a la barra inferior). En desktop, "Agregar ronda" va en el encabezado de la sección.
 - Eliminar la sesión pide confirmación y ofrece "Deshacer" en un toast.
 
@@ -85,11 +92,12 @@ Página completa (también en desktop, sin la lista de sesiones). Al entrar, la 
 
 **1 · Calibración** (`analisis-calibracion.html`): se muestra en un análisis nuevo y con "Recalibrar la foto".
 - **Blanco con anillos:** el **centro** y un punto sobre un **anillo** de diámetro conocido. **Sin zonas:** el centro y dos puntos **A** y **B** a una distancia conocida.
-- **Qué ajustar** (botones sobre la foto, arriba a la izquierda): Centro / Anillo / **Forma** (o Centro / Punto A / Punto B). El activo se ve con borde verde; los ya ubicados llevan ✓. Al ubicar un punto pasa solo al siguiente que falte.
+- **Qué ajustar** (botones sobre la foto, arriba a la izquierda): Centro / Anillo / **Inclinación** (o Centro / Punto A / Punto B). El activo se ve con borde verde; los ya ubicados llevan ✓. Al ubicar un punto pasa solo al siguiente que falte.
 - **Centro automático:** en un blanco con anillos, al cargar la foto se busca el centro y queda ubicado ("Buscando el centro…" sobre la foto); el activo pasa a "Anillo" y el panel avisa: "El centro se ubicó automáticamente. Si no coincide con el de la foto, elegí «Centro» y tocalo." Si no hay un centro claro, se toca a mano.
 - Cada punto se ubica tocando la foto o **manteniendo apretado y arrastrando**: el marcador sigue al dedo y los anillos verdes se redibujan en vivo. Con el dedo, el arrastre empieza a los 100 ms: si antes se apoya un segundo dedo, el gesto es un zoom y el marcador no se mueve.
-- **Forma** (foto en ángulo): mantener apretado y arrastrar estira o achica los anillos verdes hasta el dedo en esa dirección, conservando la medida perpendicular; se repite en otras direcciones hasta que coincidan. "Volver a círculos" lo deshace. Las medidas siguen a la elipse (puntaje, grupo, PMI y distancias quedan compensados). Compensa ángulos moderados, no la perspectiva fuerte.
-- Panel "Calibrar la foto": la explicación, la instrucción del punto activo, el aviso del centro automático, "Volver a círculos", el select **Anillo marcado** ("8 puntos · Ø 150 mm"; por defecto, el tercero desde el centro) o el campo **Distancia entre A y B** (por defecto, el tamaño de referencia del blanco) y el error si falta algo.
+- **Inclinación** (foto en ángulo): mantener apretado y arrastrar inclina el blanco en 3D, a partir de cómo estaba (0,02 rad por cada 1 % del lado mayor arrastrado, hasta 70°). El lado hacia el que se arrastra se acerca y se ve más grande; los anillos verdes se dibujan con perspectiva (elipses que ya no son concéntricas). El punto del anillo no se mueve: los anillos siempre pasan por él. Un toque sin arrastrar no cambia nada. "Quitar la inclinación" vuelve a círculos. Las medidas siguen a la perspectiva (puntaje, grupo, PMI y distancias quedan compensados; ver [ADR 0006](../decisiones/0006-inclinacion-con-perspectiva.md)). Los blancos sin zonas no tienen inclinación.
+- **Calibraciones viejas** con la "Forma" del MVP (elipse afín): se ven igual que antes. Al recalibrar, "Inclinación" aparece con ✓ y el panel avisa "Esta foto se calibró con la forma anterior de los anillos. Si la inclinás, se reemplaza por la inclinación."
+- Panel "Calibrar la foto": la explicación, la instrucción del punto activo, el aviso del centro automático, la inclinación ("Inclinación: 30° hacia abajo") y "Quitar la inclinación", el select **Anillo marcado** ("8 puntos · Ø 150 mm"; por defecto, el tercero desde el centro) o el campo **Distancia entre A y B** (por defecto, el tamaño de referencia del blanco) y el error si falta algo.
 - Los anillos calibrados (y la línea A–B) se dibujan en verde. Acción primaria: **Continuar**. La primera vez, al continuar se detectan los impactos solos.
 
 **2 · Impactos** (`analisis.html`)
@@ -109,7 +117,7 @@ Página completa (también en desktop, sin la lista de sesiones). Al entrar, la 
 | **Puntaje** (*Score detection*) | Suma, por impacto, del puntaje de la zona más chica que contiene **el centro del impacto** (0 si cae fuera). No se usa el diámetro del proyectil: no aplica la regla de "toca la línea" | Total / máximo posible y promedio por tiro |
 | **Distribución de puntaje** (*Score Distribution*, sección 1) | Cantidad de impactos por zona | Chips "10 × 4 · 9 × 5 · …" |
 | **Tamaño de grupo** (*Group Size*) | Dispersión extrema: distancia máxima centro a centro entre dos impactos | mm y su equivalente en MOA a la distancia de la ronda (1 MOA = 0,2909 mm por metro) |
-| **PMI** (*Mean Point of Impact*) | Promedio de las coordenadas de los impactos | Cruz sobre la foto + desvío del centro en mm y dirección en horas de reloj |
+| **PMI** (*Mean Point of Impact*) | Promedio de las coordenadas de los impactos | Cruz sobre la foto + desvío del centro en mm, dirección en horas de reloj y coordenadas con signo "(−4,1; −13,2)" (13 px; los lectores de pantalla leen "X −4,1, Y −13,2") |
 | **Distancia al centro** (*Distance from Center*) | Promedio de la distancia de cada impacto al centro del blanco | mm |
 
 - La implementación va en `src/lib/` (funciones puras con tests). `maqueta/assets/analyzer.js` sirve de referencia de cálculo y de interacción.
@@ -120,7 +128,8 @@ Página completa (también en desktop, sin la lista de sesiones). Al entrar, la 
 - Filtros, en este orden: **configuración** (cada arma virtual por separado; el arma base sin modificaciones es su propia configuración "Stock"), munición, **distancia**, blanco, polígono y período. En mobile son chips (resaltados si el filtro está aplicado) que abren un sheet con las opciones (`?filtro=`, "atrás" lo cierra); en desktop, selects. Todo va en la query string; un filtro con su valor por defecto no aparece.
 - Cada filtro ofrece solo lo que aparece en alguna sesión (archivados incluidos). Por defecto: últimos 90 días y la **distancia más usada** ("La más usada (25 m)"). "Todas" mezcla distancias, y entonces el grupo y el PMI se comparan en **MOA**.
 - KPIs: **promedio por tiro** y **tamaño de grupo** con delta contra el período anterior ("▲ 0,5 (mejor)", en verde o rojo según si mejoró; "Igual que el período anterior"; sin delta en "Todo"). **Desvío del PMI** con su tendencia ("Tendencia hacia las 7 h") y **disparos** con "N sesiones · N rondas". Medidas con un decimal (`46,0 mm`); promedio por tiro con uno (`9,1`).
-- Gráficos (un punto por sesión): puntaje promedio (línea, escala ajustada a los valores) y tamaño de grupo (barras desde 0, "menor es mejor"). Los títulos dicen la distancia y la unidad ("Por sesión · a 25 m", "Tamaño de grupo (mm)"). Se destaca el último punto con su valor; al tocar o pasar el mouse, el elegido, con valor y fecha.
+- Gráficos de línea (un punto por sesión, escala ajustada a los valores): puntaje promedio y tamaño de grupo ("menor es mejor"). Los títulos dicen la distancia y la unidad ("Por sesión · a 25 m", "Tamaño de grupo (mm)"). **Cada punto lleva su valor** (sin unidad); el último, o el que se toca o se señala, se destaca más grande y muestra su fecha resaltada en el eje x. Del resto, el eje x muestra las fechas que entran sin pisarse.
+- Cada punto ocupa al menos 52 px: si no entran, el gráfico se desplaza en horizontal (arranca mostrando las sesiones más recientes; también con el teclado) y el eje y queda fijo.
 - Mobile: comparación por munición (barras horizontales, solo con dos municiones o más; la mejor ocupa todo el ancho). Desktop: tabla por sesión ordenable (Fecha, Disparos, Prom./tiro, Grupo, Desvío PMI; la fecha y la fila llevan al detalle) y "Exportar CSV" (`;`, coma decimal, con polígono, rondas y dirección del PMI).
 - **Estados:** sin análisis todavía (EmptyState "Analizá tus blancos para ver la evolución" + "Ir a sesiones") · pocos datos (menos de 2 sesiones: solo KPIs y "Con dos sesiones o más vas a ver la evolución en gráficos") · sin datos para los filtros ("Limpiar filtros" o "Ver todo el historial").
 
@@ -136,7 +145,7 @@ Página completa (también en desktop, sin la lista de sesiones). Al entrar, la 
 - Las sesiones y las rondas sí se eliminan (con confirmación y "Deshacer"), porque nada las referencia.
 
 ### M09 / W07 · Detalle de arma
-- Galería (portada y miniaturas; las fotos se agregan y ordenan desde Editar), marca y modelo, calibre.
+- Galería (portada y miniaturas; las fotos se agregan y ordenan desde Editar), marca y modelo, calibre. Tocar la foto principal la abre en el visor (M13 / W08).
 - Encabezado con **Editar** y **Archivar** (o **Restaurar**, con el badge "Archivada") en los dos tamaños. Mobile tiene "‹ Armas"; desktop, la ruta Inventario / Armas / arma.
 - **Tiros acumulados** = tiros previos al registro + suma de los disparos de las sesiones.
 - Datos de compra.
@@ -164,9 +173,16 @@ Página completa (también en desktop, sin la lista de sesiones). Al entrar, la 
 - Solo para anillos: **zonas de puntaje** (puntaje + diámetro en mm por fila, agregar y quitar; las etiquetas usan el número de fila: "Puntaje de la zona 2"), con "Cantidad de zonas" + **Generar** (reemplaza las filas por N anillos uniformes; el central vale N) y la **vista previa** dibujada al lado.
 - Validación: puntajes y diámetros únicos, diámetros crecientes a medida que baja el puntaje (el error va en la fila que no crece) y ninguna zona más grande que el tamaño de referencia. Hasta 50 zonas.
 
+### M13 / W08 · Visor de fotos
+- Se abre al tocar una foto de contenido: la foto principal de la galería del arma (M09), las fotos del polígono (M03, W02) y las fotos elegidas en los formularios (`PhotoPicker`: arma, sesión, ronda, blanco; también las pendientes de subir). **No** se abre desde las miniaturas que son parte de un link (tarjeta de ronda, de blanco, de arma) ni desde el analizador (ahí tocar agrega impactos).
+- Pantalla completa sobre fondo negro (no cambia con el tema; botones como los que van sobre fotos). Arriba: contador "2 / 3" y **Cerrar**. A los costados: **Foto anterior** / **Foto siguiente** (también en mobile; deshabilitadas en los extremos). Abajo a la derecha: **Acercar** / **Alejar**.
+- Deslizar en horizontal (sin zoom) o las flechas del teclado cambian de foto; la foto nueva arranca entera. Zoom con dos dedos, doble toque (acerca 2,5× o vuelve), Ctrl + rueda o los botones, hasta 10×; con la foto ampliada, un dedo, el mouse o la rueda la desplazan.
+- Sin ruta propia: la foto abierta va en el estado del historial, así "atrás" lo cierra y los formularios con cambios sin guardar no lo toman como salir. Escape y "Cerrar" vuelven atrás.
+- `role="dialog"`, foco en "Cerrar" al abrir y de vuelta en la foto al cerrar. Si la flecha que tenía el foco se deshabilita, el foco vuelve al visor. Va arriba de los sheets y debajo de los toasts.
+
 ## Comportamiento PWA
 
-- Manifest: `name: RangeBook`, `theme_color: #0B0D0F`, `background_color: #0B0D0F`, `display: standalone`, orientación vertical e íconos con la diana del logo sobre naranja (192, 512, *maskable* y `apple-touch-icon`). El `theme-color` de la página sigue al tema.
+- Manifest: `name: Range Book`, `theme_color: #0B0D0F`, `background_color: #0B0D0F`, `display: standalone`, orientación vertical e íconos con la diana del logo sobre naranja (192, 512, *maskable* y `apple-touch-icon`). El `theme-color` de la página sigue al tema.
 - **Sin conexión:** banner "**Sin conexión** — los cambios se guardan y se sincronizan al volver" arriba del contenido (no fijo), en tono de advertencia con el ícono `wifi-off` (ver `maqueta/mobile/sesiones-sin-conexion.html`). Los formularios guardan igual (Firestore offline) y las fotos quedan en una cola en el dispositivo hasta que vuelve la conexión; mientras tanto se ven y se analizan.
 - **Versión nueva:** toast "Hay una versión nueva" con la acción "Actualizar". Si no se acepta, se aplica al cerrar la app.
 - Fotos: se comprimen en el cliente (lado mayor de 2000 px, JPEG al 80 %, sin EXIF) antes de subirlas a **Firebase Storage**. En Firestore se guarda la ruta. Las reglas de Storage restringen cada archivo a su dueño, igual que Firestore.
@@ -185,6 +201,12 @@ Página completa (también en desktop, sin la lista de sesiones). Al entrar, la 
 | Entidades del inventario en uso | Se archivan, no se borran |
 | Personalizaciones en la sesión | Se guarda una copia (snapshot) al registrar la sesión |
 | Regla de "toca la línea" | No aplica: el puntaje se calcula por el centro del impacto, sin el diámetro del proyectil |
+| Fotos en ángulo (001) | Inclinación del blanco con perspectiva, no una elipse afín ([ADR 0006](../decisiones/0006-inclinacion-con-perspectiva.md)) |
+| Gráficos (001) | Todos de línea, con el valor de cada punto; si no entran, se desplazan con el eje y fijo |
+| Evolución de la sesión (001) | En una pestaña junto a las rondas; el PMI como desvío y como dispersión; mm o MOA a elección |
+| Coordenadas del PMI (001) | Solo en el análisis, como "(x; y)" con signo |
+| Fotos a pantalla completa (001) | Solo las fotos de contenido; las miniaturas que llevan a otra pantalla siguen navegando |
+| Nombre de la app (001) | "Range Book", en la PWA y en toda la UI |
 
 ## Preguntas abiertas
 

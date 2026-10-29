@@ -1,0 +1,6 @@
+- Fix: en las gráficas de rendimiento se tiene que ver el valor de cada punto graficado
+- Fix: al cambiar la forma de los círculos los está deformando mal. Tendría que deformar los círculos como si se estuviera cambiando el ángulo desde los que se los ve.
+- Fix: PMI no solo con debe mostrar la distancia al centro del blanco, sino también sus coordenadas X e Y en mm
+- Fix: el nombre de la PWA instalada dice RangeBook y tendría que ser Range Book
+- Cuando se hace tap en cualquiera de las imágenes cargadas, se debe ampliar a pantalla completa.
+- Dentro de una sesión de tiro, se tendría que poder ver graficos pudiendo elegir: PMI, grupo y la distancia al centro. Esto permite para ver evolución a través de las rondas

@@ -3,7 +3,8 @@ import {
   buildCalibration,
   calibrationDraft,
   defaultRing,
-  MAX_SHAPE_RATIO,
+  describeTilt,
+  MAX_TILT,
   mmPerPixel,
   mmToPixel,
   mmToPixelLength,
@@ -11,7 +12,8 @@ import {
   parseCalibration,
   pixelEllipse,
   pixelToMm,
-  reshapeDraft,
+  tiltDraft,
+  untiltedDraft,
   type Calibration,
   type CalibrationDraft,
 } from './calibration';
@@ -145,7 +147,7 @@ describe('parseCalibration', () => {
   });
 });
 
-describe('anillos deformados (foto en ángulo)', () => {
+describe('forma vieja de los anillos (calibraciones guardadas antes de la inclinación)', () => {
   // El anillo de 500 mm (250 mm de radio) con el punto marcado a 250 px a la derecha.
   const start: CalibrationDraft = {
     center: { x: 500, y: 400 },
@@ -153,15 +155,11 @@ describe('anillos deformados (foto en ángulo)', () => {
     diameterMm: 500,
     distance: '',
   };
+  // Achatada en vertical: el eje en la dirección de arriba mide 2,5 veces menos que el otro.
+  const shaped: CalibrationDraft = { ...start, shape: { angle: -Math.PI / 2, ratio: 2.5 } };
 
-  it('arrastrar hacia arriba achata los anillos en esa dirección y deja igual la otra', () => {
-    const draft = reshapeDraft(start, { x: 500, y: 300 });
-    expect(draft.shape?.angle).toBeCloseTo(-Math.PI / 2);
-    expect(draft.shape?.ratio).toBeCloseTo(2.5);
-    // El punto marcado ya estaba sobre el eje perpendicular: no se mueve.
-    expect(draft.edge!.x).toBeCloseTo(750);
-    expect(draft.edge!.y).toBeCloseTo(400);
-
+  it('se sigue midiendo igual que antes: una elipse afín con el mismo centro', () => {
+    const draft = shaped;
     const result = buildCalibration(draft, 'rings', SIZE);
     if (!('calibration' in result)) throw new Error(result.error);
     const calibration = result.calibration;
@@ -179,15 +177,7 @@ describe('anillos deformados (foto en ángulo)', () => {
     expect(mmPerPixel(calibration)).toBeCloseTo(1 / Math.sqrt(0.4));
   });
 
-  it('el punto del anillo se mueve sobre la nueva elipse, en su misma dirección', () => {
-    const draft = reshapeDraft(start, { x: 700, y: 400 });
-    // Hacia la derecha pasa por el dedo: el punto marcado queda a 200 px.
-    expectPoint(draft.edge!, { x: 700, y: 400 });
-    expect(draft.shape?.ratio).toBeCloseTo(1.25);
-  });
-
   it('volver a ubicar el punto del anillo cambia el tamaño y conserva la forma', () => {
-    const shaped = reshapeDraft(start, { x: 500, y: 300 });
     const moved = { ...shaped, edge: { x: 1000, y: 400 } };
     const result = buildCalibration(moved, 'rings', SIZE);
     if (!('calibration' in result)) throw new Error(result.error);
@@ -196,22 +186,14 @@ describe('anillos deformados (foto en ángulo)', () => {
     expectPoint(pixelToMm(result.calibration, { x: 500, y: 200 }), { x: 0, y: 250 });
   });
 
-  it('limita la deformación y no hace nada sin centro o demasiado cerca', () => {
-    expect(reshapeDraft(start, { x: 500, y: 385 }).shape?.ratio).toBe(MAX_SHAPE_RATIO);
-    expect(reshapeDraft(start, { x: 505, y: 400 })).toBe(start);
-    expect(reshapeDraft({ ...start, center: undefined }, { x: 500, y: 300 })).toEqual({
-      ...start,
-      center: undefined,
-    });
-  });
-
-  it('sin deformar, la calibración no lleva `shape` (Firestore no acepta undefined)', () => {
+  it('sin forma ni inclinación, la calibración no lleva esos campos (Firestore no acepta undefined)', () => {
     const result = buildCalibration(start, 'rings', SIZE);
     expect('calibration' in result && 'shape' in result.calibration).toBe(false);
+    expect('calibration' in result && 'tilt' in result.calibration).toBe(false);
   });
 
   it('se guarda y se lee; una forma dañada se descarta', () => {
-    const draft = reshapeDraft(start, { x: 500, y: 300 });
+    const draft = shaped;
     const result = buildCalibration(draft, 'rings', SIZE);
     if (!('calibration' in result)) throw new Error(result.error);
     const saved = JSON.parse(JSON.stringify(result.calibration));
@@ -227,3 +209,108 @@ function expectPoint(actual: { x: number; y: number }, expected: { x: number; y:
   expect(actual.x).toBeCloseTo(expected.x);
   expect(actual.y).toBeCloseTo(expected.y);
 }
+
+describe('blanco inclinado (foto en ángulo, con perspectiva)', () => {
+  // El anillo de 500 mm (250 mm de radio) con el punto marcado a 250 px a la derecha.
+  const start: CalibrationDraft = {
+    center: { x: 500, y: 400 },
+    edge: { x: 750, y: 400 },
+    diameterMm: 500,
+    distance: '',
+  };
+  // Arrastrar hacia abajo el 15 % del lado mayor (1000 px) inclina 0,3 rad (≈ 17°) hacia abajo.
+  const down = (draft: CalibrationDraft = start) =>
+    tiltDraft(draft, { x: 500, y: 400 }, { x: 500, y: 550 }, SIZE);
+
+  function calibrationOf(draft: CalibrationDraft): Calibration {
+    const result = buildCalibration(draft, 'rings', SIZE);
+    if (!('calibration' in result)) throw new Error(result.error);
+    return result.calibration;
+  }
+
+  /** `1` si el punto está sobre la elipse. */
+  function onEllipse(
+    { center, rx, ry, angle }: ReturnType<typeof pixelEllipse>,
+    point: { x: number; y: number },
+  ) {
+    const a = (-angle * Math.PI) / 180;
+    const dx = point.x - center.x;
+    const dy = point.y - center.y;
+    const u = dx * Math.cos(a) - dy * Math.sin(a);
+    const v = dx * Math.sin(a) + dy * Math.cos(a);
+    return (u / rx) ** 2 + (v / ry) ** 2;
+  }
+
+  it('arrastrar inclina en esa dirección, proporcional a lo arrastrado, y se acumula', () => {
+    expect(down().tilt).toEqual({ x: 0, y: expect.closeTo(0.3) });
+    expect(down(down()).tilt).toEqual({ x: 0, y: expect.closeTo(0.6) });
+    // El punto del anillo no se mueve.
+    expect(down().edge).toEqual(start.edge);
+  });
+
+  it('se limita a 70° y, de frente, no lleva inclinación', () => {
+    const far = tiltDraft(start, { x: 0, y: 0 }, { x: 0, y: 1000 }, SIZE);
+    expect(Math.hypot(far.tilt!.x, far.tilt!.y)).toBeCloseTo(MAX_TILT);
+    const back = tiltDraft(down(), { x: 500, y: 550 }, { x: 500, y: 400 }, SIZE);
+    expect(back).not.toHaveProperty('tilt');
+    expect('tilt' in calibrationOf(start)).toBe(false);
+  });
+
+  it('el lado hacia el que se inclina se ve más grande y el centro de los anillos se corre', () => {
+    const calibration = calibrationOf(down());
+    const top = mmToPixel(calibration, { x: 0, y: 200 });
+    const bottom = mmToPixel(calibration, { x: 0, y: -200 });
+    expect(bottom.y - 400).toBeGreaterThan(400 - top.y);
+    // Los anillos ya no son concéntricos: su centro baja, hacia el lado más cercano.
+    expect(pixelEllipse(calibration, 200).center.y).toBeGreaterThan(400);
+    expect(mmToPixel(calibration, { x: 0, y: 0 })).toEqual({ x: 500, y: 400 });
+  });
+
+  it('el punto del anillo cae sobre su anillo, y la elipse es la del círculo proyectado', () => {
+    const calibration = calibrationOf(
+      tiltDraft(start, { x: 500, y: 400 }, { x: 640, y: 290 }, SIZE),
+    );
+    const ring250 = pixelEllipse(calibration, 250);
+    expect(onEllipse(ring250, start.edge!)).toBeCloseTo(1, 6);
+    for (let k = 0; k < 12; k++) {
+      const t = (k * Math.PI) / 6;
+      const point = mmToPixel(calibration, { x: 150 * Math.cos(t), y: 150 * Math.sin(t) });
+      expect(onEllipse(pixelEllipse(calibration, 150), point)).toBeCloseTo(1, 6);
+    }
+  });
+
+  it('píxeles → mm → píxeles vuelve al mismo punto', () => {
+    const calibration = calibrationOf(down());
+    expectPoint(mmToPixel(calibration, pixelToMm(calibration, { x: 620, y: 515 })), {
+      x: 620,
+      y: 515,
+    });
+    // La escala en el centro sigue siendo la de una foto apenas inclinada.
+    expect(mmPerPixel(calibration)).toBeGreaterThan(0.9);
+    expect(mmPerPixel(calibration)).toBeLessThan(1.2);
+  });
+
+  it('reemplaza a la forma vieja; quitarla vuelve a círculos', () => {
+    const legacy = { ...start, shape: { angle: 0, ratio: 0.8 } };
+    expect(down(legacy)).not.toHaveProperty('shape');
+    expect(untiltedDraft(down(legacy))).not.toHaveProperty('tilt');
+    expect('shape' in calibrationOf(down(legacy))).toBe(false);
+  });
+
+  it('se guarda y se lee; una inclinación dañada o excesiva se descarta', () => {
+    const calibration = calibrationOf(down());
+    const saved = JSON.parse(JSON.stringify(calibration));
+    expect(parseCalibration(saved)).toEqual(calibration);
+    expect(calibrationDraft(RINGS, calibration).tilt).toEqual(
+      calibration.kind === 'ring' && calibration.tilt,
+    );
+    expect(parseCalibration({ ...saved, tilt: { x: 0, y: 'abajo' } })).not.toHaveProperty('tilt');
+    expect(parseCalibration({ ...saved, tilt: { x: 0, y: 2 } })).not.toHaveProperty('tilt');
+  });
+
+  it('describe la inclinación en grados y hacia dónde', () => {
+    expect(describeTilt({ x: 0, y: Math.PI / 6 })).toBe('Inclinación: 30° hacia abajo');
+    expect(describeTilt({ x: -0.3, y: -0.3 })).toBe('Inclinación: 24° hacia arriba a la izquierda');
+    expect(describeTilt({ x: 0.2, y: 0 })).toBe('Inclinación: 11° hacia la derecha');
+  });
+});

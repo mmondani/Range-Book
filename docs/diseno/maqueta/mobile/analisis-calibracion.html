@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Análisis de blanco: calibración — mobile · RangeBook</title>
+<title>Análisis de blanco: calibración — mobile · Range Book</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Barlow:wght@400;500;600;700&amp;display=swap">
 <style>
 body{margin:0;background:#0B0D0F}
@@ -44,16 +44,17 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
       <div class="ov-left" role="radiogroup" aria-label="Qué ajustar" data-tools>
         <button type="button" class="pick" role="radio" data-value="center">Centro</button>
         <button type="button" class="pick" role="radio" data-value="edge">Anillo</button>
-        <button type="button" class="pick" role="radio" data-value="shape">Forma</button>
+        <button type="button" class="pick" role="radio" data-value="shape">Inclinación</button>
       </div>
     </div>
 
     <section class="card" aria-labelledby="cal-title" style="padding:16px;display:flex;flex-direction:column;gap:12px">
       <h2 id="cal-title" class="display" style="font-size:22px">Calibrar la foto</h2>
-      <p style="font-size:14px;color:var(--text-2)">Para medir en mm, ubicá sobre la foto el centro del blanco y un punto sobre un anillo. Con los botones de arriba de la foto elegís qué punto ubicar. Para ajustarlo, mantené apretado y arrastralo; para verlo de cerca, acercá la foto con dos dedos o con los botones de zoom. La foto tiene que estar sacada de frente.</p>
+      <p style="font-size:14px;color:var(--text-2)">Para medir en mm, ubicá sobre la foto el centro del blanco y un punto sobre un anillo. Con los botones de arriba de la foto elegís qué punto ubicar. Para ajustarlo, mantené apretado y arrastralo; para verlo de cerca, acercá la foto con dos dedos o con los botones de zoom. Si la foto está sacada en ángulo, elegí «Inclinación» y arrastrá hasta que los anillos coincidan.</p>
       <p role="status" style="font-weight:600" data-instruction></p>
       <p style="font-size:14px;color:var(--text-2)" data-auto>El centro se ubicó automáticamente. Si no coincide con el de la foto, elegí «Centro» y tocalo.</p>
-      <button type="button" class="btn btn-ghost" style="align-self:flex-start" data-reset-shape hidden>Volver a círculos</button>
+      <p class="num" style="font-size:14px;color:var(--text-2)" data-tilt hidden></p>
+      <button type="button" class="btn btn-ghost" style="align-self:flex-start" data-reset-shape hidden>Quitar la inclinación</button>
       <div class="field">
         <label for="anillo">Anillo marcado</label>
         <select id="anillo" class="input" data-ring>
