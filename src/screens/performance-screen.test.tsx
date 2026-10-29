@@ -98,11 +98,16 @@ describe('PerformanceScreen', () => {
         name: 'Puntaje promedio por tiro en 2 sesiones, del 15 sep al 20 oct: de 8,8 a 9,2',
       }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('img', {
-        name: 'Tamaño de grupo por sesión en mm en 2 sesiones, del 15 sep al 20 oct: de 50,0 a 40,0',
-      }),
-    ).toBeInTheDocument();
+    const group = screen.getByRole('img', {
+      name: 'Tamaño de grupo por sesión en mm en 2 sesiones, del 15 sep al 20 oct: de 50,0 a 40,0',
+    });
+    // Los dos son de línea y cada sesión muestra su valor.
+    expect(group.querySelector('polyline')).toBeInTheDocument();
+    expect(within(group).getByText('50,0')).toBeInTheDocument();
+    expect(within(group).getByText('40,0')).toBeInTheDocument();
+    const score = screen.getByRole('img', { name: /Puntaje promedio por tiro/ });
+    expect(within(score).getByText('8,8')).toBeInTheDocument();
+    expect(within(score).getByText('9,2')).toBeInTheDocument();
     // Mobile: comparación por munición, de mejor a peor.
     const byAmmunition = screen.getByRole('region', { name: 'Por munición' });
     const items = within(byAmmunition).getAllByRole('listitem');

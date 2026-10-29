@@ -63,7 +63,7 @@ Decisiones tomadas con el usuario antes del plan: perspectiva real (no afín); e
 - [x] **2. Coordenadas del PMI**
   - Qué: `formatSigned` en `format.ts` (signo `+` / `−` U+2212, coma decimal, sin signo en 0). En la tarjeta del PMI, la línea "X −4,1 · Y −13,2" (mobile) o "X −4,1 mm · Y −13,2 mm" (desktop), en la unidad del perfil. Con 0 impactos no se muestra.
   - Verificación: tests de `formatSigned`; test de `analysis-screen` con impactos conocidos que comprueba X e Y (y en pulgadas).
-- [ ] **3. Valores en los gráficos de Rendimiento**
+- [x] **3. Valores en los gráficos de Rendimiento**
   - Qué: `chart.ts` calcula el ancho (`max(contenedor, puntos × 52 px)`) y qué fechas del eje x entran sin superponerse; los gráficos dibujan en px reales (sin escalar por `viewBox`), con el valor sobre cada punto (sin unidad) y el destacado más grande; el destacado muestra su fecha resaltada en el eje x. En Rendimiento, "Tamaño de grupo" pasa de `BarChart` a `LineChart` (escala ajustada a los valores, como el puntaje; sigue la nota "Menor es mejor") y se elimina `BarChart`. `ChartFrame` separa el eje y (fijo) del área desplazable, que arranca mostrando los más recientes. `ChartPoint` cambia `date` por `axisLabel` + `detail` (para el tooltip y el resumen accesible).
   - Verificación: tests de `chart.ts` (ancho, etiquetas que entran); test de `LineChart` que comprueba un valor por punto; test de `performance-screen` actualizado (los dos gráficos son de línea). Manual en mobile con 20 sesiones.
 - [ ] **4. Evolución dentro de la sesión**

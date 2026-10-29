@@ -3,7 +3,6 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router';
 import { Alert } from '@/components/alert';
 import { AmmunitionComparison } from '@/components/ammunition-comparison';
-import { BarChart } from '@/components/bar-chart';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
@@ -22,7 +21,7 @@ import { useUnits } from '@/hooks/use-profile';
 import { useSessionData } from '@/hooks/use-session-data';
 import type { ChartPoint } from '@/lib/chart';
 import { cx } from '@/lib/cx';
-import { formatDecimal, formatInteger, formatIsoDate, isoDate } from '@/lib/format';
+import { formatDayMonth, formatDecimal, formatInteger, formatIsoDate, isoDate } from '@/lib/format';
 import { ammunitionName } from '@/lib/inventory';
 import {
   ALL_DISTANCES,
@@ -63,7 +62,7 @@ const SHEET_PARAM = 'filtro';
 /** Marca la entrada del historial que abre el sheet desde la pantalla. */
 const OPENED_FROM_SCREEN = { fromScreen: true };
 
-const CHART_SIZE = { mobile: { width: 340, height: 170 }, desktop: { width: 600, height: 240 } };
+const CHART_HEIGHT = { mobile: 180, desktop: 240 };
 
 interface FilterDefinition {
   key: FilterKey;
@@ -445,7 +444,7 @@ export function PerformanceScreen() {
       : [
           {
             key: session.id,
-            date: session.date,
+            axisLabel: formatDayMonth(session.date),
             value: stats.averagePerShot,
             label: formatDecimal(stats.averagePerShot),
           },
@@ -457,13 +456,13 @@ export function PerformanceScreen() {
       : [
           {
             key: session.id,
-            date: session.date,
+            axisLabel: formatDayMonth(session.date),
             value: toDisplay(stats.groupSize),
             label: measureValue(stats.groupSize),
           },
         ],
   );
-  const chartSize = isDesktop ? CHART_SIZE.desktop : CHART_SIZE.mobile;
+  const chartHeight = isDesktop ? CHART_HEIGHT.desktop : CHART_HEIGHT.mobile;
   const distanceNote =
     report.distanceM === null ? 'todas las distancias' : `a ${formatDecimal(report.distanceM)} m`;
 
@@ -481,7 +480,7 @@ export function PerformanceScreen() {
             title="Puntaje promedio por tiro"
             points={scorePoints}
             formatTick={formatDecimal}
-            {...chartSize}
+            height={chartHeight}
           />
         ) : (
           <p className={styles.chartEmpty}>Estas rondas no tienen puntaje.</p>
@@ -495,11 +494,11 @@ export function PerformanceScreen() {
           <span className={styles.chartNote}>Menor es mejor</span>
         </div>
         {groupPoints.length > 0 ? (
-          <BarChart
+          <LineChart
             title={`Tamaño de grupo por sesión en ${unit}`}
             points={groupPoints}
             formatTick={formatDecimal}
-            {...chartSize}
+            height={chartHeight}
           />
         ) : (
           <p className={styles.chartEmpty}>
