@@ -4,6 +4,7 @@ import { storedPhotos, type PhotoDraft } from './photos';
 import {
   hasZoneErrors,
   MAX_REFERENCE_MM,
+  MAX_ZONE_SCORE,
   MAX_ZONES,
   sortZones,
   validateZones,
@@ -185,4 +186,65 @@ export function parseTarget(id: string, data: Record<string, unknown>): Target {
     zones: scoring === 'rings' ? sortZones(parseZones(data.zones)) : [],
     archived: data.archived === true,
   };
+}
+
+// --- Copia para la herramienta de calibración ------------------------------------------------
+
+/** Lo que la herramienta de `calibration/` necesita de un blanco. */
+export type TargetDefinition = Pick<TargetInput, 'name' | 'scoring' | 'referenceSizeMm' | 'zones'>;
+
+const CLIPBOARD_VERSION = 1;
+
+/** Texto que "Copiar para calibración" deja en el portapapeles (JSON). */
+export function targetClipboardText({
+  name,
+  scoring,
+  referenceSizeMm,
+  zones,
+}: TargetDefinition): string {
+  return JSON.stringify(
+    {
+      rangebook: 'target',
+      version: CLIPBOARD_VERSION,
+      name,
+      scoring,
+      referenceSizeMm,
+      zones: zones.map(({ score, diameterMm }) => ({ score, diameterMm })),
+    },
+    null,
+    2,
+  );
+}
+
+/** Blanco pegado desde el portapapeles; `null` si el texto no es un blanco válido. */
+export function parseTargetClipboard(text: string): TargetDefinition | null {
+  let data: Record<string, unknown>;
+  try {
+    data = JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+  if (!data || typeof data !== 'object') return null;
+  if (data.rangebook !== 'target' || data.version !== CLIPBOARD_VERSION) return null;
+  const name = typeof data.name === 'string' ? data.name.trim() : '';
+  const scoring = data.scoring;
+  const referenceSizeMm = positive(data.referenceSizeMm);
+  if (!name || (scoring !== 'rings' && scoring !== 'none')) return null;
+  if (referenceSizeMm === 0 || referenceSizeMm > MAX_REFERENCE_MM) return null;
+  if (scoring === 'none') return { name, scoring, referenceSizeMm, zones: [] };
+
+  if (!Array.isArray(data.zones) || data.zones.length === 0 || data.zones.length > MAX_ZONES) {
+    return null;
+  }
+  const zones = parseZones(data.zones);
+  const valid =
+    zones.length === data.zones.length &&
+    zones.every(
+      ({ score, diameterMm }) =>
+        Number.isInteger(score) &&
+        score >= 0 &&
+        score <= MAX_ZONE_SCORE &&
+        diameterMm <= MAX_REFERENCE_MM,
+    );
+  return valid ? { name, scoring, referenceSizeMm, zones: sortZones(zones) } : null;
 }

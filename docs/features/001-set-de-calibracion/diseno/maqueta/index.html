@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RangeBook · Maqueta de la iteración 001</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&amp;family=Barlow:wght@400;500;600&amp;display=swap">
+<style>
+:root{--bg:#050607;--surface:#14181C;--border:#2E353D;--text:#F2F4F5;--text-2:#B4BCC5;--text-3:#8A949F;--accent:#FF6A1A}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 'Barlow',system-ui,sans-serif}
+main{max-width:1600px;margin:0 auto;padding:40px 24px 80px;display:flex;flex-direction:column;gap:48px}
+h1,h2,h3{margin:0;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.01em;line-height:1.05}
+h1{font-size:48px}
+h2{font-size:30px}
+p{margin:0;color:var(--text-2);max-width:760px}
+a{color:var(--accent)}
+.grid{display:flex;flex-wrap:wrap;gap:28px}
+.shot{display:flex;flex-direction:column;gap:10px}
+.shot header{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.shot h3{font-size:18px}
+.code{font-size:13px;color:var(--text-3);font-weight:600}
+.tag{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
+.frame{overflow:hidden;border-radius:22px;border:1px solid var(--border);background:#0B0D0F}
+.frame iframe{border:0;transform-origin:0 0;pointer-events:none}
+.m .frame{width:293px;height:633px}
+.m iframe{width:390px;height:844px;transform:scale(.75)}
+.frame-link{display:block;text-decoration:none;border-radius:22px}
+.frame-link:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.frame-link:hover .frame{border-color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+  <header style="display:flex;flex-direction:column;gap:12px">
+    <span class="code" style="letter-spacing:.08em;text-transform:uppercase">Maqueta de la iteración 001 · no es la app</span>
+    <h1>Set de calibración · Pantallas que cambian</h1>
+    <p>Solo la pantalla de la app que cambia. La herramienta de calibración (<code>calibration/</code>) tiene interfaz mínima y no tiene maqueta. Detalle en <code>../cambios.md</code>.</p>
+  </header>
+
+  <section style="display:flex;flex-direction:column;gap:20px">
+    <h2>Mobile</h2>
+    <div class="grid m">
+      <article class="shot">
+        <header><h3>Edición de blanco</h3><span class="code">M12 · <span class="tag">Modificada</span></span></header>
+        <a class="frame-link" href="mobile/blanco-form.html" aria-label="Abrir M12 Edición de blanco"><div class="frame"><iframe src="mobile/blanco-form.html" loading="lazy" tabindex="-1" title="Edición de blanco"></iframe></div></a>
+      </article>
+    </div>
+  </section>
+</main>
+</body>
+</html>

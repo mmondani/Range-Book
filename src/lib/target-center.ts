@@ -142,3 +142,17 @@ export function detectTargetCenter(image: PixelImage): Pixel | null {
   // Si pocos bordes apuntan al centro, no hay un blanco de anillos claro.
   return inliers >= edges * MIN_SHARE ? center : null;
 }
+
+/**
+ * Busca el centro en la foto de tamaño `size`, ya reducida a `pixels` (con
+ * `centerDetectionScale`). Devuelve el punto en píxeles de la foto, o `null`.
+ */
+export function detectCenterInPhoto(pixels: PixelImage, size: ImageSize): Pixel | null {
+  const found = detectTargetCenter(pixels);
+  if (!found) return null;
+  // Del centro del píxel de la foto reducida al punto de la original.
+  return {
+    x: ((found.x + 0.5) * size.width) / pixels.width,
+    y: ((found.y + 0.5) * size.height) / pixels.height,
+  };
+}

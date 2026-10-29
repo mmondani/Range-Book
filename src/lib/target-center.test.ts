@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { syntheticTarget } from '@/test/synthetic-target';
 import type { Pixel } from './calibration';
-import { centerDetectionScale, detectTargetCenter } from './target-center';
+import { centerDetectionScale, detectCenterInPhoto, detectTargetCenter } from './target-center';
 
 function expectCenter(found: Pixel | null, expected: Pixel) {
   expect(found).not.toBeNull();
@@ -59,5 +59,20 @@ describe('centerDetectionScale', () => {
     expect(centerDetectionScale({ width: 4000, height: 3000 })).toBe(0.1);
     expect(centerDetectionScale({ width: 600, height: 800 })).toBe(0.5);
     expect(centerDetectionScale({ width: 300, height: 200 })).toBe(1);
+  });
+});
+
+describe('detectCenterInPhoto', () => {
+  it('devuelve el centro en píxeles de la foto original', () => {
+    const center = { x: 100, y: 130 };
+    const target = syntheticTarget({ center }).ringLine(20).ringLine(45).ringLine(70);
+    // La foto original mide el doble que la reducida.
+    const found = detectCenterInPhoto(target.image(), { width: 480, height: 480 });
+    expect(found).not.toBeNull();
+    expect(Math.hypot(found!.x - 201, found!.y - 261)).toBeLessThanOrEqual(2);
+  });
+
+  it('sin centro claro devuelve null', () => {
+    expect(detectCenterInPhoto(syntheticTarget().image(), { width: 480, height: 480 })).toBeNull();
   });
 });

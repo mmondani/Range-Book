@@ -1,11 +1,12 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '@/components/auth-provider';
 import { InventoryProvider } from '@/components/inventory-provider';
 import { PhotoProvider } from '@/components/photo-provider';
 import { ToastProvider } from '@/components/toast-provider';
+import { parseTargetClipboard } from '@/lib/targets';
 import { routes } from '@/routes';
 import { ANA, createFakeAuth } from '@/test/fake-auth';
 import { B8, createFakeInventory, IPSC_CLASSIC, ISSF } from '@/test/fake-inventory';
@@ -273,6 +274,41 @@ describe('Inventario: blancos', () => {
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
       expect(await screen.findByText('Blanco archivado')).toBeInTheDocument();
       expect((await cards()).queryByText('ISSF Pistola Precisión')).not.toBeInTheDocument();
+    });
+
+    it('"Copiar para calibración" copia el blanco guardado, no lo editado', async () => {
+      const user = userEvent.setup();
+      renderTargets(`/inventario/blancos/${ISSF.id}/editar`);
+      const sheet = await dialog();
+      const name = within(sheet).getByRole('textbox', { name: /Nombre/ });
+      await user.clear(name);
+      await user.type(name, 'Sin guardar');
+      await user.click(within(sheet).getByRole('button', { name: 'Copiar para calibración' }));
+      expect(await screen.findByText('Blanco copiado')).toBeInTheDocument();
+      const copied = parseTargetClipboard(await navigator.clipboard.readText());
+      expect(copied).toEqual({
+        name: ISSF.name,
+        scoring: 'rings',
+        referenceSizeMm: ISSF.referenceSizeMm,
+        zones: ISSF.zones,
+      });
+    });
+
+    it('si el portapapeles falla, lo avisa', async () => {
+      const user = userEvent.setup();
+      renderTargets(`/inventario/blancos/${ISSF.id}/editar`);
+      const sheet = await dialog();
+      vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('denegado'));
+      await user.click(within(sheet).getByRole('button', { name: 'Copiar para calibración' }));
+      expect(await screen.findByText('No se pudo copiar')).toBeInTheDocument();
+    });
+
+    it('al crear un blanco no se ofrece copiarlo', async () => {
+      renderTargets('/inventario/blancos/nuevo');
+      const sheet = await dialog();
+      expect(
+        within(sheet).queryByRole('button', { name: 'Copiar para calibración' }),
+      ).not.toBeInTheDocument();
     });
 
     it('un blanco que no existe vuelve a la lista', async () => {

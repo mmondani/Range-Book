@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import type { Calibration, Pixel } from './calibration';
 import { syntheticTarget } from '@/test/synthetic-target';
 import {
+  DEFAULT_TUNING,
   detectImpacts,
+  detectImpactsInPhoto,
   detectionOptions,
   detectionScale,
   holeDiameterMm,
@@ -68,6 +70,30 @@ describe('detectImpacts', () => {
     expect(detectImpacts(syntheticTarget().image(), { holeDiameterPx: 9 })).toEqual([]);
   });
 
+  it('con otros parámetros cambia lo que encuentra', () => {
+    const target = syntheticTarget().hole({ x: 60, y: 60 }, HOLE_ON_PAPER);
+    expect(detectImpacts(target.image(), { holeDiameterPx: 9 })).toHaveLength(1);
+    // Un umbral mayor que el contraste del agujero (≈ 190) no ve nada.
+    expect(
+      detectImpacts(target.image(), { holeDiameterPx: 9, tuning: { threshold: 250 } }),
+    ).toEqual([]);
+    // Pidiendo una ocupación imposible, ninguna mancha parece un agujero.
+    expect(detectImpacts(target.image(), { holeDiameterPx: 9, tuning: { minFill: 1.1 } })).toEqual(
+      [],
+    );
+  });
+
+  it('los parámetros por defecto son los de siempre', () => {
+    const target = syntheticTarget()
+      .blackDisk(45)
+      .ringLine(70)
+      .hole({ x: 40, y: 50 }, HOLE_ON_PAPER)
+      .hole({ x: 125, y: 110 }, HOLE_ON_BLACK);
+    expect(
+      detectImpacts(target.image(), { holeDiameterPx: 9, tuning: { ...DEFAULT_TUNING } }),
+    ).toEqual(detectImpacts(target.image(), { holeDiameterPx: 9 }));
+  });
+
   it('respeta el tope de impactos', () => {
     const target = syntheticTarget();
     for (let i = 0; i < 5; i++) target.hole({ x: 30 + i * 40, y: 120 }, HOLE_ON_PAPER);
@@ -117,5 +143,26 @@ describe('detectionScale y detectionOptions', () => {
     expect(options.region?.radius).toBeCloseTo(262.5, 10);
     // Sin zonas, se busca en toda la foto.
     expect(detectionOptions(calibration, [], 9, 0.5).region).toBeUndefined();
+  });
+});
+
+describe('detectImpactsInPhoto', () => {
+  it('devuelve los impactos en píxeles de la foto calibrada', () => {
+    // Foto de 480 px reducida a la mitad: el agujero en (100, 60) de la reducida está en
+    // (201, 121) de la original (centro del píxel).
+    const calibration: Calibration = {
+      kind: 'ring',
+      width: 480,
+      height: 480,
+      center: { x: 240, y: 240 },
+      edge: { x: 340, y: 240 },
+      diameterMm: 200,
+    };
+    const target = syntheticTarget().hole({ x: 100, y: 60 }, HOLE_ON_PAPER);
+    // 1 mm por px en la original: un agujero de 18 mm mide 9 px en la reducida.
+    const [found, ...rest] = detectImpactsInPhoto(target.image(), calibration, [], 18);
+    expect(rest).toEqual([]);
+    expect(found!.x).toBeCloseTo(201, 0);
+    expect(found!.y).toBeCloseTo(121, 0);
   });
 });

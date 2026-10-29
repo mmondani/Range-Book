@@ -13,6 +13,9 @@ coverage/
 .env.*
 !.env.example
 
+# Set de fotos de la herramienta de calibración (fotos, dataset.json y resultados)
+calibration/dataset/
+
 # Firebase
 .firebase/
 firebase-debug.log*

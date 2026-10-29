@@ -6,7 +6,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist', 'coverage', '.firebase'] },
+  { ignores: ['dist', 'coverage', '.firebase', 'calibration/dataset'] },
   {
     files: ['**/*.{ts,tsx}'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
@@ -16,11 +16,11 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/**/*.tsx'],
+    files: ['src/**/*.tsx', 'calibration/src/**/*.tsx'],
     extends: [reactHooks.configs.flat.recommended, jsxA11y.flatConfigs.recommended],
   },
   {
-    files: ['*.{js,ts}', 'tests/**/*.ts'],
+    files: ['*.{js,ts}', 'calibration/*.ts', 'tests/**/*.ts'],
     languageOptions: { globals: globals.node },
   },
   prettier,

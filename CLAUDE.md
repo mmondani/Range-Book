@@ -38,3 +38,4 @@
 
 ## Iteración actual
 <!-- Actualizar al empezar cada iteración -->
+001 — Set de calibración de la detección: `docs/features/001-set-de-calibracion/`. Herramienta de desarrollo en `calibration/` (fuera de `src/`, no se despliega) para marcar fotos reales de blancos y evaluar contra ellas la detección de impactos y del centro.

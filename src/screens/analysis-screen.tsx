@@ -52,17 +52,12 @@ import {
 } from '@/lib/calibration';
 import { cx } from '@/lib/cx';
 import { formatDecimal, formatInteger, formatShortDate } from '@/lib/format';
-import {
-  detectImpacts,
-  detectionOptions,
-  detectionScale,
-  holeDiameterMm,
-} from '@/lib/impact-detection';
+import { detectImpactsInPhoto, detectionScale, holeDiameterMm } from '@/lib/impact-detection';
 import { analysisMetrics, groupRadius, meanPoint } from '@/lib/metrics';
 import { storedPhotos } from '@/lib/photos';
 import { readImagePixels } from '@/lib/pixel-image';
 import { sessionLabels, type Round, type Session } from '@/lib/sessions';
-import { centerDetectionScale, detectTargetCenter } from '@/lib/target-center';
+import { centerDetectionScale, detectCenterInPhoto } from '@/lib/target-center';
 import { zoneScore } from '@/lib/target-zones';
 import { maxZoneScore, targetName, type Target } from '@/lib/targets';
 import { formatLengthValue, UNIT_SYMBOLS } from '@/lib/units';
@@ -282,16 +277,9 @@ function RoundAnalyzer({
       const pixels = await readImagePixels(blob, centerDetectionScale(loaded));
       // Deja que se vea el overlay antes del cálculo, que bloquea el hilo principal.
       await new Promise((resolve) => setTimeout(resolve, 0));
-      const found = detectTargetCenter(pixels);
-      if (!found || !mounted.current || touched.current) return;
-      // Del centro del píxel de la foto reducida al punto de la original.
-      const next: CalibrationDraft = {
-        ...initial.draft,
-        center: {
-          x: ((found.x + 0.5) * loaded.width) / pixels.width,
-          y: ((found.y + 0.5) * loaded.height) / pixels.height,
-        },
-      };
+      const center = detectCenterInPhoto(pixels, loaded);
+      if (!center || !mounted.current || touched.current) return;
+      const next: CalibrationDraft = { ...initial.draft, center };
       setDraft(next);
       setAutoDraft(next);
       setActive('edge');
@@ -337,13 +325,9 @@ function RoundAnalyzer({
       const holeMm = holeDiameterMm(caliber);
       const blob = await photoRepository.blob(round.photo);
       const pixels = await readImagePixels(blob, detectionScale(current, holeMm));
-      // La foto reducida se redondea: se usa la escala real de cada eje.
-      const scaleX = pixels.width / current.width;
-      const scaleY = pixels.height / current.height;
       // Deja que se vea el overlay antes del cálculo, que bloquea el hilo principal.
       await new Promise((resolve) => setTimeout(resolve, 0));
-      const found = detectImpacts(pixels, {
-        ...detectionOptions(current, analyzed.zones, holeMm, scaleX),
+      const found = detectImpactsInPhoto(pixels, current, analyzed.zones, holeMm, {
         maxImpacts: MAX_IMPACTS,
       });
       if (!mounted.current) return;
@@ -351,12 +335,7 @@ function RoundAnalyzer({
         setDetection('failed');
         return;
       }
-      setHistory((previous) =>
-        commitImpacts(
-          previous,
-          found.map(({ x, y }) => ({ x: (x + 0.5) / scaleX, y: (y + 0.5) / scaleY })),
-        ),
-      );
+      setHistory((previous) => commitImpacts(previous, found));
       setDetection('idle');
     } catch {
       if (mounted.current) setDetection('failed');

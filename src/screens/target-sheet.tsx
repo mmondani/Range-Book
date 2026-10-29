@@ -1,4 +1,6 @@
+import { Copy } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/components/button';
 import { Field } from '@/components/field';
 import { Input } from '@/components/input';
 import { InventorySheet } from '@/components/inventory-sheet';
@@ -19,6 +21,7 @@ import { NAME_MAX_LENGTH } from '@/lib/inventory';
 import { removedPhotos, uploadPhotos } from '@/lib/photos';
 import {
   referenceSize,
+  targetClipboardText,
   targetDraft,
   targetInput,
   targetName,
@@ -84,6 +87,17 @@ export function TargetSheet({ item }: { item?: Target }) {
   });
   const { draft, errors, setField } = form;
   const rings = draft.scoring === 'rings';
+
+  /** Copia el blanco guardado (no lo que se está editando) para la herramienta de calibración. */
+  async function handleCopy() {
+    if (!item) return;
+    try {
+      await navigator.clipboard.writeText(targetClipboardText(item));
+      toast.show({ message: 'Blanco copiado' });
+    } catch {
+      toast.show({ message: 'No se pudo copiar', tone: 'error' });
+    }
+  }
 
   async function handleArchive() {
     if (!item) return;
@@ -156,6 +170,18 @@ export function TargetSheet({ item }: { item?: Target }) {
           rowErrors={errors.zones ? targetZoneErrors(draft) : undefined}
           error={errors.zones}
         />
+      )}
+      {item && (
+        <Field
+          label="Calibración de la detección"
+          kind="group"
+          help="Copia el nombre y las zonas guardadas del blanco para pegarlos en la herramienta de calibración."
+        >
+          <Button onClick={() => void handleCopy()}>
+            <Copy size={18} aria-hidden="true" />
+            Copiar para calibración
+          </Button>
+        </Field>
       )}
     </InventorySheet>
   );

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { pendingPhoto } from './photos';
 import {
+  parseTargetClipboard,
+  targetClipboardText,
   parseTarget,
   targetDraft,
   targetInput,
@@ -175,5 +177,50 @@ describe('parseTarget', () => {
     expect(
       parseTarget('y', { scoring: 'none', zones: [{ score: 1, diameterMm: 2 }] }).zones,
     ).toEqual([]);
+  });
+});
+
+describe('targetClipboardText y parseTargetClipboard', () => {
+  const rings = {
+    name: 'ISSF Pistola Precisión',
+    scoring: 'rings' as const,
+    referenceSizeMm: 500,
+    zones: [
+      { score: 10, diameterMm: 50 },
+      { score: 9, diameterMm: 100 },
+    ],
+  };
+
+  it('ida y vuelta, con anillos y sin zonas', () => {
+    expect(parseTargetClipboard(targetClipboardText(rings))).toEqual(rings);
+    const none = { name: 'IPSC', scoring: 'none' as const, referenceSizeMm: 460, zones: [] };
+    expect(parseTargetClipboard(targetClipboardText(none))).toEqual(none);
+  });
+
+  it('solo copia los datos del blanco, no la foto ni el id', () => {
+    const text = targetClipboardText({ ...rings, id: 'issf', photo: 'a.jpg' } as never);
+    expect(text).not.toContain('"id"');
+    expect(text).not.toContain('"photo"');
+  });
+
+  it('rechaza lo que no es un blanco copiado de la app', () => {
+    const copied = JSON.parse(targetClipboardText(rings)) as Record<string, unknown>;
+    const variant = (changes: Record<string, unknown>) =>
+      parseTargetClipboard(JSON.stringify({ ...copied, ...changes }));
+    expect(parseTargetClipboard('hola')).toBeNull();
+    expect(parseTargetClipboard('null')).toBeNull();
+    expect(variant({ rangebook: 'otra-cosa' })).toBeNull();
+    expect(variant({ version: 2 })).toBeNull();
+    expect(variant({ name: '  ' })).toBeNull();
+    expect(variant({ scoring: 'puntos' })).toBeNull();
+    expect(variant({ referenceSizeMm: 0 })).toBeNull();
+    expect(variant({ zones: [] })).toBeNull();
+    expect(variant({ zones: [{ score: 10, diameterMm: -1 }] })).toBeNull();
+    expect(variant({ zones: [{ score: 1.5, diameterMm: 50 }] })).toBeNull();
+  });
+
+  it('ordena las zonas de mayor a menor puntaje', () => {
+    const text = targetClipboardText({ ...rings, zones: [...rings.zones].reverse() });
+    expect(parseTargetClipboard(text)?.zones).toEqual(rings.zones);
   });
 });

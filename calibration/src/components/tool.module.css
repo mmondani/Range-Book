@@ -1,0 +1,213 @@
+/* Estilos de la herramienta de calibración: interfaz mínima con los tokens de la app. */
+
+.gate {
+  max-width: 560px;
+  margin: 64px auto;
+  padding: 0 var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  text-transform: uppercase;
+}
+
+.muted {
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.header .title {
+  font-size: 22px;
+  margin-right: auto;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) 340px;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    'list photo side'
+    'list photo marking';
+  gap: var(--space-4);
+  padding: var(--space-4);
+  align-items: start;
+}
+
+.areaList {
+  grid-area: list;
+}
+
+.areaPhoto {
+  grid-area: photo;
+}
+
+.areaSide {
+  grid-area: side;
+}
+
+.areaMarking {
+  grid-area: marking;
+}
+
+.dropping {
+  outline: 2px dashed var(--accent);
+  outline-offset: -8px;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: calc(100dvh - 160px);
+  overflow-y: auto;
+}
+
+.item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.item:hover {
+  background: var(--surface-2);
+}
+
+.item[aria-current='true'] {
+  background: var(--surface-3);
+}
+
+.status {
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.status[data-status='done'] {
+  color: var(--success);
+}
+
+.status[data-status='discarded'],
+.status[data-status='missing'] {
+  color: var(--danger);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.checks legend {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: var(--space-1);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 14px;
+}
+
+.warning {
+  color: var(--warning);
+  font-size: 14px;
+}
+
+.error {
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.params {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-3);
+}
+
+.evaluation {
+  max-width: 1200px;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.table {
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th,
+.table td {
+  padding: var(--space-1) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table th:first-child,
+.table td:first-child {
+  text-align: left;
+}
+
+.table thead th {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.subtitle {
+  font-family: var(--font-display);
+  font-size: 20px;
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
+}

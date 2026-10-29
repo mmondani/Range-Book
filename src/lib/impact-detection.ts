@@ -3,20 +3,49 @@ import { boxSum, grayscale, integral, type PixelImage } from './pixel-image';
 import type { TargetZone } from './target-zones';
 import { MM_PER_INCH } from './units';
 
+/**
+ * Parámetros de la detección. Los tamaños son relativos al diámetro del agujero, así sirven para
+ * cualquier calibre y resolución. La herramienta de `calibration/` los cambia para comparar.
+ */
+export interface DetectionTuning {
+  /** Diferencia mínima de brillo (0–255) contra el entorno para considerar un píxel. */
+  threshold: number;
+  /** Radio de la ventana del entorno, en agujeros. */
+  windowRatio: number;
+  /** La erosión tiene un radio de 1/`erosionDivisor` de agujero. */
+  erosionDivisor: number;
+  /** Área de una mancha, en veces la de un agujero erosionado. */
+  minAreaRatio: number;
+  maxAreaRatio: number;
+  /** Lado mayor del rectángulo de una mancha, en diámetros de agujero erosionado. */
+  maxSideRatio: number;
+  /** Fracción mínima del rectángulo que ocupa la mancha (descarta formas alargadas o ralas). */
+  minFill: number;
+}
+
+export const DEFAULT_TUNING: Readonly<DetectionTuning> = {
+  threshold: 45,
+  windowRatio: 1.5,
+  erosionDivisor: 6,
+  minAreaRatio: 0.3,
+  maxAreaRatio: 4,
+  maxSideRatio: 2.5,
+  minFill: 0.35,
+};
+
 export interface DetectionOptions {
   /** Diámetro esperado de un agujero, en píxeles de `image`. */
   holeDiameterPx: number;
   /** Solo se buscan impactos dentro de este círculo (la zona calibrada del blanco). */
   region?: { center: Pixel; radius: number };
-  /** Diferencia mínima de brillo (0–255) contra el entorno para considerar un píxel. */
-  threshold?: number;
   /** Tope de impactos: más que esto es ruido (papel arrugado, sombras). */
   maxImpacts?: number;
+  /** Parámetros distintos de los de `DEFAULT_TUNING`. */
+  tuning?: Partial<DetectionTuning>;
 }
 
 /** Calibre por defecto si no se reconoce el del arma (9 mm). */
 export const DEFAULT_HOLE_MM = 9;
-const DEFAULT_THRESHOLD = 45;
 const DEFAULT_MAX_IMPACTS = 200;
 
 /**
@@ -52,7 +81,8 @@ export function holeDiameterMm(caliber: string): number {
 export function detectImpacts(image: PixelImage, options: DetectionOptions): Pixel[] {
   const { width, height } = image;
   const hole = Math.max(2, options.holeDiameterPx);
-  const threshold = options.threshold ?? DEFAULT_THRESHOLD;
+  const tuning = { ...DEFAULT_TUNING, ...options.tuning };
+  const threshold = tuning.threshold;
   const region = options.region;
   const inRegion = (x: number, y: number) =>
     !region || Math.hypot(x - region.center.x, y - region.center.y) <= region.radius;
@@ -60,7 +90,7 @@ export function detectImpacts(image: PixelImage, options: DetectionOptions): Pix
   // 1. Umbral adaptativo contra el promedio de una ventana de ~3 agujeros.
   const gray = grayscale(image);
   const graySums = integral(gray, width, height);
-  const window = Math.max(3, Math.round(hole * 1.5));
+  const window = Math.max(3, Math.round(hole * tuning.windowRatio));
   const mask = new Uint8Array(width * height);
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -71,7 +101,7 @@ export function detectImpacts(image: PixelImage, options: DetectionOptions): Pix
   }
 
   // 2. Erosión con un cuadrado de radio ~⅙ de agujero.
-  const erosion = Math.max(1, Math.floor(hole / 6));
+  const erosion = Math.max(1, Math.floor(hole / tuning.erosionDivisor));
   const maskSums = integral(mask, width, height);
   const eroded = new Uint8Array(width * height);
   const full = (2 * erosion + 1) ** 2;
@@ -87,7 +117,7 @@ export function detectImpacts(image: PixelImage, options: DetectionOptions): Pix
   // Lo que queda de un agujero después de erosionarlo (la esquina del cuadrado llega a r·√2).
   const core = Math.max(1, hole / 2 - erosion * Math.SQRT2);
   const expectedArea = Math.PI * core * core;
-  const maxSide = 2.5 * 2 * core + 2;
+  const maxSide = tuning.maxSideRatio * 2 * core + 2;
   const found: Pixel[] = [];
   const stack = new Int32Array(width * height);
   for (let start = 0; start < eroded.length; start++) {
@@ -123,10 +153,10 @@ export function detectImpacts(image: PixelImage, options: DetectionOptions): Pix
     const boxWidth = maxX - minX + 1;
     const boxHeight = maxY - minY + 1;
     const holeLike =
-      area >= expectedArea * 0.3 &&
-      area <= expectedArea * 4 &&
+      area >= expectedArea * tuning.minAreaRatio &&
+      area <= expectedArea * tuning.maxAreaRatio &&
       Math.max(boxWidth, boxHeight) <= maxSide &&
-      area / (boxWidth * boxHeight) >= 0.35;
+      area / (boxWidth * boxHeight) >= tuning.minFill;
     if (holeLike) found.push({ x: sumX / area, y: sumY / area });
   }
 
@@ -168,4 +198,27 @@ export function detectionOptions(
         }
       : undefined,
   };
+}
+
+/**
+ * Detecta los impactos en la foto calibrada, ya reducida a `pixels` (con `detectionScale`).
+ * Devuelve los puntos en píxeles de la foto calibrada. Es lo que hace el análisis al tocar
+ * "Detectar", y lo que evalúa la herramienta de `calibration/`.
+ */
+export function detectImpactsInPhoto(
+  pixels: PixelImage,
+  calibration: Calibration,
+  zones: readonly TargetZone[],
+  holeMm: number,
+  options: Pick<DetectionOptions, 'maxImpacts' | 'tuning'> = {},
+): Pixel[] {
+  // La foto reducida se redondea: se usa la escala real de cada eje.
+  const scaleX = pixels.width / calibration.width;
+  const scaleY = pixels.height / calibration.height;
+  const found = detectImpacts(pixels, {
+    ...detectionOptions(calibration, zones, holeMm, scaleX),
+    ...options,
+  });
+  // Del centro del píxel de la foto reducida al punto de la original.
+  return found.map(({ x, y }) => ({ x: (x + 0.5) / scaleX, y: (y + 0.5) / scaleY }));
 }
