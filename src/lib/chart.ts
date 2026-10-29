@@ -132,3 +132,14 @@ export function chartLayout(
     y: (value) => bottom - ((value - min) / (max - min || 1)) * (bottom - top),
   };
 }
+
+/**
+ * Radios de los dos círculos de referencia de la dispersión del PMI (`MpiScatter`): uno redondo y
+ * su doble, que alcanza para el punto más alejado del centro.
+ */
+export function scatterRings(maxDistance: number): [number, number] {
+  const half = maxDistance / 2;
+  if (!(half > 0)) return [1, 2];
+  const radius = niceStep(half, 1);
+  return [radius, radius * 2];
+}

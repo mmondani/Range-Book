@@ -1,0 +1,47 @@
+.evolution {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.note {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+/* El control de la unidad es chico: solo dos opciones cortas. */
+.unit {
+  display: inline-flex;
+}
+
+.chartTitle {
+  margin: var(--space-1) 0 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.scatterTitle {
+  margin-top: var(--space-3);
+}
+
+.caption {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+.few {
+  margin: 0;
+  padding: var(--space-4) 0;
+  color: var(--text-3);
+}

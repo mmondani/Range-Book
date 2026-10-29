@@ -1,0 +1,52 @@
+.scatter {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.ring {
+  fill: none;
+  stroke: var(--surface-3);
+}
+
+.ringLabel {
+  fill: var(--text-3);
+  font: 500 11px var(--font-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.axis {
+  stroke: var(--axis);
+}
+
+/* Recorrido de ronda en ronda, tenue. */
+.path {
+  fill: none;
+  stroke: var(--text-3);
+  stroke-dasharray: 3 3;
+}
+
+.point,
+.last {
+  font: 700 11px var(--font-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.point circle,
+.last circle {
+  fill: var(--info);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+.point circle {
+  opacity: 0.7;
+}
+
+.point text,
+.last text {
+  fill: var(--surface);
+}

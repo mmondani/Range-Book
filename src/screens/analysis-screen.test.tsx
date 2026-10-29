@@ -146,7 +146,7 @@ describe('M06 · Análisis con un análisis guardado', () => {
     const round = sessionItems()[0]!.rounds[0]!;
     expect(round).toMatchObject({ score: 29, manualScore: 136 });
     // Vuelve al detalle de la sesión.
-    expect(await screen.findByRole('heading', { name: 'Rondas · 2' })).toBeInTheDocument();
+    expect(await screen.findByRole('tab', { name: 'Rondas 2' })).toBeInTheDocument();
     expect(await screen.findByText('Análisis guardado')).toBeInTheDocument();
   });
 

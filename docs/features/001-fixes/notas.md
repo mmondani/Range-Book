@@ -15,7 +15,15 @@
 - **`ChartPoint` tiene `axisLabel`, sin `detail`.** La etiqueta del eje x (`2 ago`, `R1`) alcanza también para el tooltip y el resumen accesible; `chartSummary` recibe qué es cada punto (`sesiones`, `rondas`).
 - **Gráficos en px reales.** Antes se escalaban con `viewBox` a un ancho fijo; ahora miden su contenedor (`useElementWidth`, con `ResizeObserver`) y solo se fija la altura (180 px en mobile, 240 en desktop).
 - **Excepción de lint en `LineChart`:** `jsx-a11y/no-noninteractive-tabindex` desactivada en el contenedor que se desplaza, que tiene que poder enfocarse con el teclado (WCAG 2.1.1). Solo tiene `tabIndex` cuando los puntos no entran.
-- **Prueba visual pendiente:** no hubo navegador en la sesión; los tamaños (52 px por punto, valores en 12 px) hay que verlos en el celular.
+- **Prueba visual pendiente:** no hubo navegador en la sesión; los tamaños (52 px por punto, valores en 12 px) hay que verlos en el celular. *(Verificado por el usuario en producción: está bien.)*
+
+### Paso 4 — Evolución dentro de la sesión
+- **`sessionEvolution(rounds, measure)` sin `units`.** Devuelve mm o MOA, como `performance.ts`; la conversión a la unidad del perfil la hace la tarjeta al mostrar. `analyzedRounds` y `EVOLUTION_METRICS` también quedaron en `session-evolution.ts`.
+- **`scatterRings` en `chart.ts`:** los dos círculos de referencia de la dispersión (un radio redondo y su doble).
+- **Desktop:** el encabezado del panel Rondas no suma el texto "N rondas · N analizadas" de la maqueta: la cantidad ya va en la pestaña. "Agregar ronda" se ve solo con la pestaña Rondas.
+- **La unidad dice "in", no "pulg":** se usa el mismo símbolo que en el resto de la app (`UNIT_SYMBOLS`).
+- **La lista de rondas dejó de tener título.** El `<h2>`/`<h3>` "Rondas · N" lo reemplaza la pestaña "Rondas N"; los tests que buscaban el título ahora buscan la pestaña.
+- **Al abrir "Agregar ronda" desde la pestaña Evolución,** detrás del sheet se ve la pestaña Rondas (el link no lleva `?vista=`). Al cerrar el sheet se vuelve atrás en el historial y la Evolución vuelve a estar.
 
 ## Pendientes
 

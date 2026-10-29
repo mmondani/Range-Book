@@ -32,7 +32,7 @@ async function openNewRound() {
 describe('Rondas en el detalle de la sesión', () => {
   it('cada ronda muestra sus datos y si está analizada', async () => {
     renderSessions(DETAIL);
-    await screen.findByRole('heading', { name: 'Rondas · 2' });
+    await screen.findByRole('tab', { name: 'Rondas 2' });
     const [first, second] = rounds().getAllByRole('listitem');
     expect(first).toHaveTextContent('Ronda 1Analizada15 disparos · 136 pts · 46,0 mm');
     expect(first).toHaveTextContent('ISSF Pistola Precisión · 25 m · Buen control del gatillo');
@@ -70,7 +70,7 @@ describe('Rondas en el detalle de la sesión', () => {
 describe('Abrir una ronda desde el detalle', () => {
   it('en mobile, la tarjeta lleva al análisis y el lápiz a editar', async () => {
     renderSessions(DETAIL);
-    await screen.findByRole('heading', { name: 'Rondas · 2' });
+    await screen.findByRole('tab', { name: 'Rondas 2' });
     const [first] = rounds().getAllByRole('listitem');
     // El link del análisis se estira sobre toda la tarjeta (CSS); es el único link además del lápiz.
     expect(
@@ -166,7 +166,7 @@ describe('M05 · Agregar ronda', () => {
     expect(await screen.findByText('Ronda agregada')).toBeInTheDocument();
     await waitFor(() => expect(router.state.location.pathname).toBe(DETAIL));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    expect(screen.getByRole('heading', { name: 'Rondas · 3' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Rondas 3' })).toBeInTheDocument();
     expect(rounds().getAllByRole('listitem')[2]).toHaveTextContent(
       'Ronda 3Sin analizar14 disparos · 128 pts',
     );
@@ -177,7 +177,7 @@ describe('M05 · Agregar ronda', () => {
     await act(() => router.navigate(-1));
     expect(router.state.location.pathname).toBe(DETAIL);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Rondas · 2' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Rondas 2' })).toBeInTheDocument();
   });
 
   it('valida al guardar y lleva el foco al primer error', async () => {
@@ -205,7 +205,7 @@ describe('M05 · Agregar ronda', () => {
 
   it('una ronda que no existe vuelve al detalle', async () => {
     const { router } = renderSessions(`${DETAIL}/rondas/nada/editar`);
-    await screen.findByRole('heading', { name: 'Rondas · 2' });
+    await screen.findByRole('tab', { name: 'Rondas 2' });
     await waitFor(() => expect(router.state.location.pathname).toBe(DETAIL));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
@@ -284,11 +284,11 @@ describe('M05 · Editar ronda', () => {
     expect(await screen.findByText('Ronda eliminada')).toBeInTheDocument();
     await waitFor(() => expect(router.state.location.pathname).toBe(DETAIL));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Rondas · 1' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Rondas 1' })).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Deshacer' }));
     expect(await screen.findByText('Ronda restaurada')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Rondas · 2' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Rondas 2' })).toBeInTheDocument();
     expect(rounds().getAllByRole('listitem')[0]).toHaveTextContent('Ronda 1Analizada');
   });
 });

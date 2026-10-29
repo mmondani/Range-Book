@@ -179,13 +179,50 @@ describe('SessionDetail', () => {
     expect(totals).toHaveTextContent('Puntaje267 / 300');
     expect(totals).toHaveTextContent('Grupo46,0 mm');
 
-    expect(screen.getByRole('heading', { name: 'Rondas · 2' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Rondas 2' })).toBeInTheDocument();
     expect(screen.getByRole('list', { name: 'Fotos del polígono' }).children).toHaveLength(2);
     expect(screen.getByText('Práctica de dobles a 7 m.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Editar sesión' })).toHaveAttribute(
       'href',
       '/sesiones/hoy/editar',
     );
+  });
+
+  it('pestañas Rondas / Evolución: Rondas por defecto y la elegida queda en la URL', async () => {
+    const { router } = renderSessions(`/sesiones/${TODAY_SESSION.id}`);
+    const roundsTab = await screen.findByRole('tab', { name: 'Rondas 2' });
+    expect(roundsTab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('list', { name: 'Rondas' })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Evolución' }));
+    expect(router.state.location.search).toBe('?vista=evolucion');
+    expect(screen.getByRole('tab', { name: 'Evolución' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel', { name: 'Evolución' })).toHaveTextContent(
+      'Con dos rondas analizadas o más vas a ver la evolución.',
+    );
+    expect(screen.queryByRole('list', { name: 'Rondas' })).not.toBeInTheDocument();
+    // Las notas se ven con las dos pestañas.
+    expect(screen.getByText('Práctica de dobles a 7 m.')).toBeInTheDocument();
+
+    // Cambiar de pestaña no apila historial.
+    await userEvent.click(roundsTab);
+    expect(router.state.location.search).toBe('');
+    expect(router.state.historyAction).toBe('REPLACE');
+  });
+
+  it('entrar con ?vista=evolucion abre esa pestaña', async () => {
+    renderSessions(`/sesiones/${TODAY_SESSION.id}?vista=evolucion`);
+    expect(await screen.findByRole('tab', { name: 'Evolución' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+  });
+
+  it('en desktop, cambiar de pestaña conserva los filtros de la lista', async () => {
+    setDesktop(true);
+    const { router } = renderSessions(`/sesiones/${TODAY_SESSION.id}?q=glock`);
+    await userEvent.click(await screen.findByRole('tab', { name: 'Evolución' }));
+    expect(router.state.location.search).toBe('?q=glock&vista=evolucion');
   });
 
   it('una sesión sin rondas ni puntaje', async () => {

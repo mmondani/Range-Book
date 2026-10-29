@@ -130,16 +130,8 @@
   gap: var(--space-3);
 }
 
-.sectionTitle {
-  font-size: 22px;
-}
-
 .table {
   overflow: hidden;
-}
-
-.count {
-  color: var(--text-3);
 }
 
 .rounds {

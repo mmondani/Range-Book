@@ -1,6 +1,6 @@
 import { ChevronLeft, Crosshair, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { Navigate, Outlet, useNavigate, useParams } from 'react-router';
+import { Navigate, Outlet, useNavigate, useParams, useSearchParams } from 'react-router';
 import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
@@ -13,8 +13,10 @@ import { Photo } from '@/components/photo';
 import { PhotoStrip } from '@/components/photo-strip';
 import { RoundRow } from '@/components/round-row';
 import { RoundTable } from '@/components/round-table';
+import { SessionEvolution } from '@/components/session-evolution';
 import { Skeleton } from '@/components/skeleton';
 import { StatTile } from '@/components/stat-tile';
+import { tabPanelProps, Tabs } from '@/components/tabs';
 import { Tag } from '@/components/tag';
 import { TagList } from '@/components/tag-list';
 import { WeatherIcon } from '@/components/weather-icon';
@@ -35,13 +37,20 @@ import { sessionLabels, sessionTotals, WEATHER_LABELS } from '@/lib/sessions';
 import { formatLength } from '@/lib/units';
 import styles from './session-detail.module.css';
 
+/** Pestañas del detalle: la lista de rondas o su evolución (`?vista=evolucion`). */
+type SessionView = 'rondas' | 'evolucion';
+
+const VIEW_TABS_ID = 'session-view';
+
 /**
  * M03 · Detalle de sesión (en desktop, el panel derecho de W02): fotos, configuración y
- * personalizaciones, polígono, clima, munición, totales, rondas y notas. Las rondas se agregan y
+ * personalizaciones, polígono, clima, munición, totales, rondas (o su evolución) y notas. Las rondas se agregan y
  * editan en sheets (rutas hijas).
  */
 export function SessionDetail() {
   const { id = '' } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const view: SessionView = searchParams.get('vista') === 'evolucion' ? 'evolucion' : 'rondas';
   const { data, listPath } = useSessionsOutlet();
   const isDesktop = useIsDesktop();
   const units = useUnits();
@@ -85,6 +94,19 @@ export function SessionDetail() {
   const Title = isDesktop ? 'h2' : 'h1';
   const Subtitle = isDesktop ? 'h3' : 'h2';
 
+  // La pestaña va en la query string (sin pisar los filtros de la lista) y no apila historial.
+  function changeView(next: SessionView) {
+    setSearchParams(
+      (params) => {
+        const updated = new URLSearchParams(params);
+        if (next === 'rondas') updated.delete('vista');
+        else updated.set('vista', next);
+        return updated;
+      },
+      { replace: true },
+    );
+  }
+
   async function handleDelete() {
     if (!session) return;
     setDeleting(true);
@@ -104,6 +126,38 @@ export function SessionDetail() {
           <span className={styles.max}> / {formatInteger(totals.maxScore)}</span>
         )}
       </>
+    );
+
+  const roundList =
+    rounds.length === 0 ? (
+      <EmptyState
+        icon={<Crosshair />}
+        title="Todavía no hay rondas"
+        text="Se cargan desde acá, a medida que tirás."
+        headingLevel={isDesktop ? 3 : 2}
+      />
+    ) : isDesktop ? (
+      <Card padded={false} className={styles.table}>
+        <RoundTable
+          items={rounds}
+          units={units}
+          editPath={(item) => roundPath(item.round.id)}
+          analysisPath={(item) => analysisPath(item.round.id)}
+        />
+      </Card>
+    ) : (
+      <ol className={styles.rounds} aria-label="Rondas">
+        {rounds.map((item) => (
+          <li key={item.round.id}>
+            <RoundRow
+              item={item}
+              units={units}
+              editPath={roundPath(item.round.id)}
+              analysisPath={analysisPath(item.round.id)}
+            />
+          </li>
+        ))}
+      </ol>
     );
 
   return (
@@ -222,49 +276,37 @@ export function SessionDetail() {
         </ul>
       )}
 
-      <section className={styles.section} aria-labelledby="session-rounds">
+      <div className={styles.section}>
         <div className={styles.sectionHeader}>
-          <Subtitle id="session-rounds" className={cx('display', styles.sectionTitle)}>
-            Rondas <span className={cx('num', styles.count)}>· {totals.rounds}</span>
-          </Subtitle>
-          {isDesktop && (
+          <Tabs
+            id={VIEW_TABS_ID}
+            aria-label="Vista de la sesión"
+            tabs={[
+              { value: 'rondas', label: 'Rondas', count: totals.rounds },
+              { value: 'evolucion', label: 'Evolución' },
+            ]}
+            value={view}
+            onChange={changeView}
+          />
+          {isDesktop && view === 'rondas' && (
             <LinkButton variant="primary" to={newRoundPath} state={OPENED_FROM_LIST}>
               <Plus aria-hidden="true" size={18} />
               Agregar ronda
             </LinkButton>
           )}
         </div>
-        {rounds.length === 0 ? (
-          <EmptyState
-            icon={<Crosshair />}
-            title="Todavía no hay rondas"
-            text="Se cargan desde acá, a medida que tirás."
-            headingLevel={isDesktop ? 3 : 2}
-          />
-        ) : isDesktop ? (
-          <Card padded={false} className={styles.table}>
-            <RoundTable
-              items={rounds}
+        {view === 'evolucion' ? (
+          <div {...tabPanelProps(VIEW_TABS_ID, 'evolucion')}>
+            <SessionEvolution
+              rounds={session.rounds}
               units={units}
-              editPath={(item) => roundPath(item.round.id)}
-              analysisPath={(item) => analysisPath(item.round.id)}
+              headingLevel={isDesktop ? 3 : 2}
             />
-          </Card>
+          </div>
         ) : (
-          <ol className={styles.rounds} aria-label="Rondas">
-            {rounds.map((item) => (
-              <li key={item.round.id}>
-                <RoundRow
-                  item={item}
-                  units={units}
-                  editPath={roundPath(item.round.id)}
-                  analysisPath={analysisPath(item.round.id)}
-                />
-              </li>
-            ))}
-          </ol>
+          <div {...tabPanelProps(VIEW_TABS_ID, 'rondas')}>{roundList}</div>
         )}
-      </section>
+      </div>
 
       {session.notes && (
         <Card as="section" aria-labelledby="session-notes" className={styles.notes}>

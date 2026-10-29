@@ -6,6 +6,7 @@ import {
   chartWidth,
   MIN_BAND,
   niceTicks,
+  scatterRings,
 } from './chart';
 
 describe('niceTicks', () => {
@@ -81,5 +82,17 @@ describe('chartLayout', () => {
     expect(layout.x(1)).toBe(225);
     expect(layout.y(8)).toBe(layout.bottom);
     expect(layout.y(10)).toBe(layout.top);
+  });
+});
+
+describe('scatterRings', () => {
+  it('un radio redondo y su doble, que alcanza para el punto más alejado', () => {
+    expect(scatterRings(14)).toEqual([10, 20]);
+    expect(scatterRings(30)).toEqual([20, 40]);
+    expect(scatterRings(1.3)).toEqual([1, 2]);
+  });
+
+  it('con todo en el centro, igual dibuja una referencia', () => {
+    expect(scatterRings(0)).toEqual([1, 2]);
   });
 });
