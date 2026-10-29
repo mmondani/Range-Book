@@ -35,6 +35,13 @@
 - **El visor queda arriba de los sheets** (se abre también desde el selector de fotos de un formulario) y debajo de los toasts.
 - **Pellizco y doble toque no tienen test automático** (jsdom no los simula bien); hay que probarlos en el celular.
 
+### Paso 6 — Homografía
+- **`tiltDraft(start, from, to, size)`** recibe además el tamaño de la foto: el arrastre se mide en lados mayores (0,02 rad por cada 1 %), así se siente igual con cualquier resolución. Por debajo de medio grado no guarda inclinación.
+- **Funciones extra en `calibration.ts`:** `untiltedDraft` ("Quitar la inclinación") y `describeTilt` («Inclinación: 30° hacia abajo»), para que el texto no quede en el componente.
+- **Sin inclinación, el camino es el de antes.** `pixelEllipse` usa la cónica proyectada solo con `tilt`; con la forma vieja o sin forma sigue con la fórmula afín. Así los 300 tests anteriores pasaron sin cambios.
+- **`mmPerPixel` es la escala local en el centro del blanco** (la raíz del determinante de la derivada de la homografía). Con perspectiva, un agujero lejos del centro mide un poco distinto en píxeles; la detección usa este valor promedio.
+- `reshapeDraft` sigue hasta el paso 7, que la reemplaza en la pantalla.
+
 ## Pendientes
 
 ## Aprendizajes
