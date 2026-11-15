@@ -6,6 +6,7 @@ import {
   chartWidth,
   MIN_BAND,
   niceTicks,
+  scatterExtent,
   scatterRings,
 } from './chart';
 
@@ -94,5 +95,26 @@ describe('scatterRings', () => {
 
   it('con todo en el centro, igual dibuja una referencia', () => {
     expect(scatterRings(0)).toEqual([1, 2]);
+  });
+});
+
+describe('scatterExtent', () => {
+  it('el punto más alejado del centro', () => {
+    expect(
+      scatterExtent([
+        { x: 3, y: 4 },
+        { x: -6, y: 0 },
+      ]),
+    ).toBe(6);
+  });
+
+  it('con círculos, hasta el borde del más alejado', () => {
+    expect(
+      scatterExtent([
+        { x: 3, y: 4, radius: 20 },
+        { x: -6, y: 0, radius: null },
+      ]),
+    ).toBe(25);
+    expect(scatterExtent([])).toBe(0);
   });
 });

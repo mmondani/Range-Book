@@ -71,4 +71,18 @@
 .hit {
   fill: transparent;
   cursor: pointer;
+  outline: none;
+}
+
+.hit:focus-visible {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+/* La ronda seleccionada (Evolución): una banda en el color del PMI, como en la dispersión. */
+.selectionBand {
+  fill: var(--info);
+  fill-opacity: 0.14;
+  stroke: var(--info);
+  stroke-opacity: 0.35;
 }
