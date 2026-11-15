@@ -56,8 +56,14 @@
 - **Rondas:** `RoundRow` con miniatura (la foto de la ronda o el dibujo del blanco), "disparos · puntaje · grupo", "blanco · **distancia** · comentarios", estado *Analizada* o *Sin analizar* y el link "Ver análisis" / "Analizar blanco". **Toda la tarjeta lleva al análisis**; el lápiz "Editar ronda N" abre M05. En desktop, "Agregar ronda" va a la derecha de las pestañas, solo con Rondas.
 - **Evolución** (`SessionEvolution`), una ronda analizada por punto (eje x "R1, R2…", con el número de la ronda en la sesión):
   - Nota "Por ronda analizada · N de M" y, a la derecha, el control **mm | MOA** ("in | MOA" en pulgadas). MOA se calcula a la distancia de cada ronda. Por defecto, la unidad del perfil; MOA si las rondas analizadas son a distancias distintas. La elección no se guarda.
-  - Control segmentado **PMI / Grupo / Al centro**. PMI: línea con el desvío del PMI y, debajo, la dispersión de los PMI de cada ronda alrededor del centro (`MpiScatter`: ejes, dos círculos de referencia con su medida, puntos numerados por ronda, recorrido punteado y la última resaltada). Grupo y Al centro: una línea cada uno. Los títulos dicen la unidad.
-  - **Estados:** sin rondas analizadas, EmptyState "Todavía no hay rondas analizadas"; con una, "Con dos rondas analizadas o más vas a ver la evolución."
+  - Control segmentado **PMI / Grupo / Radio medio**. Cada métrica tiene su línea y, debajo, la dispersión de los PMI de cada ronda alrededor del centro (`MpiScatter`: ejes, dos círculos de referencia con su medida, puntos numerados por ronda, recorrido punteado y la última resaltada). Los títulos dicen la unidad.
+    - **PMI:** línea del desvío del PMI; dispersión "PMI de cada ronda".
+    - **Grupo:** línea del tamaño de grupo; dispersión "Grupo de cada ronda", con un círculo punteado `--info` centrado en cada PMI cuyo **diámetro es el tamaño de grupo**. Las rondas con menos de dos impactos se ven sin círculo.
+    - **Radio medio:** línea del radio medio; dispersión "Radio medio de cada ronda", con un círculo de **radio igual al radio medio**. Una leyenda debajo explica qué es cada círculo.
+    - La escala de la dispersión incluye los círculos enteros.
+  - **Selección compartida:** hay una sola ronda seleccionada para toda la Evolución (las tres métricas y las dos unidades). Se elige tocando su PMI en la dispersión o su punto en la línea (en la Evolución, cada punto de la línea es un botón "Ronda 3"). La seleccionada se resalta con su círculo y los demás puntos, círculos y el recorrido se opacan; en la línea lleva una **banda vertical translúcida** `--info` detrás (hasta el eje x, 44 px de ancho) y mantiene su valor y su "R3" destacados aunque el mouse destaque otra. Si la línea se desplaza y la ronda no se ve, se lleva a la vista. Debajo de la dispersión, una franja (`role="status"`) muestra "Ronda 3", "PMI (1,5; −8,4) · Grupo 41,0 mm" y **Ver análisis** (el análisis de la ronda); sin selección, "Tocá un punto para ver esa ronda. Pellizcá el gráfico para acercarlo." Tocar de nuevo la seleccionada, un lugar vacío de la dispersión o Escape la quita. La selección no se guarda ni va en la URL.
+  - **Zoom de la dispersión:** dos dedos acercan o alejan alrededor del punto entre ellos, de 1× a 10×; con zoom, un dedo (o el mouse) desplaza sin sacar el gráfico de su recuadro, y a 1× un dedo desplaza la página. En desktop, Ctrl + rueda (o el pellizco del trackpad). Botones **− / nivel / + / 1×** debajo del gráfico (×1,6 por toque). Solo se separan los puntos: puntos, números, trazos y textos mantienen su tamaño; los círculos de referencia se recalculan para la escala visible. Un pellizco o arrastre no selecciona. Cambiar de métrica o de unidad vuelve a 1× (la selección se mantiene).
+  - **Estados:** sin rondas analizadas, EmptyState "Todavía no hay rondas analizadas" ("…cómo evolucionan el PMI, el grupo y el radio medio"); con una, "Con dos rondas analizadas o más vas a ver la evolución."
 - Notas, debajo de las pestañas (se ven con las dos).
 - Barra fija: **Agregar ronda** (reemplaza a la barra inferior). En desktop, "Agregar ronda" va en el encabezado de la sección.
 - Eliminar la sesión pide confirmación y ofrece "Deshacer" en un toast.
@@ -92,36 +98,35 @@ Página completa (también en desktop, sin la lista de sesiones). Al entrar, la 
 
 **1 · Calibración** (`analisis-calibracion.html`): se muestra en un análisis nuevo y con "Recalibrar la foto".
 - **Blanco con anillos:** el **centro** y un punto sobre un **anillo** de diámetro conocido. **Sin zonas:** el centro y dos puntos **A** y **B** a una distancia conocida.
-- **Qué ajustar** (botones sobre la foto, arriba a la izquierda): Centro / Anillo / **Inclinación** (o Centro / Punto A / Punto B). El activo se ve con borde verde; los ya ubicados llevan ✓. Al ubicar un punto pasa solo al siguiente que falte.
-- **Centro automático:** en un blanco con anillos, al cargar la foto se busca el centro y queda ubicado ("Buscando el centro…" sobre la foto); el activo pasa a "Anillo" y el panel avisa: "El centro se ubicó automáticamente. Si no coincide con el de la foto, elegí «Centro» y tocalo." Si no hay un centro claro, se toca a mano.
+- **Qué ajustar** (botones sobre la foto, arriba a la izquierda): Centro / Anillo / **Inclinación** (o Centro / Punto A / Punto B). El activo se ve con borde verde; los ya ubicados llevan ✓. La calibración arranca siempre en **Centro** y **ubicar un punto no cambia el marcador activo**: se pasa al siguiente con estos botones. La instrucción lo dice: "Tocá el centro del blanco. Cuando esté en su lugar, elegí «Anillo»." (sin zonas, «Punto A»; la del punto A, "…elegí «Punto B»").
+- **El centro no se propone:** el usuario siempre lo ubica (002).
 - Cada punto se ubica tocando la foto o **manteniendo apretado y arrastrando**: el marcador sigue al dedo y los anillos verdes se redibujan en vivo. Con el dedo, el arrastre empieza a los 100 ms: si antes se apoya un segundo dedo, el gesto es un zoom y el marcador no se mueve.
 - **Inclinación** (foto en ángulo): mantener apretado y arrastrar inclina el blanco en 3D, a partir de cómo estaba (0,02 rad por cada 1 % del lado mayor arrastrado, hasta 70°). El lado hacia el que se arrastra se acerca y se ve más grande; los anillos verdes se dibujan con perspectiva (elipses que ya no son concéntricas). El punto del anillo no se mueve: los anillos siempre pasan por él. Un toque sin arrastrar no cambia nada. "Quitar la inclinación" vuelve a círculos. Las medidas siguen a la perspectiva (puntaje, grupo, PMI y distancias quedan compensados; ver [ADR 0006](../decisiones/0006-inclinacion-con-perspectiva.md)). Los blancos sin zonas no tienen inclinación.
 - **Calibraciones viejas** con la "Forma" del MVP (elipse afín): se ven igual que antes. Al recalibrar, "Inclinación" aparece con ✓ y el panel avisa "Esta foto se calibró con la forma anterior de los anillos. Si la inclinás, se reemplaza por la inclinación."
-- Panel "Calibrar la foto": la explicación, la instrucción del punto activo, el aviso del centro automático, la inclinación ("Inclinación: 30° hacia abajo") y "Quitar la inclinación", el select **Anillo marcado** ("8 puntos · Ø 150 mm"; por defecto, el tercero desde el centro) o el campo **Distancia entre A y B** (por defecto, el tamaño de referencia del blanco) y el error si falta algo.
+- Panel "Calibrar la foto": la explicación, la instrucción del punto activo, la inclinación ("Inclinación: 30° hacia abajo") y "Quitar la inclinación", el select **Anillo marcado** ("8 puntos · Ø 150 mm"; por defecto, el tercero desde el centro) o el campo **Distancia entre A y B** (por defecto, el tamaño de referencia del blanco) y el error si falta algo.
 - Los anillos calibrados (y la línea A–B) se dibujan en verde. Acción primaria: **Continuar**. La primera vez, al continuar se detectan los impactos solos.
 
 **2 · Impactos** (`analisis.html`)
 - Foto del blanco con los impactos superpuestos (anillo naranja sin relleno, para que se vea el agujero). El **PMI** se marca con una cruz azul y el **grupo** con un círculo punteado alrededor del PMI (una elipse, si la calibración tiene forma).
-- Modos: **Detectar automáticamente** (rehace la detección) · **Agregar** (tocar o hacer clic sobre el blanco) · **Quitar** (tocar un impacto; el anillo se ve rojo). Además, **Deshacer** con historial (deshabilitado sin historial).
+- Modos: **Detectar automáticamente** (rehace la detección; propone como máximo tantos impactos como **disparos declarados** y, si encuentra más candidatos, se queda con los que más se parecen a un agujero) · **Agregar** (tocar o hacer clic sobre el blanco) · **Quitar** (tocar un impacto; el anillo se ve rojo). Además, **Deshacer** con historial (deshabilitado sin historial).
 - Aviso cuando los impactos marcados no coinciden con los disparos declarados.
 - **Confirmación del puntaje:** un checkbox "Usar el puntaje calculado (N) en la ronda" muestra también el puntaje cargado a mano. En un análisis nuevo viene marcado: guardar así es la confirmación. Al reabrir uno guardado, conserva lo que se eligió. Si el usuario lo desmarca, se conserva el puntaje cargado a mano.
 - "Recalibrar la foto" (debajo de las métricas) vuelve a la calibración; los impactos quedan donde están sobre la foto y cambian sus medidas.
 - W04 suma una tabla de impactos (#, zona, X/Y desde el centro, quitar), que además es la alternativa accesible para quitar sin precisión de puntero.
 - Salir con cambios sin guardar pide confirmación ("¿Descartar el análisis?").
-- **Estados:** buscando el centro y detectando (overlay con progreso sobre la foto) · detección fallida (aviso + marcado manual) · sin foto ("Esta ronda no tiene foto" con "Agregar foto") · blanco sin zonas (en lugar del puntaje calculado, el texto "Este blanco no tiene zonas: el puntaje de la ronda es el cargado a mano.").
+- **Estados:** detectando (overlay con progreso sobre la foto) · detección fallida (aviso + marcado manual) · sin foto ("Esta ronda no tiene foto" con "Agregar foto") · blanco sin zonas (en lugar del puntaje calculado, el texto "Este blanco no tiene zonas: el puntaje de la ronda es el cargado a mano.").
 
 **Métricas del MVP** (sección 8 de `shooting_metrics.md`), calculadas en vivo. Los impactos se guardan en mm respecto del centro del blanco (x a la derecha, y hacia arriba); la escala sale de la calibración de la foto (anillo de diámetro conocido, con su forma si la foto está en ángulo, o dos puntos a una distancia conocida).
 
 | Métrica | Definición | Cómo se muestra |
 |---|---|---|
-| **Puntaje** (*Score detection*) | Suma, por impacto, del puntaje de la zona más chica que contiene **el centro del impacto** (0 si cae fuera). No se usa el diámetro del proyectil: no aplica la regla de "toca la línea" | Total / máximo posible y promedio por tiro |
+| **Puntaje** (*Score detection*) | Suma, por impacto, del puntaje de la zona más chica que **toca el agujero** (0 si cae fuera): regla de "toca la línea", con el diámetro del proyectil según el calibre del arma (9 mm si no se reconoce; [ADR 0007](../decisiones/0007-toca-la-linea.md)). Vale también para la distribución, la zona de la tabla de impactos y la etiqueta accesible de cada impacto | Total / máximo posible y promedio por tiro |
 | **Distribución de puntaje** (*Score Distribution*, sección 1) | Cantidad de impactos por zona | Chips "10 × 4 · 9 × 5 · …" |
 | **Tamaño de grupo** (*Group Size*) | Dispersión extrema: distancia máxima centro a centro entre dos impactos | mm y su equivalente en MOA a la distancia de la ronda (1 MOA = 0,2909 mm por metro) |
 | **PMI** (*Mean Point of Impact*) | Promedio de las coordenadas de los impactos | Cruz sobre la foto + desvío del centro en mm, dirección en horas de reloj y coordenadas con signo "(−4,1; −13,2)" (13 px; los lectores de pantalla leen "X −4,1, Y −13,2") |
-| **Distancia al centro** (*Distance from Center*) | Promedio de la distancia de cada impacto al centro del blanco | mm |
+| **Radio medio** (*Mean Radius*) | Promedio de la distancia de cada impacto **al PMI** (la precisión, sin importar dónde cayó el grupo). Reemplaza a la distancia media al centro ([ADR 0008](../decisiones/0008-radio-medio.md)) | Tarjeta "Radio medio", "Prom. al PMI", en mm o pulgadas |
 
 - La implementación va en `src/lib/` (funciones puras con tests). `maqueta/assets/analyzer.js` sirve de referencia de cálculo y de interacción.
-- El radio medio del prototipo anterior se quitó porque no está en el alcance que define `shooting_metrics.md`.
 - **Fuera del MVP** (sección 8, "Then add"): heatmaps, CEP, tendencias por impacto. También desvío estándar, detección de *flyers* y orden de los disparos. El modelo de impactos en mm ya los permite más adelante.
 
 ### M07 / W05 · Rendimiento
@@ -200,10 +205,12 @@ Página completa (también en desktop, sin la lista de sesiones). Al entrar, la 
 | Puntaje manual vs. calculado | El análisis propone el puntaje y el usuario lo confirma |
 | Entidades del inventario en uso | Se archivan, no se borran |
 | Personalizaciones en la sesión | Se guarda una copia (snapshot) al registrar la sesión |
-| Regla de "toca la línea" | No aplica: el puntaje se calcula por el centro del impacto, sin el diámetro del proyectil |
+| Regla de "toca la línea" (002) | Aplica: cuenta el valor superior si el agujero toca la línea (diámetro según el calibre; [ADR 0007](../decisiones/0007-toca-la-linea.md)) |
+| Distancia al centro (002) | Reemplazada por el radio medio, medido desde el PMI; los análisis guardados se reprocesaron ([ADR 0008](../decisiones/0008-radio-medio.md)) |
+| Calibración (002) | Sin centro automático ni avance automático entre marcadores |
 | Fotos en ángulo (001) | Inclinación del blanco con perspectiva, no una elipse afín ([ADR 0006](../decisiones/0006-inclinacion-con-perspectiva.md)) |
 | Gráficos (001) | Todos de línea, con el valor de cada punto; si no entran, se desplazan con el eje y fijo |
-| Evolución de la sesión (001) | En una pestaña junto a las rondas; el PMI como desvío y como dispersión; mm o MOA a elección |
+| Evolución de la sesión (001, 002) | En una pestaña junto a las rondas; el PMI como desvío y como dispersión; mm o MOA a elección. En 002: dispersión con círculos en Grupo y Radio medio, una ronda seleccionada compartida y zoom |
 | Coordenadas del PMI (001) | Solo en el análisis, como "(x; y)" con signo |
 | Fotos a pantalla completa (001) | Solo las fotos de contenido; las miniaturas que llevan a otra pantalla siguen navegando |
 | Nombre de la app (001) | "Range Book", en la PWA y en toda la UI |

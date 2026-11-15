@@ -36,3 +36,26 @@
 - **El hover de la línea en la Evolución es solo con el mouse:** con el dedo, el toque selecciona (en Rendimiento, igual que antes).
 - **`ScatterSelection` es un componente aparte** (la franja con "Ver análisis"); `ScatterZoomControls`, otro.
 - **Pendiente de probar en un teléfono:** el pellizco, el arrastre con zoom y que a 1× la página siga desplazándose con un dedo. Los gestos tienen tests con Pointer Events simulados, pero no reemplazan la prueba real.
+
+### Paso 9 — Cierre
+- **Maqueta general:** las páginas de la iteración (`analisis-calibracion`, `sesion-detalle`, `sesiones`) y sus assets (`calibration.js`, `charts.js`, `frame.css`) pasaron a `docs/diseno/maqueta/`, con los links "Ver análisis" corregidos para esa carpeta. Además, `analisis.html` (mobile y web) y `analyzer.js` muestran "Radio medio · Prom. al PMI" (calculado desde el PMI) y puntúan con la regla de "toca la línea". `frame.css` ya define `--info` en el tema oscuro.
+
+## Desvíos respecto de la maqueta aprobada
+- **Zoom hasta 10×, no 8×:** se reutilizó `MAX_ZOOM` de `zoom.ts`, el mismo del visor de fotos y del analizador. La maqueta general ya dice 10×.
+- **Los botones − / + llevan íconos** (`Minus` / `Plus` de lucide) en vez de los caracteres; el tamaño, el borde y el orden son los de la maqueta.
+- **El resto coincide** con la maqueta aprobada: círculos, selección compartida, banda en la línea, franja con "Ver análisis", textos y leyendas.
+
+## Pendientes
+- **El ADR 0006 todavía menciona el centro automático** (`target-center.ts`) en sus consecuencias. Es un registro histórico y no se reescribió; el ADR 0008 y `arquitectura.md` reflejan el estado actual.
+- **Rendimiento no muestra el radio medio** (no estaba en el alcance). Ya está guardado en cada análisis si se quiere agregar como KPI o columna.
+- **Tests intermitentes con la suite completa:** `inventory-screen.test.tsx` ("entrando por URL a un elemento que no existe vuelve a la lista") falló una vez y pasa solo. El de `round-sheet` se corrigió en el paso 2. Si vuelve a pasar, conviene revisar las esperas de animación y la configuración de jsdom (vitest sugiere `pool: 'vmThreads'`).
+- **Git avisa CRLF → LF** en algunos archivos de la maqueta de la iteración: no afecta, pero conviene un `.gitattributes` si se repite.
+
+## Aprendizajes
+- **Revisar las convenciones del repositorio antes de planificar un acceso a datos:** el plan proponía una transacción para la migración y el repositorio las evita a propósito para funcionar sin conexión. Se vio recién al implementar.
+- **`git commit --amend` toma todo el índice:** al corregir un commit con otros archivos ya agregados, entraron en él. Antes de un `amend`, mirar `git diff --cached --stat`; para rehacerlo sin perder nada, `git reset --soft HEAD~1`.
+- **Un borrado con `git rm` queda en el índice:** se coló en el commit de documentación. Si un paso borra archivos y se va a commitear por partes, conviene borrar con `rm` y agregarlo recién en su commit.
+- **Commits por paso:** cuando varios pasos tocan los mismos archivos (acá, la pantalla de análisis y la Evolución), no se pueden separar sin commits que no compilan. Si se quieren commits por paso, hay que hacerlos al terminar cada uno.
+- **Los heredocs con comillas invertidas fallan en el Bash de esta máquina** (Git Bash en Windows), aun con el delimitador entre comillas. Los scripts de edición van mejor en un archivo aparte (Write) que se ejecuta.
+- **Un token que falta solo en un tema rompe en silencio:** `--info` no estaba en el tema oscuro de las páginas de Evolución de la maqueta, y los círculos (`stroke: var(--info)`) no se veían. Revisar los tokens en los dos temas cuando un componente usa uno nuevo.
+- **Reutilizar `zoom.ts`** dejó el zoom de la dispersión en pocas líneas y con el mismo comportamiento que el de la foto; el hook de gestos es lo único nuevo.

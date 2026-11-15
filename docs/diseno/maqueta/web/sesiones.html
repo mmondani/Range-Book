@@ -188,22 +188,32 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
         <div role="radiogroup" aria-label="Qué graficar" data-evo style="display:flex;gap:4px;padding:4px;border-radius:14px;background:var(--surface-2)">
           <button type="button" role="radio" class="seg on" aria-checked="true" data-value="pmi">PMI</button>
           <button type="button" role="radio" class="seg" aria-checked="false" data-value="grupo">Grupo</button>
-          <button type="button" role="radio" class="seg" aria-checked="false" data-value="centro">Al centro</button>
+          <button type="button" role="radio" class="seg" aria-checked="false" data-value="radio">Radio medio</button>
         </div>
         <div data-evo-panel="pmi" style="display:flex;flex-direction:column;gap:12px">
           <h4 style="font-size:15px;font-weight:600">Desvío del PMI (<span data-unit-label>mm</span>)</h4>
           <div data-chart='{"type":"line","decimals":1,"label":"Desvío del PMI por ronda en mm: de 14,0 a 4,2","points":[["R1",14],["R2",11.2],["R3",8.5],["R4",6.1],["R5",4.2]]}'></div>
           <h4 style="font-size:15px;font-weight:600">PMI de cada ronda</h4>
-          <div data-chart='{"type":"scatter","label":"PMI de las rondas 1 a 5 respecto del centro: se acercan desde abajo a la izquierda","points":[["1",-4.1,-13.4],["2",-2,-11],["3",1.5,-8.4],["4",3,-5.3],["5",1.2,-4]]}'></div>
+          <div data-chart='{"type":"scatter","decimals":1,"label":"PMI de las rondas 1 a 5 respecto del centro: se acercan desde abajo a la izquierda","points":[["1",-4.1,-13.4],["2",-2,-11],["3",1.5,-8.4],["4",3,-5.3],["5",1.2,-4]],"href":"analisis.html"}'></div>
           <p style="font-size:13px;color:var(--text-3)">Cada punto es el PMI de una ronda (X a la derecha, Y hacia arriba); la última, resaltada.</p>
         </div>
         <div data-evo-panel="grupo" hidden>
-          <h4 style="font-size:15px;font-weight:600;margin-bottom:8px">Tamaño de grupo (<span data-unit-label>mm</span>)</h4>
-          <div data-chart='{"type":"line","decimals":0,"label":"Tamaño de grupo por ronda en mm: de 46 a 35","points":[["R1",46],["R2",52],["R3",41],["R4",39],["R5",35]]}'></div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <h4 style="font-size:15px;font-weight:600">Tamaño de grupo (<span data-unit-label>mm</span>)</h4>
+            <div data-chart='{"type":"line","decimals":0,"label":"Tamaño de grupo por ronda en mm: de 46 a 35","points":[["R1",46],["R2",52],["R3",41],["R4",39],["R5",35]]}'></div>
+            <h4 style="font-size:15px;font-weight:600">Grupo de cada ronda</h4>
+            <div data-chart='{"type":"scatter","decimals":1,"label":"Grupo de las rondas 1 a 5 alrededor de su PMI: el más chico es el de la ronda 5","points":[["1",-4.1,-13.4,23.0],["2",-2,-11,26.0],["3",1.5,-8.4,20.5],["4",3,-5.3,19.5],["5",1.2,-4,17.5]],"href":"analisis.html","measure":"Grupo"}'></div>
+            <p style="font-size:13px;color:var(--text-3)">Cada círculo está centrado en el PMI de la ronda y su diámetro es el tamaño de grupo.</p>
+          </div>
         </div>
-        <div data-evo-panel="centro" hidden>
-          <h4 style="font-size:15px;font-weight:600;margin-bottom:8px">Distancia al centro (<span data-unit-label>mm</span>)</h4>
-          <div data-chart='{"type":"line","decimals":0,"label":"Distancia media al centro por ronda en mm: de 31 a 21","points":[["R1",31],["R2",33],["R3",27],["R4",24],["R5",21]]}'></div>
+        <div data-evo-panel="radio" hidden>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <h4 style="font-size:15px;font-weight:600">Radio medio (<span data-unit-label>mm</span>)</h4>
+            <div data-chart='{"type":"line","decimals":0,"label":"Radio medio por ronda en mm: de 14 a 10","points":[["R1",14],["R2",16],["R3",12],["R4",11],["R5",10]]}'></div>
+            <h4 style="font-size:15px;font-weight:600">Radio medio de cada ronda</h4>
+            <div data-chart='{"type":"scatter","decimals":1,"label":"Radio medio de las rondas 1 a 5, como círculos alrededor de su PMI: el menor es el de la ronda 5","points":[["1",-4.1,-13.4,14],["2",-2,-11,16],["3",1.5,-8.4,12],["4",3,-5.3,11],["5",1.2,-4,10]],"href":"analisis.html","measure":"Radio medio","measureIsRadius":true}'></div>
+            <p style="font-size:13px;color:var(--text-3)">Cada círculo está centrado en el PMI de la ronda y su radio es el radio medio: la distancia media de los impactos a ese PMI.</p>
+          </div>
         </div>
       </section>
 
@@ -225,6 +235,8 @@ document.querySelectorAll('tr[data-href]').forEach(function (tr) {
 // Evolución: el control segmentado muestra un panel y dibuja sus gráficos.
 document.querySelector('[data-evo]').addEventListener('mk-change', function (e) {
   document.querySelectorAll('[data-evo-panel]').forEach(function (p) { p.hidden = p.dataset.evoPanel !== e.detail; });
+  // Cambiar de métrica vuelve a 1× y quita la selección.
+  document.querySelectorAll('[data-chart]').forEach(function (b) { if (b.resetView) b.resetView(); });
   window.mkCharts();
 });
 </script>

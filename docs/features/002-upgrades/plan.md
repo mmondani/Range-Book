@@ -1,6 +1,6 @@
 # Plan — 002 Upgrades
 
-**Estado:** En curso
+**Estado:** Terminado
 **Requerimientos:** [./requerimientos.md](./requerimientos.md)
 **Diseño:** [cambios.md](./diseno/cambios.md) · [maqueta](./diseno/maqueta/index.html)
 
@@ -83,7 +83,7 @@ Son dos grupos de cambios. En el **análisis**: la calibración deja de proponer
 - [x] **8. Zoom en las dispersiones de la Evolución**
   - Qué: `scatter-zoom.ts` (puro) con la vista `{ scale, tx, ty }`: `zoomAt(view, scale, point)` mantiene fijo el punto, `pinch(start, distancia, punto medio)` resuelve el pellizco, `clampView` limita la escala (1× a 8×) y el desplazamiento al recuadro, y `referenceRings(extent, scale)` elige los dos círculos de referencia para la escala visible. `usePinchZoom` maneja los gestos sobre el SVG: dos punteros pellizcan, uno arrastra si hay zoom, Ctrl + rueda hace zoom en el cursor, y `touch-action` es `pan-x pan-y` a 1× y `none` con zoom. Si hubo gesto, el toque siguiente no cambia la selección. `MpiScatter` proyecta los puntos con la vista, sin escalar puntos, trazos ni textos, y recorta con un `clipPath`. `ScatterZoomControls` muestra − / nivel / + / 1×. `SessionEvolution` vuelve la vista a 1× al cambiar de métrica o de unidad. Sin dependencias nuevas.
   - Verificación: tests de `scatter-zoom` (el punto bajo los dedos queda fijo, límites de escala y de desplazamiento, círculos de referencia por escala), de `usePinchZoom` (pellizco y arrastre simulados con Pointer Events, Ctrl + rueda, la rueda sola no hace zoom, un gesto no selecciona) y de `MpiScatter` / `SessionEvolution` (botones habilitados según el nivel, nivel anunciado, vuelve a 1× al cambiar de métrica o de unidad, la selección se mantiene con zoom). Prueba manual en un teléfono (pellizco, arrastre, la página sigue desplazándose a 1×) y en desktop con trackpad.
-- [ ] **9. Cierre de la iteración**
+- [x] **9. Cierre de la iteración**
   - Qué: verificar criterios, `docs/arquitectura.md`, `docs/diseno/` (según `cambios.md`; también la tarjeta "Al centro" de la maqueta del análisis, M06 / W04), ADR 0007, ADR 0008 y `notas.md`. Antes de cerrar, confirmar que la migración ya corrió sobre los datos reales.
   - Verificación: checklist de "Al terminar".
 
@@ -126,9 +126,9 @@ Son dos grupos de cambios. En el **análisis**: la calibración deja de proponer
 - Ninguna (resueltas arriba, en "Decisiones tomadas con el usuario").
 
 ## Al terminar
-- [ ] Todos los criterios de aceptación verificados
-- [ ] Tests y lint pasan
-- [ ] `docs/arquitectura.md` actualizado
-- [ ] `docs/diseno/` actualizado si la iteración cambió la UI
-- [ ] ADR creado si corresponde
-- [ ] `notas.md` completado
+- [x] Todos los criterios de aceptación verificados
+- [x] Tests y lint pasan
+- [x] `docs/arquitectura.md` actualizado
+- [x] `docs/diseno/` actualizado si la iteración cambió la UI
+- [x] ADR creado si corresponde
+- [x] `notas.md` completado

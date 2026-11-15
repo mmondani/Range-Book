@@ -6,6 +6,7 @@
   --ph-2: #20262C;
   --border-strong: #3E4650;
   --axis: #3A424B;
+  --info: #5AA9FF;
   --scheme: dark;
 }
 html[data-theme="light"] .rb {
