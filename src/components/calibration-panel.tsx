@@ -11,14 +11,19 @@ import { Input } from './input';
 import { Select } from './select';
 import styles from './calibration-panel.module.css';
 
-const INSTRUCTIONS: Record<CalibrationTool, string> = {
-  center: 'Tocá el centro del blanco.',
+const INSTRUCTIONS: Record<Exclude<CalibrationTool, 'center'>, string> = {
   edge: 'Tocá un punto sobre un anillo que se vea entero y elegí abajo cuál es. Los anillos verdes tienen que coincidir con los de la foto.',
-  a: 'Tocá un punto de referencia, por ejemplo el borde izquierdo del blanco.',
+  a: 'Tocá el punto A. Cuando esté en su lugar, elegí «Punto B».',
   b: 'Tocá el segundo punto y escribí abajo la distancia real entre los dos.',
   shape:
     'Si la foto está en ángulo, mantené apretado y arrastrá: el blanco se inclina hacia donde arrastrás (ese lado se acerca y se ve más grande). Ajustá hasta que los anillos verdes coincidan con los de la foto.',
 };
+
+/** Instrucción del marcador activo. Ubicar un punto no pasa solo al siguiente: se dice cuál elegir. */
+function instruction(active: CalibrationTool, scoring: TargetScoring): string {
+  if (active !== 'center') return INSTRUCTIONS[active];
+  return `Tocá el centro del blanco. Cuando esté en su lugar, elegí «${scoring === 'rings' ? 'Anillo' : 'Punto A'}».`;
+}
 
 export interface CalibrationPanelProps {
   scoring: TargetScoring;
@@ -27,8 +32,6 @@ export interface CalibrationPanelProps {
   /** Lo que se ajusta con el próximo toque sobre la foto (se elige sobre la foto). */
   active: CalibrationTool;
   onChange: (changes: Partial<CalibrationDraft>) => void;
-  /** El centro del borrador se ubicó solo: se avisa que hay que revisarlo. */
-  autoCenter?: boolean;
   /** Por qué todavía no se puede continuar (después de intentarlo). */
   error?: string;
   className?: string;
@@ -44,7 +47,6 @@ export function CalibrationPanel({
   draft,
   active,
   onChange,
-  autoCenter,
   error,
   className,
 }: CalibrationPanelProps) {
@@ -67,14 +69,8 @@ export function CalibrationPanel({
           : 'La foto tiene que estar sacada de frente.'}
       </p>
       <p role="status" className={styles.instruction}>
-        {INSTRUCTIONS[active]}
+        {instruction(active, scoring)}
       </p>
-      {autoCenter && (
-        <p className={styles.note}>
-          El centro se ubicó automáticamente. Si no coincide con el de la foto, elegí «Centro» y
-          tocalo.
-        </p>
-      )}
       {scoring === 'rings' && draft.tilt && (
         <p className={cx('num', styles.note)}>{describeTilt(draft.tilt)}</p>
       )}

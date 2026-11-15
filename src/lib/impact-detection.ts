@@ -10,7 +10,10 @@ export interface DetectionOptions {
   region?: { center: Pixel; radius: number };
   /** Diferencia mínima de brillo (0–255) contra el entorno para considerar un píxel. */
   threshold?: number;
-  /** Tope de impactos: más que esto es ruido (papel arrugado, sombras). */
+  /**
+   * Tope de impactos (los disparos declarados de la ronda). Si hay más candidatos, se queda con
+   * los que más se parecen a un agujero.
+   */
   maxImpacts?: number;
 }
 
@@ -36,6 +39,28 @@ export function holeDiameterMm(caliber: string): number {
   return (value / (value >= 100 ? 1000 : 100)) * MM_PER_INCH;
 }
 
+/** Forma de un círculo lleno en su caja: π/4. */
+const CIRCLE_FILL = Math.PI / 4;
+
+/** Medidas de un candidato a agujero: su área en píxeles y su caja. */
+export interface Blob {
+  area: number;
+  boxWidth: number;
+  boxHeight: number;
+}
+
+/**
+ * Cuánto se parece un candidato a un agujero: 0 es un círculo del tamaño esperado y cuanto más
+ * negativo, menos se parece. Penaliza el área lejos de la esperada (en escala logarítmica: el
+ * doble y la mitad pesan igual), la caja alargada y el relleno lejos del de un círculo.
+ */
+export function holeLikeness({ area, boxWidth, boxHeight }: Blob, expectedArea: number): number {
+  const size = Math.abs(Math.log(area / expectedArea));
+  const aspect = 1 - Math.min(boxWidth, boxHeight) / Math.max(boxWidth, boxHeight);
+  const fill = Math.abs(area / (boxWidth * boxHeight) - CIRCLE_FILL);
+  return -(size + 1.5 * aspect + 1.5 * fill);
+}
+
 /**
  * Detecta los agujeros de bala en la foto de un blanco. Devuelve el centro de cada uno, en
  * píxeles de `image`, ordenados de arriba hacia abajo.
@@ -46,6 +71,8 @@ export function holeDiameterMm(caliber: string): number {
  *    tercio de agujero.
  * 3. Componentes conexas: se quedan las de tamaño y forma parecidos a un agujero. El borde del
  *    centro negro y las manchas grandes quedan afuera por tamaño.
+ * 4. Si quedan más que `maxImpacts`, se queda con los que más se parecen a un agujero
+ *    (`holeLikeness`).
  *
  * Es una propuesta: el usuario siempre puede agregar y quitar impactos a mano.
  */
@@ -88,7 +115,7 @@ export function detectImpacts(image: PixelImage, options: DetectionOptions): Pix
   const core = Math.max(1, hole / 2 - erosion * Math.SQRT2);
   const expectedArea = Math.PI * core * core;
   const maxSide = 2.5 * 2 * core + 2;
-  const found: Pixel[] = [];
+  const found: (Pixel & { likeness: number })[] = [];
   const stack = new Int32Array(width * height);
   for (let start = 0; start < eroded.length; start++) {
     if (!eroded[start]) continue;
@@ -127,11 +154,20 @@ export function detectImpacts(image: PixelImage, options: DetectionOptions): Pix
       area <= expectedArea * 4 &&
       Math.max(boxWidth, boxHeight) <= maxSide &&
       area / (boxWidth * boxHeight) >= 0.35;
-    if (holeLike) found.push({ x: sumX / area, y: sumY / area });
+    if (holeLike) {
+      found.push({
+        x: sumX / area,
+        y: sumY / area,
+        likeness: holeLikeness({ area, boxWidth, boxHeight }, expectedArea),
+      });
+    }
   }
 
-  const max = options.maxImpacts ?? DEFAULT_MAX_IMPACTS;
-  return found.sort((a, b) => a.y - b.y || a.x - b.x).slice(0, max);
+  // 4. Tope: los más parecidos a un agujero, devueltos por posición.
+  const max = Math.max(0, options.maxImpacts ?? DEFAULT_MAX_IMPACTS);
+  const best =
+    found.length > max ? found.sort((a, b) => b.likeness - a.likeness).slice(0, max) : found;
+  return best.map(({ x, y }) => ({ x, y })).sort((a, b) => a.y - b.y || a.x - b.x);
 }
 
 /** Tamaño al que se reduce un agujero para detectarlo: alcanza y hace la búsqueda rápida. */

@@ -314,6 +314,7 @@ export function SessionDetail() {
               rounds={session.rounds}
               units={units}
               headingLevel={isDesktop ? 3 : 2}
+              analysisPath={analysisPath}
             />
           </div>
         ) : (

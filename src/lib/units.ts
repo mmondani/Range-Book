@@ -1,5 +1,5 @@
 /**
- * Unidades en que se muestran las medidas del análisis (grupo, PMI, distancia al centro).
+ * Unidades en que se muestran las medidas del análisis (grupo, PMI, radio medio).
  * Internamente todo se guarda en mm; la distancia de tiro va siempre en metros.
  */
 export type Units = 'mm' | 'in';

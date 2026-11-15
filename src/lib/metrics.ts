@@ -3,7 +3,7 @@ import type { TargetScoring } from './targets';
 
 /**
  * Métricas del análisis de un blanco (sección 8 de `shooting_metrics.md`): puntaje y su
- * distribución, tamaño de grupo (mm y MOA), PMI y distancia al centro. Los impactos van en mm
+ * distribución, tamaño de grupo (mm y MOA), PMI y radio medio. Los impactos van en mm
  * desde el centro del blanco (x a la derecha, y hacia arriba).
  */
 
@@ -39,8 +39,11 @@ export interface AnalysisMetrics {
   mpiOffsetMm: number | null;
   /** Dirección del PMI en horas de reloj (12 arriba, 3 a la derecha); `null` si está centrado. */
   mpiClock: number | null;
-  /** Promedio de la distancia de cada impacto al centro. */
-  meanDistanceMm: number | null;
+  /**
+   * Radio medio: promedio de la distancia de cada impacto al PMI (precisión, sin importar dónde
+   * cayó el grupo). Reemplaza a la distancia media al centro (ADR 0008).
+   */
+  meanRadiusMm: number | null;
 }
 
 const distance = (a: TargetPoint, b: TargetPoint) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -78,10 +81,11 @@ export function clockHour(point: TargetPoint): number | null {
   return hour === 0 ? 12 : hour;
 }
 
-/** Promedio de la distancia de cada impacto al centro del blanco. */
-export function meanDistance(points: readonly TargetPoint[]): number | null {
-  if (points.length === 0) return null;
-  return points.reduce((sum, point) => sum + distance(point, ORIGIN), 0) / points.length;
+/** Radio medio: promedio de la distancia de cada impacto al PMI. Con un impacto, 0. */
+export function meanRadius(points: readonly TargetPoint[]): number | null {
+  const mpi = meanPoint(points);
+  if (!mpi) return null;
+  return points.reduce((sum, point) => sum + distance(point, mpi), 0) / points.length;
 }
 
 /** Distancia máxima de un impacto al PMI: el radio del círculo de grupo que se dibuja. */
@@ -89,27 +93,30 @@ export function groupRadius(points: readonly TargetPoint[], center: TargetPoint)
   return points.reduce((max, point) => Math.max(max, distance(point, center)), 0);
 }
 
-/** Impactos por zona, de mayor a menor puntaje. */
+/** Impactos por zona, de mayor a menor puntaje (con la regla de "toca la línea"). */
 export function scoreDistribution(
   zones: readonly TargetZone[],
   points: readonly TargetPoint[],
+  holeDiameterMm = 0,
 ): ZoneCount[] {
   const counts = new Map<number, number>();
   for (const point of points) {
-    const score = zoneScore(zones, point);
+    const score = zoneScore(zones, point, holeDiameterMm);
     counts.set(score, (counts.get(score) ?? 0) + 1);
   }
   return [...counts].map(([score, count]) => ({ score, count })).sort((a, b) => b.score - a.score);
 }
 
+/** Métricas de un análisis; `holeDiameterMm` es el agujero del proyectil (ver `zoneScore`). */
 export function analysisMetrics(
   points: readonly TargetPoint[],
   target: { scoring: TargetScoring; zones: readonly TargetZone[] },
   distanceM: number,
+  holeDiameterMm = 0,
 ): AnalysisMetrics {
   const scored = target.scoring === 'rings' && target.zones.length > 0;
   const score = scored
-    ? points.reduce((sum, point) => sum + zoneScore(target.zones, point), 0)
+    ? points.reduce((sum, point) => sum + zoneScore(target.zones, point, holeDiameterMm), 0)
     : null;
   const topZone = scored ? Math.max(...target.zones.map((zone) => zone.score)) : null;
   const group = groupSize(points);
@@ -119,12 +126,12 @@ export function analysisMetrics(
     score,
     maxScore: topZone === null ? null : topZone * points.length,
     averageScore: score !== null && points.length > 0 ? score / points.length : null,
-    distribution: scored ? scoreDistribution(target.zones, points) : [],
+    distribution: scored ? scoreDistribution(target.zones, points, holeDiameterMm) : [],
     groupSizeMm: group,
     groupSizeMoa: group === null ? null : toMoa(group, distanceM),
     mpi,
     mpiOffsetMm: mpi && distance(mpi, ORIGIN),
     mpiClock: mpi && clockHour(mpi),
-    meanDistanceMm: meanDistance(points),
+    meanRadiusMm: meanRadius(points),
   };
 }

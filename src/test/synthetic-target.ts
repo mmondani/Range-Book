@@ -66,6 +66,11 @@ export function syntheticTarget({
       paint((px, py) => Math.hypot(px - x, py - y) <= r, value);
       return target;
     },
+    /** Mancha rectangular (un raspón, una marca de lápiz): pasa por agujero, pero no es redonda. */
+    rect({ x, y }: Pixel, w: number, h: number, value: number) {
+      paint((px, py) => Math.abs(px - x) <= w / 2 && Math.abs(py - y) <= h / 2, value);
+      return target;
+    },
     /** Ruido determinístico de ±`amplitude` (textura del papel, compresión de la foto). */
     noise(amplitude: number) {
       let seed = 1;

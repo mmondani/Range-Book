@@ -91,6 +91,13 @@ describe('analysisResult', () => {
     expect(result.analysis.scoreConfirmed).toBe(false);
   });
 
+  it('con el diámetro del agujero, un impacto sobre la línea suma el valor de adentro', () => {
+    // (500, 528) → (0, −28) mm: 9 por el centro; con un agujero de 9 mm toca el anillo del 10.
+    const onLine = [{ x: 500, y: 528 }];
+    expect(analysisResult(CALIBRATION, onLine, RINGS, 25, true).score).toBe(9);
+    expect(analysisResult(CALIBRATION, onLine, RINGS, 25, true, 9).score).toBe(10);
+  });
+
   it('los impactos guardados vuelven a los mismos píxeles de la foto', () => {
     const { analysis } = analysisResult(CALIBRATION, impacts, RINGS, 25, true);
     expect(savedImpactPixels(analysis)).toEqual(impacts);
@@ -102,6 +109,29 @@ describe('parseAnalysis', () => {
   it('lee el análisis guardado tal como se escribió', () => {
     const { analysis } = analysisResult(CALIBRATION, [{ x: 500, y: 490 }], RINGS, 25, true);
     expect(parseAnalysis(JSON.parse(JSON.stringify(analysis)))).toEqual(analysis);
+  });
+
+  it('lee el radio medio guardado; si falta (análisis viejo), lo calcula con los impactos', () => {
+    // (500, 490) y (500, 536) → (0, 10) y (0, −36) mm.
+    const impacts = [
+      { x: 500, y: 490 },
+      { x: 500, y: 536 },
+    ];
+    const { analysis } = analysisResult(CALIBRATION, impacts, RINGS, 25, true);
+    const stored = JSON.parse(JSON.stringify(analysis)) as {
+      metrics: Record<string, unknown>;
+    };
+    // Guardado: se usa tal cual.
+    expect(
+      parseAnalysis({ ...stored, metrics: { ...stored.metrics, meanRadiusMm: 7 } })!.metrics,
+    ).toMatchObject({ meanRadiusMm: 7 });
+    // Viejo: sin radio medio y con la distancia al centro, que se ignora.
+    const old = { ...stored.metrics };
+    delete old.meanRadiusMm;
+    const parsed = parseAnalysis({ ...stored, metrics: { ...old, meanDistanceMm: 23 } })!;
+    // (0, 10) y (0, −36): PMI en (0, −13), los dos a 23 mm.
+    expect(parsed.metrics.meanRadiusMm).toBe(23);
+    expect(parsed.metrics).not.toHaveProperty('meanDistanceMm');
   });
 
   it('tolera datos incompletos o dañados', () => {

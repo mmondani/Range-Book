@@ -200,7 +200,7 @@ export interface PerformanceStats {
   averagePerShot: number | null;
   /** Promedio del tamaño de grupo de las rondas analizadas, en mm o MOA (según `Measure`). */
   groupSize: number | null;
-  /** Distancia al centro del PMI de todos los impactos, en mm o MOA. */
+  /** Desvío del PMI de todos los impactos respecto del centro del blanco, en mm o MOA. */
   mpiOffset: number | null;
   /** Dirección de ese PMI en horas de reloj; `null` si está centrado. */
   mpiClock: number | null;

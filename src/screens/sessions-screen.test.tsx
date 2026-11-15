@@ -116,6 +116,7 @@ describe('SessionsScreen', () => {
         saveRound: async () => {},
         saveAnalysis: async () => {},
         removeRound: async () => ({ undo: async () => {} }),
+        migrateMeanRadius: async () => 0,
       },
     });
     // Primero se resuelve la sesión de Firebase.

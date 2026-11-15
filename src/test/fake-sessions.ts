@@ -36,7 +36,8 @@ export const ROUND_1_ANALYSIS: RoundAnalysis = {
     mpi: { x: -20 / 3, y: -13 },
     mpiOffsetMm: Math.hypot(20 / 3, 13),
     mpiClock: 7,
-    meanDistanceMm: (10 + 36 + Math.hypot(20, 13)) / 3,
+    // Al PMI (−6,67; −13): los dos primeros a √(6,67² + 23²) y el tercero a 13,33.
+    meanRadiusMm: (2 * Math.hypot(20 / 3, 23) + 40 / 3) / 3,
   },
   scoreConfirmed: false,
 };
@@ -205,6 +206,7 @@ export function createFakeSessions(
         },
       };
     }),
+    migrateMeanRadius: vi.fn(async () => 0),
   } satisfies SessionRepository;
 
   return { repository, items: () => items };
