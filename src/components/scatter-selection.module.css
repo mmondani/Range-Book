@@ -1,0 +1,42 @@
+.selection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 56px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  font-weight: 600;
+}
+
+.detail {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--text-3);
+}

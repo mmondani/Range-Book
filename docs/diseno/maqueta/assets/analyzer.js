@@ -1,6 +1,6 @@
 // Analizador de blancos de la maqueta (etapa de impactos; la calibración está en calibration.js).
 // Referencia de comportamiento y de cálculo de métricas (docs/features/000-mvp/shooting_metrics.md, sección 8):
-// puntaje, tamaño de grupo, PMI y distancia al centro. La implementación real está en src/lib/ con tests.
+// puntaje, tamaño de grupo, PMI y radio medio. La implementación real está en src/lib/ con tests.
 // Necesita viewer.js (recuadro y zoom). Las superposiciones usan colores fijos: no cambian con el tema.
 (function () {
   // Blanco del inventario (modelo de datos: ver requerimientos.md → ABM de blancos)
@@ -32,8 +32,10 @@
     if (style) e.setAttribute('style', style);
     return e;
   }
+  // 002: regla de "toca la línea": si el borde del agujero (9 mm) toca el anillo, cuenta el de adentro.
+  var RADIO_AGUJERO_MM = 4.5;
   function zonaDe(p) {
-    var d = Math.hypot(p.x, p.y);
+    var d = Math.hypot(p.x, p.y) - RADIO_AGUJERO_MM;
     var zonas = BLANCO.zonas.slice().sort(function (a, b) { return a.diametroMm - b.diametroMm; });
     for (var i = 0; i < zonas.length; i++) if (d <= zonas[i].diametroMm / 2) return zonas[i].puntaje;
     return 0;
@@ -106,7 +108,6 @@
     pts.forEach(function (p, i) {
       for (var j = i + 1; j < n; j++) es = Math.max(es, Math.hypot(p.x - pts[j].x, p.y - pts[j].y));
       gr = Math.max(gr, Math.hypot(p.x - mx, p.y - my));
-      dc += Math.hypot(p.x, p.y);
       var z = zonaDe(p);
       score += z;
       dist[z] = (dist[z] || 0) + 1;
@@ -150,7 +151,9 @@
     var signed = function (v) { return (v > 0.05 ? '+' : v < -0.05 ? '−' : '') + Math.abs(v).toFixed(1).replace('.', ','); };
     set('mx', n ? signed(mx) : '–');
     set('my', n ? signed(my) : '–');
-    set('dc', n ? fmt(dc / n) : 0);
+    // 002: radio medio, la distancia media de los impactos al PMI (no al centro del blanco).
+    var rm = pts.reduce(function (a, p) { return a + Math.hypot(p.x - mx, p.y - my); }, 0);
+    set('dc', n ? fmt(rm / n) : 0);
 
     var distBox = root.querySelector('[data-dist]');
     if (distBox) {

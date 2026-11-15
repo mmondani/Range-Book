@@ -283,7 +283,8 @@ describe('M05 · Editar ronda', () => {
     expect(sessions.removeRound).toHaveBeenCalledWith(ANA.uid, TODAY_SESSION.id, ROUND_1.id);
     expect(await screen.findByText('Ronda eliminada')).toBeInTheDocument();
     await waitFor(() => expect(router.state.location.pathname).toBe(DETAIL));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    // El sheet se cierra con su animación: con la suite completa puede tardar un momento.
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(screen.getByRole('tab', { name: 'Rondas 1' })).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Deshacer' }));

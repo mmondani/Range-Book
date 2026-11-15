@@ -21,7 +21,7 @@
   var TILT_PER_PCT = 0.02;
   var LABELS = { center: 'Centro', edge: 'Anillo', shape: 'Inclinación' };
   var INSTRUCCIONES = {
-    center: 'Tocá el centro del blanco.',
+    center: 'Tocá el centro del blanco. Cuando esté en su lugar, elegí «Anillo».',
     edge: 'Tocá un punto sobre un anillo que se vea entero y elegí abajo cuál es. Los anillos verdes tienen que coincidir con los de la foto.',
     shape: 'Si la foto está en ángulo, mantené apretado y arrastrá: el blanco se inclina hacia donde arrastrás (ese lado se acerca y se ve más grande). Ajustá hasta que los anillos verdes coincidan con los de la foto.'
   };
@@ -138,11 +138,10 @@
   edgeMk.className = 'mk';
   [centerMk, edgeMk].forEach(function (m) { m.setAttribute('aria-hidden', 'true'); content.appendChild(m); });
 
-  // Centro encontrado automáticamente (en la app, target-center.ts): el del blanco en la foto.
-  var auto = project(photoH, 0, 0);
+  // 002: el centro ya no se propone: lo ubica siempre el usuario, empezando por «Centro».
   var NO_TILT = { x: 0, y: 0 };
-  var state = { center: auto, edge: null, tilt: NO_TILT, ring: 150 };
-  var active = 'edge';
+  var state = { center: null, edge: null, tilt: NO_TILT, ring: 150 };
+  var active = 'center';
   var error = '';
   var drag = null;
 
@@ -176,7 +175,7 @@
   });
   surface.addEventListener('pointerup', function () {
     drag = null;
-    if (active === 'center' && !state.edge) setActive('edge');
+    // 002: ubicar un punto no pasa solo al siguiente; se cambia con los botones.
     render();
   });
 
@@ -215,7 +214,6 @@
       r.textContent = LABELS[t] + (done ? ' ✓' : '');
     });
     root.querySelector('[data-instruction]').textContent = INSTRUCCIONES[active];
-    root.querySelector('[data-auto]').hidden = state.center !== auto;
     root.querySelector('[data-reset-shape]').hidden = !tilted();
     var tiltBox = root.querySelector('[data-tilt]');
     if (tiltBox) { tiltBox.hidden = !tilted(); tiltBox.textContent = describeTilt(state.tilt); }

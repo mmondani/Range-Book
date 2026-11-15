@@ -162,14 +162,6 @@ export function calibrationDraft(
   return { ...draft, center, a, b, distance: formatDecimal(distanceMm) };
 }
 
-/** Próximo marcador que falta ubicar, o `undefined` si están todos. */
-export function nextMarker(
-  draft: CalibrationDraft,
-  scoring: TargetScoring,
-): CalibrationMarker | undefined {
-  return calibrationMarkers(scoring).find((marker) => !draft[marker]);
-}
-
 /**
  * Arma la calibración a partir del borrador, o devuelve el error a mostrar si todavía no se
  * puede: faltan marcadores, están demasiado cerca o la distancia no es válida.

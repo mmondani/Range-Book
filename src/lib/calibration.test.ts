@@ -8,7 +8,6 @@ import {
   mmPerPixel,
   mmToPixel,
   mmToPixelLength,
-  nextMarker,
   parseCalibration,
   pixelEllipse,
   pixelToMm,
@@ -76,11 +75,9 @@ describe('buildCalibration', () => {
   it('blanco con anillos: pide el centro, el punto sobre el anillo y el anillo', () => {
     const draft = calibrationDraft(RINGS);
     expect(draft).toEqual({ diameterMm: 150, distance: '500' });
-    expect(nextMarker(draft, 'rings')).toBe('center');
     expect(buildCalibration(draft, 'rings', SIZE)).toEqual({ error: 'Tocá el centro del blanco' });
 
     const withCenter = { ...draft, center: { x: 500, y: 400 } };
-    expect(nextMarker(withCenter, 'rings')).toBe('edge');
     expect(buildCalibration(withCenter, 'rings', SIZE)).toEqual({
       error: 'Tocá un punto sobre un anillo',
     });
@@ -91,7 +88,6 @@ describe('buildCalibration', () => {
     });
 
     const complete = { ...withCenter, edge: { x: 750, y: 400 }, diameterMm: 300 };
-    expect(nextMarker(complete, 'rings')).toBeUndefined();
     expect(buildCalibration(complete, 'rings', SIZE)).toEqual({
       calibration: ring({ x: 750, y: 400 }, 300),
     });

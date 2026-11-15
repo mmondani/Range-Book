@@ -1,10 +1,28 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
 .scatter {
   display: block;
   width: 100%;
-  max-width: 280px;
   height: auto;
-  margin: 0 auto;
   overflow: visible;
+}
+
+/* Con zoom, lo que queda fuera del recuadro se recorta. */
+.zoomed {
+  overflow: hidden;
+  cursor: grab;
+}
+
+.interactive {
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .ring {
@@ -29,6 +47,28 @@
   stroke-dasharray: 3 3;
 }
 
+.dimmedPath {
+  opacity: 0.3;
+}
+
+/* Círculo de la ronda (grupo o radio medio), centrado en su PMI. */
+.circle {
+  fill: none;
+  stroke: var(--info);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+  opacity: 0.55;
+}
+
+.circle.selectedCircle {
+  stroke-width: 2.5;
+  opacity: 1;
+}
+
+.circle.dimmed {
+  opacity: 0.15;
+}
+
 .point,
 .last {
   font: 700 11px var(--font-body);
@@ -49,4 +89,30 @@
 .point text,
 .last text {
   fill: var(--surface);
+}
+
+.point.dimmed,
+.last.dimmed {
+  opacity: 0.25;
+}
+
+/* Área de toque del punto: invisible, de 44 px. */
+.button {
+  cursor: pointer;
+  outline: none;
+}
+
+.zoomed .button {
+  cursor: inherit;
+}
+
+.button .hit {
+  fill: transparent;
+  stroke: none;
+  opacity: 1;
+}
+
+.button:focus-visible .hit {
+  stroke: var(--accent);
+  stroke-width: 2;
 }

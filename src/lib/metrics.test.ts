@@ -4,8 +4,8 @@ import {
   clockHour,
   groupRadius,
   groupSize,
-  meanDistance,
   meanPoint,
+  meanRadius,
   scoreDistribution,
   toMoa,
 } from './metrics';
@@ -98,15 +98,39 @@ describe('clockHour', () => {
   });
 });
 
-describe('meanDistance', () => {
-  it('promedia la distancia de cada impacto al centro', () => {
+describe('meanRadius', () => {
+  it('promedia la distancia de cada impacto al PMI', () => {
+    // PMI en (0, 0): a 5 y a 5 (no al centro del blanco).
     expect(
-      meanDistance([
+      meanRadius([
         { x: 3, y: 4 },
-        { x: -6, y: 8 },
+        { x: -3, y: -4 },
       ]),
-    ).toBe(7.5);
-    expect(meanDistance([])).toBeNull();
+    ).toBe(5);
+    // PMI en (2, 0): los cuatro a 2.
+    expect(
+      meanRadius([
+        { x: 0, y: 0 },
+        { x: 4, y: 0 },
+        { x: 2, y: 2 },
+        { x: 2, y: -2 },
+      ]),
+    ).toBe(2);
+  });
+
+  it('no cambia si el grupo está corrido: mide la precisión, no la exactitud', () => {
+    const centered = [
+      { x: -5, y: 0 },
+      { x: 5, y: 0 },
+      { x: 0, y: 8 },
+    ];
+    const shifted = centered.map(({ x, y }) => ({ x: x + 40, y: y - 30 }));
+    expect(meanRadius(shifted)).toBeCloseTo(meanRadius(centered)!, 10);
+  });
+
+  it('con un impacto es 0; sin impactos no hay', () => {
+    expect(meanRadius([{ x: 30, y: 40 }])).toBe(0);
+    expect(meanRadius([])).toBeNull();
   });
 });
 
@@ -139,6 +163,11 @@ describe('scoreDistribution', () => {
       { score: 0, count: 1 },
     ]);
   });
+
+  it('con el diámetro del agujero aplica la regla de "toca la línea"', () => {
+    // A 28 mm, el agujero de 9 mm toca el anillo del 10 (25 mm).
+    expect(scoreDistribution(ZONES, [{ x: 28, y: 0 }], 9)).toEqual([{ score: 10, count: 1 }]);
+  });
 });
 
 describe('analysisMetrics', () => {
@@ -168,7 +197,23 @@ describe('analysisMetrics', () => {
     expect(metrics.groupSizeMm).toBeCloseTo(213.6, 1);
     expect(metrics.groupSizeMoa).toBeCloseTo(213.6 / 7.2725, 2);
     expect(metrics.mpiOffsetMm).toBeCloseTo(60.48, 2);
-    expect(metrics.meanDistanceMm).toBeCloseTo((0 + 30 + 75 + 200) / 4, 6);
+    // Radio medio: distancia de cada impacto al PMI (57,5; −18,75), no al centro del blanco.
+    const mpi = { x: 57.5, y: -18.75 };
+    const radius =
+      points.reduce((sum, point) => sum + Math.hypot(point.x - mpi.x, point.y - mpi.y), 0) / 4;
+    expect(metrics.meanRadiusMm).toBeCloseTo(radius, 6);
+    expect(metrics).not.toHaveProperty('meanDistanceMm');
+  });
+
+  it('el puntaje y la distribución usan el diámetro del agujero', () => {
+    const points = [
+      { x: 28, y: 0 }, // 9 por el centro, 10 si el agujero toca la línea
+      { x: 0, y: 0 }, // 10
+    ];
+    expect(analysisMetrics(points, RINGS, 25).score).toBe(19);
+    const metrics = analysisMetrics(points, RINGS, 25, 9);
+    expect(metrics.score).toBe(20);
+    expect(metrics.distribution).toEqual([{ score: 10, count: 2 }]);
   });
 
   it('en un blanco sin zonas no calcula el puntaje', () => {
@@ -184,7 +229,7 @@ describe('analysisMetrics', () => {
       mpi: { x: 10, y: 0 },
       mpiOffsetMm: 10,
       mpiClock: 3,
-      meanDistanceMm: 10,
+      meanRadiusMm: 0,
     });
   });
 
@@ -200,7 +245,7 @@ describe('analysisMetrics', () => {
       mpi: null,
       mpiOffsetMm: null,
       mpiClock: null,
-      meanDistanceMm: null,
+      meanRadiusMm: null,
     });
   });
 });

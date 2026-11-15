@@ -149,6 +149,32 @@ describe('zoneScore', () => {
   it('sin zonas vale 0', () => {
     expect(zoneScore([], { x: 0, y: 0 })).toBe(0);
   });
+
+  describe('regla de "toca la línea" (con el diámetro del agujero)', () => {
+    // Agujero de 9 mm: radio 4,5 mm.
+    it('si el borde del agujero toca el anillo, cuenta el valor de adentro', () => {
+      // Centro a 28 mm, afuera del 10 (25 mm), pero el borde llega a 23,5 mm.
+      expect(zoneScore(ZONES, { x: 28, y: 0 })).toBe(9);
+      expect(zoneScore(ZONES, { x: 28, y: 0 }, 9)).toBe(10);
+      expect(zoneScore(ZONES, { x: 0, y: -52 }, 9)).toBe(9);
+    });
+
+    it('justo tangente cuenta adentro; un poco más lejos, no', () => {
+      expect(zoneScore(ZONES, { x: 29.5, y: 0 }, 9)).toBe(10);
+      expect(zoneScore(ZONES, { x: 29.6, y: 0 }, 9)).toBe(9);
+    });
+
+    it('un agujero que apenas toca el anillo exterior suma ese anillo', () => {
+      expect(zoneScore(ZONES, { x: 104, y: 0 })).toBe(0);
+      expect(zoneScore(ZONES, { x: 104, y: 0 }, 9)).toBe(7);
+      expect(zoneScore(ZONES, { x: 105, y: 0 }, 9)).toBe(0);
+    });
+
+    it('sin diámetro (o con uno inválido) cuenta el centro, como antes', () => {
+      expect(zoneScore(ZONES, { x: 28, y: 0 }, 0)).toBe(9);
+      expect(zoneScore(ZONES, { x: 28, y: 0 }, -9)).toBe(9);
+    });
+  });
 });
 
 describe('sortZones', () => {

@@ -45,6 +45,8 @@ export interface ChartPoint {
   value: number;
   /** El valor formateado, sin unidad (`9,3`, `46,0`). */
   label: string;
+  /** Nombre del punto cuando se puede seleccionar ("Ronda 3"); por defecto, `axisLabel`. */
+  name?: string;
 }
 
 /**
@@ -142,4 +144,14 @@ export function scatterRings(maxDistance: number): [number, number] {
   if (!(half > 0)) return [1, 2];
   const radius = niceStep(half, 1);
   return [radius, radius * 2];
+}
+
+/**
+ * Hasta dónde llega la dispersión desde el centro: el punto más alejado o, si los puntos llevan
+ * un círculo (el grupo o el radio medio de la ronda), el borde del círculo más alejado.
+ */
+export function scatterExtent(
+  points: readonly { x: number; y: number; radius?: number | null }[],
+): number {
+  return Math.max(0, ...points.map(({ x, y, radius }) => Math.hypot(x, y) + (radius ?? 0)));
 }

@@ -3,11 +3,13 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
 import type { AnalysisResult } from '@/lib/analysis';
+import { migrateRounds } from '@/lib/metrics-migration';
 import {
   rawRounds,
   removeRawRound,
@@ -61,6 +63,12 @@ export interface SessionRepository {
     sessionId: string,
     roundId: string,
   ): Promise<{ undo: () => Promise<void> }>;
+  /**
+   * Reprocesa los análisis guardados (radio medio en lugar de la distancia al centro, ADR 0008).
+   * Solo escribe las sesiones que lo necesitan y devuelve cuántas fueron: correrla de nuevo no
+   * escribe nada.
+   */
+  migrateMeanRadius(uid: string): Promise<number>;
 }
 
 const sessions = (uid: string) => collection(firebase().db, 'users', uid, 'sessions');
@@ -134,5 +142,15 @@ export const firebaseSessionRepository: SessionRepository = {
         if (round) await changeRounds(uid, sessionId, (rounds) => restoreRawRound(rounds, round));
       },
     };
+  },
+  async migrateMeanRadius(uid) {
+    // Igual que `changeRounds`, sin transacción: también funciona sin conexión (con la caché).
+    const snapshot = await getDocs(sessions(uid));
+    const writes = snapshot.docs.flatMap((d) => {
+      const rounds = migrateRounds(rawRounds(d.data().rounds));
+      return rounds ? [settleWrite(updateDoc(d.ref, { rounds }))] : [];
+    });
+    await Promise.all(writes);
+    return writes.length;
   },
 };

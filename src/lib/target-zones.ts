@@ -92,11 +92,17 @@ export function sortZones(zones: readonly TargetZone[]): TargetZone[] {
 }
 
 /**
- * Puntaje de un impacto: el de la zona más chica que contiene su centro (el borde cuenta como
- * adentro), o 0 si cae fuera de todas. No se usa el diámetro del proyectil.
+ * Puntaje de un impacto: el de la zona más chica que toca el agujero, o 0 si cae fuera de
+ * todas. Regla de "toca la línea" (ADR 0007): si el borde del agujero toca el anillo, cuenta el
+ * valor de adentro (`distancia − Ø/2 ≤ radio de la zona`). Sin diámetro, cuenta el centro del
+ * impacto (el borde cuenta como adentro).
  */
-export function zoneScore(zones: readonly TargetZone[], point: TargetPoint): number {
-  const distance = Math.hypot(point.x, point.y);
+export function zoneScore(
+  zones: readonly TargetZone[],
+  point: TargetPoint,
+  holeDiameterMm = 0,
+): number {
+  const distance = Math.hypot(point.x, point.y) - Math.max(0, holeDiameterMm) / 2;
   let best: TargetZone | undefined;
   for (const zone of zones) {
     if (distance <= zone.diameterMm / 2 && (!best || zone.diameterMm < best.diameterMm)) {

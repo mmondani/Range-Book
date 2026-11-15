@@ -1,0 +1,35 @@
+/* Visor de la foto del blanco (TargetAnalyzer). La foto y sus superposiciones no cambian con el
+   tema: los colores son fijos. Ver design-system.md → TargetAnalyzer. */
+
+/* Recuadro de proporción fija: 5:6 en el celular, 1:1 en desktop. */
+.tgt { position: relative; width: 100%; aspect-ratio: 5 / 6; border-radius: 16px; background: #E9E4D6; overflow: hidden; flex-shrink: 0; touch-action: none; user-select: none; }
+.tgt.web { width: 560px; max-width: 100%; aspect-ratio: 1; }
+
+/* La foto (cuadrada en la maqueta) arranca cubriendo el recuadro, centrada. --zoom es la escala. */
+.tgt-content { --zoom: 1; position: absolute; top: 0; left: 50%; height: 100%; aspect-ratio: 1; transform-origin: 50% 50%; transform: translateX(-50%) scale(var(--zoom)); }
+.ring { position: absolute; border-radius: 50%; }
+
+/* Impactos: solo el contorno, para que se vea el agujero. Mantienen su tamaño con cualquier zoom. */
+.imp { position: absolute; width: 18px; height: 18px; padding: 0; border-radius: 50%; background: transparent; border: 2px solid #FF6A1A; box-shadow: 0 0 0 1px rgba(0, 0, 0, .6), inset 0 0 0 1px rgba(0, 0, 0, .6); cursor: pointer; transform: translate(-50%, -50%) scale(calc(1 / var(--zoom))); }
+.tgt.web .imp { width: 20px; height: 20px; }
+.imp.rm { border-color: #FF6B6B; }
+.sw-imp { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #FF6A1A; }
+
+/* Botones sobre la foto: arriba a la izquierda, qué ajustar; abajo a la derecha, el zoom. */
+.ov-left { position: absolute; top: 8px; left: 8px; display: flex; gap: 6px; }
+.ov-right { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 6px; }
+.ov-btn { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: 1px solid rgba(255, 255, 255, .25); border-radius: 50%; background: rgba(11, 13, 15, .75); color: #F2F4F5; cursor: pointer; }
+.ov-btn:disabled { opacity: .4; cursor: default; }
+.ov-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pick { display: inline-flex; align-items: center; height: 40px; padding: 0 14px; border: 1px solid rgba(255, 255, 255, .25); border-radius: 20px; background: rgba(11, 13, 15, .75); color: #F2F4F5; font: 600 14px 'Barlow', sans-serif; white-space: nowrap; cursor: pointer; }
+.pick.on { border-color: #3DD68C; background: rgba(11, 13, 15, .9); box-shadow: 0 0 0 2px rgba(61, 214, 140, .45); color: #FFFFFF; }
+
+/* Calibración: anillos calibrados (elipses si la foto está en ángulo) y marcadores, en verde. */
+.cal { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.cal ellipse { fill: none; stroke: #3DD68C; stroke-width: calc(2px / var(--zoom)); vector-effect: non-scaling-stroke; }
+.mk { position: absolute; width: 26px; height: 26px; border: 2px solid #FFFFFF; border-radius: 50%; background: rgba(11, 13, 15, .75); transform: translate(-50%, -50%) scale(calc(1 / var(--zoom))); pointer-events: none; }
+.mk.on { border-color: #3DD68C; box-shadow: 0 0 0 3px rgba(61, 214, 140, .45); }
+.mk.cross { border-color: transparent; background: transparent; box-shadow: none; }
+.mk.cross::before, .mk.cross::after { content: ''; position: absolute; background: #3DD68C; box-shadow: 0 0 0 1px rgba(0, 0, 0, .6); }
+.mk.cross::before { left: 10px; top: -2px; width: 2px; height: 26px; }
+.mk.cross::after { left: -2px; top: 10px; width: 26px; height: 2px; }

@@ -7,14 +7,22 @@ import { ANA } from '@/test/fake-auth';
 import { ROUND_1, ROUND_2, TODAY, TODAY_SESSION } from '@/test/fake-sessions';
 import { setDesktop } from '@/test/match-media';
 import { renderSessions } from '@/test/render-sessions';
-import { syntheticTarget } from '@/test/synthetic-target';
 
 // jsdom no tiene canvas: por defecto la foto no se puede leer y la detección falla.
-const { readImagePixels } = vi.hoisted(() => ({ readImagePixels: vi.fn() }));
+const { readImagePixels, detectImpacts } = vi.hoisted(() => ({
+  readImagePixels: vi.fn(),
+  detectImpacts: vi.fn(),
+}));
 vi.mock('@/lib/pixel-image', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/pixel-image')>()),
   readImagePixels,
 }));
+// La detección real, espiada para ver con qué tope se llama.
+vi.mock('@/lib/impact-detection', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@/lib/impact-detection')>();
+  detectImpacts.mockImplementation(original.detectImpacts);
+  return { ...original, detectImpacts };
+});
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] });
@@ -69,6 +77,11 @@ function tapPhoto(name: string | RegExp, x: number, y: number) {
   fireEvent.click(photoSurface(name), { clientX: x, clientY: y, detail: 1 });
 }
 
+/** Elige sobre la foto qué marcador ubicar ("Anillo", "Punto A"…), esté ubicado o no. */
+async function pickMarker(label: string) {
+  await userEvent.click(screen.getByRole('radio', { name: new RegExp(`^${label}( ✓)?$`) }));
+}
+
 /** Elige el anillo exterior del ISSF (500 mm); por defecto se propone el de 8 puntos. */
 async function chooseOuterRing() {
   await userEvent.selectOptions(screen.getByRole('combobox', { name: /Anillo marcado/ }), '500');
@@ -79,6 +92,7 @@ async function calibrate() {
   await loadPhoto(2);
   await chooseOuterRing();
   tapPhoto('Ubicar centro en el punto indicado', 500, 500);
+  await pickMarker('Anillo');
   tapPhoto('Ubicar anillo en el punto indicado', 750, 500);
   await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
 }
@@ -96,6 +110,9 @@ describe('M06 · Análisis con un análisis guardado', () => {
     );
     expect(metrics.getByText('Grupo').parentElement).toHaveTextContent('46,0mm≈ 6,3 MOA');
     expect(metrics.getByText('PMI').parentElement).toHaveTextContent('Hacia las 7 h');
+    // Radio medio: la distancia media de los impactos al PMI (−6,67; −13), no al centro.
+    expect(metrics.getByText('Radio medio').parentElement).toHaveTextContent('20,4mmProm. al PMI');
+    expect(metrics.queryByText(/Al centro|Dist\. al centro/)).not.toBeInTheDocument();
     const mismatch = screen
       .getAllByRole('status')
       .find((item) => item.textContent?.includes('impactos marcados'));
@@ -301,69 +318,34 @@ describe('M06 · Análisis nuevo', () => {
     );
   });
 
-  it('ubica solo el centro de los anillos y el usuario completa la calibración', async () => {
-    // La foto de 1000 px se lee reducida a 400 px (escala 0,4), con el centro en (220, 180).
-    readImagePixels.mockResolvedValueOnce(
-      syntheticTarget({ width: 400, center: { x: 220, y: 180 } })
-        .blackDisk(40)
-        .ringLine(70)
-        .ringLine(100)
-        .image(),
-    );
-    const { sessions } = renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
-    await loadPhoto(2);
-
-    expect(await screen.findByText(/El centro se ubicó automáticamente/)).toBeInTheDocument();
-    expect(readImagePixels).toHaveBeenCalledWith(expect.any(Blob), 0.4);
-    expect(screen.getByRole('radio', { name: 'Centro ✓' })).not.toBeChecked();
-    expect(screen.getByRole('radio', { name: 'Anillo' })).toBeChecked();
-
-    // El centro de la foto original es (551,25; 451,25): el anillo de 500 mm, a 250 px.
-    await chooseOuterRing();
-    tapPhoto('Ubicar anillo en el punto indicado', 801.25, 451.25);
-    await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
-    tapPhoto('Agregar impacto en el punto indicado', 551.25, 441.25);
-    await userEvent.click(screen.getByRole('button', { name: 'Guardar análisis' }));
-
-    expect(sessions.saveAnalysis).toHaveBeenCalledWith(
-      ANA.uid,
-      TODAY_SESSION.id,
-      ROUND_2.id,
-      expect.objectContaining({
-        analysis: expect.objectContaining({
-          calibration: expect.objectContaining({
-            center: { x: expect.closeTo(551.25, 0), y: expect.closeTo(451.25, 0) },
-          }),
-        }),
-      }),
-    );
-  });
-
-  it('el centro ubicado solo se corrige tocando la foto y no cuenta como cambio', async () => {
-    readImagePixels.mockResolvedValueOnce(
-      syntheticTarget({ width: 400 }).blackDisk(40).ringLine(70).image(),
-    );
-    const { router } = renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
-    await loadPhoto(2);
-    await screen.findByText(/El centro se ubicó automáticamente/);
-
-    // Salir sin haber tocado nada no pide confirmación.
-    await userEvent.click(screen.getByRole('button', { name: 'Volver a la sesión' }));
-    await waitFor(() => expect(router.state.location.pathname).toBe(DETAIL));
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
-  });
-
-  it('si no encuentra el centro, se ubica a mano', async () => {
-    readImagePixels.mockResolvedValueOnce(syntheticTarget({ width: 400 }).image());
+  it('no propone el centro: arranca en Centro, sin ubicar, y no lee la foto', async () => {
     renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
     await loadPhoto(2);
-    await waitFor(() => expect(readImagePixels).toHaveBeenCalled());
-    await waitFor(() => expect(screen.queryByText('Buscando el centro…')).not.toBeInTheDocument());
     expect(screen.getByRole('radio', { name: 'Centro' })).toBeChecked();
+    expect(screen.queryByRole('radio', { name: 'Centro ✓' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Buscando el centro…')).not.toBeInTheDocument();
     expect(screen.queryByText(/El centro se ubicó automáticamente/)).not.toBeInTheDocument();
+    expect(readImagePixels).not.toHaveBeenCalled();
+    const panel = screen.getByRole('region', { name: 'Calibrar la foto' });
+    expect(within(panel).getByRole('status')).toHaveTextContent(
+      'Tocá el centro del blanco. Cuando esté en su lugar, elegí «Anillo».',
+    );
+  });
 
+  it('ubicar el centro no pasa a Anillo: se pasa con el botón', async () => {
+    renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
+    await loadPhoto(2);
     tapPhoto('Ubicar centro en el punto indicado', 500, 500);
-    expect(screen.getByRole('radio', { name: 'Anillo' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Centro ✓' })).toBeChecked();
+    // Tocar de nuevo corrige el centro, sin cambiar de marcador.
+    tapPhoto('Ubicar centro en el punto indicado', 510, 500);
+    expect(screen.getByRole('radio', { name: 'Centro ✓' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Anillo' })).not.toBeChecked();
+
+    await pickMarker('Anillo');
+    tapPhoto('Ubicar anillo en el punto indicado', 750, 500);
+    // El anillo tampoco pasa solo a "Inclinación".
+    expect(screen.getByRole('radio', { name: 'Anillo ✓' })).toBeChecked();
   });
 
   it('al mantener apretado, el marcador sigue al dedo y se fija al soltar', async () => {
@@ -379,10 +361,12 @@ describe('M06 · Análisis nuevo', () => {
     fireEvent.pointerUp(center, { clientX: 500, clientY: 500, pointerId: 1 });
     // El click que sigue al soltar no ubica el anillo en el mismo lugar.
     fireEvent.click(center, { clientX: 500, clientY: 500, detail: 1 });
-    expect(screen.getByRole('radio', { name: 'Anillo' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Centro ✓' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Anillo' })).not.toBeChecked();
 
     // Fuera de la foto, el punto queda en el borde.
     await chooseOuterRing();
+    await pickMarker('Anillo');
     const edge = photoSurface('Ubicar anillo en el punto indicado');
     fireEvent.pointerDown(edge, { clientX: 700, clientY: 500, button: 0, pointerId: 1 });
     fireEvent.pointerMove(edge, { clientX: 1200, clientY: 500, pointerId: 1 });
@@ -432,12 +416,12 @@ describe('M06 · Análisis nuevo', () => {
     fireEvent.click(surface, { clientX: 300, clientY: 300, detail: 1 });
     expect(screen.getByRole('radio', { name: 'Centro' })).toBeChecked();
 
-    // Toque corto: ubica el centro y pasa al anillo.
+    // Toque corto: ubica el centro, que sigue activo.
     fireEvent.pointerDown(surface, touch(1, 500, 500));
     fireEvent.pointerUp(surface, touch(1, 500, 500));
     fireEvent.click(surface, { clientX: 500, clientY: 500, detail: 1 });
-    expect(screen.getByRole('radio', { name: 'Anillo' })).toBeChecked();
-    expect(screen.getByRole('radio', { name: 'Centro ✓' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Centro ✓' })).toBeChecked();
+    await pickMarker('Anillo');
 
     // Arrastre ya empezado y un segundo dedo tarde: el anillo vuelve a no estar ubicado.
     const edge = photoSurface('Ubicar anillo en el punto indicado');
@@ -500,12 +484,14 @@ describe('M06 · Análisis nuevo', () => {
     expect(within(panel).queryByRole('radiogroup')).not.toBeInTheDocument();
 
     tapPhoto('Ubicar centro en el punto indicado', 480, 480);
-    expect(within(picker).getByRole('radio', { name: 'Anillo' })).toBeChecked();
+    await userEvent.click(within(picker).getByRole('radio', { name: 'Anillo' }));
+    expect(within(panel).getByRole('status')).toHaveTextContent(/^Tocá un punto sobre un anillo/);
+    tapPhoto('Ubicar anillo en el punto indicado', 750, 480);
+    // Para corregir el centro ya ubicado, se vuelve a elegir.
     await userEvent.click(within(picker).getByRole('radio', { name: 'Centro ✓' }));
-    expect(within(panel).getByRole('status')).toHaveTextContent('Tocá el centro del blanco.');
     tapPhoto('Ubicar centro en el punto indicado', 500, 500);
-    // Con el anillo todavía sin ubicar, pasa a él.
-    expect(within(picker).getByRole('radio', { name: 'Anillo' })).toBeChecked();
+    expect(within(picker).getByRole('radio', { name: 'Centro ✓' })).toBeChecked();
+    expect(within(picker).getByRole('radio', { name: 'Anillo ✓' })).not.toBeChecked();
   });
 
   it('con "Inclinación" se inclina el blanco y las medidas lo siguen', async () => {
@@ -527,6 +513,7 @@ describe('M06 · Análisis nuevo', () => {
     await chooseOuterRing();
     await userEvent.click(within(picker).getByRole('radio', { name: 'Centro' }));
     tapPhoto('Ubicar centro en el punto indicado', 500, 500);
+    await pickMarker('Anillo');
     tapPhoto('Ubicar anillo en el punto indicado', 750, 500);
 
     // Un toque sin arrastrar no inclina nada.
@@ -570,6 +557,7 @@ describe('M06 · Análisis nuevo', () => {
     renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
     await loadPhoto(2);
     tapPhoto('Ubicar centro en el punto indicado', 500, 500);
+    await pickMarker('Anillo');
     tapPhoto('Ubicar anillo en el punto indicado', 750, 500);
     await userEvent.click(screen.getByRole('radio', { name: 'Inclinación' }));
     const surface = photoSurface('Inclinar el blanco arrastrando sobre la foto');
@@ -630,6 +618,58 @@ describe('M06 · Análisis nuevo', () => {
     expect(screen.getByRole('heading', { name: 'Calibrar la foto' })).toBeInTheDocument();
   });
 
+  it('un impacto cuyo agujero toca la línea suma el anillo de adentro (calibre del arma)', async () => {
+    setDesktop(true);
+    const { sessions } = renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
+    await calibrate();
+    // (0, −28) mm: el centro cae en el 9 (radio 25 mm), pero el agujero de 9 mm (Glock 9×19)
+    // llega a 23,5 mm y toca el 10.
+    tapPhoto('Agregar impacto en el punto indicado', 500, 528);
+    const table = screen.getByRole('table');
+    expect(within(table).getAllByRole('row')[1]).toHaveTextContent('10');
+    // La etiqueta accesible del impacto sobre la foto dice la misma zona.
+    await userEvent.click(screen.getByRole('button', { name: 'Quitar' }));
+    expect(
+      screen.getAllByRole('button', { name: 'Quitar impacto 1, zona 10' }).length,
+    ).toBeGreaterThan(0);
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar análisis' }));
+    expect(sessions.saveAnalysis).toHaveBeenCalledWith(
+      ANA.uid,
+      TODAY_SESSION.id,
+      ROUND_2.id,
+      expect.objectContaining({
+        score: 10,
+        analysis: expect.objectContaining({
+          metrics: expect.objectContaining({ distribution: [{ score: 10, count: 1 }] }),
+        }),
+      }),
+    );
+  });
+
+  it('la detección automática no propone más impactos que los disparos de la ronda', async () => {
+    // Foto en blanco de 1000 px: no hay agujeros, pero se ve con qué tope se buscan.
+    readImagePixels.mockResolvedValueOnce({
+      width: 1000,
+      height: 1000,
+      data: new Uint8ClampedArray(1000 * 1000 * 4).fill(233),
+    });
+    renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({ shots: 7 }) });
+    await calibrate();
+    await waitFor(() => expect(detectImpacts).toHaveBeenCalled());
+    expect(detectImpacts).toHaveBeenLastCalledWith(
+      expect.anything(),
+      expect.objectContaining({ maxImpacts: 7 }),
+    );
+    // Agregar a mano por encima de los disparos sigue permitido.
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'No se pudieron detectar los impactos',
+    );
+    for (let i = 0; i < 8; i++) tapPhoto('Agregar impacto en el punto indicado', 400 + i * 20, 500);
+    expect(screen.getByText(/impactos marcados de/).parentElement).toHaveTextContent(
+      '8 impactos marcados de 7 disparos',
+    );
+  });
+
   it('no guarda un análisis sin impactos', async () => {
     const { sessions } = renderSessions(analysisPath(ROUND_2.id), { sessions: withRound2({}) });
     await calibrate();
@@ -648,8 +688,18 @@ describe('M06 · Análisis nuevo', () => {
       '460',
     );
     await loadPhoto(2);
+    const panel = screen.getByRole('region', { name: 'Calibrar la foto' });
+    expect(within(panel).getByRole('status')).toHaveTextContent(
+      'Tocá el centro del blanco. Cuando esté en su lugar, elegí «Punto A».',
+    );
     tapPhoto('Ubicar centro en el punto indicado', 500, 500);
+    await pickMarker('Punto A');
+    expect(within(panel).getByRole('status')).toHaveTextContent(
+      'Tocá el punto A. Cuando esté en su lugar, elegí «Punto B».',
+    );
     tapPhoto('Ubicar punto a en el punto indicado', 270, 500);
+    expect(screen.getByRole('radio', { name: 'Punto A ✓' })).toBeChecked();
+    await pickMarker('Punto B');
     tapPhoto('Ubicar punto b en el punto indicado', 730, 500);
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
 
@@ -667,7 +717,8 @@ describe('M06 · Análisis nuevo', () => {
         score: null,
         analysis: expect.objectContaining({
           impacts: [{ x: 20, y: 0 }],
-          metrics: expect.objectContaining({ score: null, meanDistanceMm: 20 }),
+          // Un solo impacto: el radio medio es 0 (está en su propio PMI).
+          metrics: expect.objectContaining({ score: null, meanRadiusMm: 0 }),
         }),
       }),
     );

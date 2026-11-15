@@ -5,7 +5,7 @@ import {
   type Calibration,
   type Pixel,
 } from './calibration';
-import { analysisMetrics, type AnalysisMetrics, type ZoneCount } from './metrics';
+import { analysisMetrics, meanRadius, type AnalysisMetrics, type ZoneCount } from './metrics';
 import type { TargetPoint, TargetZone } from './target-zones';
 import type { TargetScoring } from './targets';
 
@@ -94,7 +94,8 @@ export interface AnalysisResult {
 
 /**
  * Arma el análisis a guardar. Si el usuario confirma el puntaje calculado, pasa a ser el puntaje
- * de la ronda; si no, la ronda conserva el puntaje cargado a mano.
+ * de la ronda; si no, la ronda conserva el puntaje cargado a mano. `holeDiameterMm` es el agujero
+ * del proyectil, para la regla de "toca la línea".
  */
 export function analysisResult(
   calibration: Calibration,
@@ -102,9 +103,10 @@ export function analysisResult(
   target: AnalyzedTarget,
   distanceM: number,
   useCalculatedScore: boolean,
+  holeDiameterMm = 0,
 ): AnalysisResult {
   const points = impactsInMm(calibration, impacts);
-  const metrics = analysisMetrics(points, target, distanceM);
+  const metrics = analysisMetrics(points, target, distanceM, holeDiameterMm);
   const confirmed = useCalculatedScore && metrics.score !== null;
   return {
     analysis: { calibration, impacts: points, metrics, scoreConfirmed: confirmed },
@@ -133,10 +135,14 @@ function parseDistribution(value: unknown): ZoneCount[] {
   });
 }
 
-function parseMetrics(value: unknown, impacts: number): AnalysisMetrics {
+/**
+ * Métricas guardadas. El radio medio se calcula con los impactos si falta (análisis anterior a
+ * la migración de `metrics-migration.ts`); la distancia al centro vieja se ignora.
+ */
+function parseMetrics(value: unknown, impacts: readonly TargetPoint[]): AnalysisMetrics {
   const data = (value ?? {}) as Record<string, unknown>;
   return {
-    impacts: finite(data.impacts) ?? impacts,
+    impacts: finite(data.impacts) ?? impacts.length,
     score: finite(data.score),
     maxScore: finite(data.maxScore),
     averageScore: finite(data.averageScore),
@@ -146,7 +152,7 @@ function parseMetrics(value: unknown, impacts: number): AnalysisMetrics {
     mpi: parsePoint(data.mpi),
     mpiOffsetMm: finite(data.mpiOffsetMm),
     mpiClock: finite(data.mpiClock),
-    meanDistanceMm: finite(data.meanDistanceMm),
+    meanRadiusMm: finite(data.meanRadiusMm) ?? meanRadius(impacts),
   };
 }
 
@@ -160,7 +166,7 @@ export function parseAnalysis(value: unknown): RoundAnalysis | null {
   return {
     calibration: parseCalibration(data.calibration),
     impacts,
-    metrics: parseMetrics(data.metrics, impacts.length),
+    metrics: parseMetrics(data.metrics, impacts),
     scoreConfirmed: data.scoreConfirmed === true,
   };
 }
