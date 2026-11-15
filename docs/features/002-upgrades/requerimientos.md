@@ -1,0 +1,12 @@
+- Al analizar la foto de un blanco, no proponer un centro, siempre hacer que el usuario lo ubique.
+- cuando se ubica el centro no pasar a los anillos. Se pasa a los anillos cuando el usuario toca el botón de Aniklos
+- no auto identificar mas cantidad de impactos que los cargados en la ronda
+- si un tiro cae sobre un anillo, cuenta para el valor superior
+- en Evolución de una ronda, en la pestaña Grupo y Al centro, agregar un gráfico que muestre el PMI de cada ronda y un circulo del radio correspondiente a casa medida
+- En evolución al tocar un PMI en los graficos de blanco, agregar que al hacer tap se resalte ese punto (y su circulo asociado si lo tiene) y los demás se opaquen. 
+- al presionar un PMI del punto anterior agregar la posibilidad de elegir ir al detalle de la ronda
+- Reemplazar la métrica "Al centro" (distancia media de los impactos al centro del blanco) por el **radio medio**: la distancia media de los impactos a su PMI. Se borra "Al centro" en todos lados (análisis, Evolución y datos guardados).
+- Reprocesar todos los análisis guardados: calcular su radio medio y borrar la distancia al centro guardada.
+- En Evolución, en los gráficos donde se dibuja el PMI de cada ronda (PMI, Grupo y Radio medio), poder hacer zoom con dos dedos.
+- En Evolución, al seleccionar un PMI en una de las pestañas (PMI, Grupo o Radio medio), la misma ronda queda seleccionada en las otras pestañas.
+- En Evolución, al tocar una ronda en el gráfico de línea, se selecciona también esa ronda en el gráfico de PMI.
