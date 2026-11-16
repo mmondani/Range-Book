@@ -8,6 +8,8 @@ import { FirearmScreen } from '@/screens/firearm-screen';
 import { InventoryItemRoute } from '@/screens/inventory-item-route';
 import { InventoryScreen } from '@/screens/inventory-screen';
 import { LoginScreen } from '@/screens/login-screen';
+import { MantisImportScreen } from '@/screens/mantis-import-screen';
+import { MantisRoundScreen } from '@/screens/mantis-round-screen';
 import { PerformanceScreen } from '@/screens/performance-screen';
 import { ProfileScreen } from '@/screens/profile-screen';
 import { RoundItemRoute } from '@/screens/round-item-route';
@@ -49,10 +51,22 @@ export const routes: RouteObject[] = [
       // Formulario de pantalla completa. `sesiones/nueva` le gana a `sesiones/:id`.
       { path: 'sesiones/nueva', element: <SessionFormScreen />, handle: FULL_SCREEN },
       { path: 'sesiones/:id/editar', element: <SessionFormScreen />, handle: FULL_SCREEN },
+      // Importar MantisX (M14 / W09), de pantalla completa. Le gana a `sesiones/:id`.
+      {
+        path: 'sesiones/importar-mantisx',
+        element: <MantisImportScreen />,
+        handle: FULL_SCREEN,
+      },
       // Análisis de pantalla completa (también en desktop, sin la lista de sesiones).
       {
         path: 'sesiones/:id/rondas/:roundId/analisis',
         element: <AnalysisScreen />,
+        handle: FULL_SCREEN,
+      },
+      // MantisX de la ronda (M15 / W10), de pantalla completa.
+      {
+        path: 'sesiones/:id/rondas/:roundId/mantisx',
+        element: <MantisRoundScreen />,
         handle: FULL_SCREEN,
       },
       // Filtros en la query string; en mobile, el sheet de cada filtro también (`?filtro=`).

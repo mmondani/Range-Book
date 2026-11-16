@@ -1,4 +1,4 @@
-import { Crosshair, ListFilter, Plus, Search, SearchX } from 'lucide-react';
+import { Crosshair, FileUp, ListFilter, Plus, Search, SearchX } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useParams, useSearchParams } from 'react-router';
 import { Alert } from '@/components/alert';
@@ -9,6 +9,7 @@ import { ChipGroup } from '@/components/chip-group';
 import { EmptyState } from '@/components/empty-state';
 import { Fab } from '@/components/fab';
 import { IconButton } from '@/components/icon-button';
+import { IconLink } from '@/components/icon-link';
 import { Input } from '@/components/input';
 import { LinkButton } from '@/components/link-button';
 import { SessionCard } from '@/components/session-card';
@@ -163,10 +164,17 @@ export function SessionsScreen() {
         <header className={styles.header}>
           <h1 className={`display ${styles.title}`}>Sesiones</h1>
           {ready && hasSessions && (
-            <>
+            <div className={styles.headerEnd}>
               <span className={cx('num', styles.total)}>
                 {formatInteger(ready.sessions.length)} en total
               </span>
+              <IconLink
+                to="/sesiones/importar-mantisx"
+                aria-label="Importar MantisX"
+                title="Importar MantisX"
+              >
+                <FileUp aria-hidden="true" size={isDesktop ? 20 : 24} />
+              </IconLink>
               <div className={styles.headerActions}>
                 <IconButton
                   aria-label="Buscar sesiones"
@@ -185,7 +193,7 @@ export function SessionsScreen() {
                   </IconButton>
                 )}
               </div>
-            </>
+            </div>
           )}
         </header>
 

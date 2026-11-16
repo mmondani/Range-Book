@@ -86,6 +86,7 @@ export function SessionDetail() {
   const newRoundPath = `${detailPath}/rondas/nueva`;
   const roundPath = (roundId: string) => `${detailPath}/rondas/${roundId}/editar`;
   const analysisPath = (roundId: string) => `${detailPath}/rondas/${roundId}/analisis`;
+  const mantisPath = (roundId: string) => `${detailPath}/rondas/${roundId}/mantisx`;
   const rounds = roundItems(session, data.targets);
   const outlet: SessionDetailOutletContext = {
     session,
@@ -146,6 +147,7 @@ export function SessionDetail() {
           units={units}
           editPath={(item) => roundPath(item.round.id)}
           analysisPath={(item) => analysisPath(item.round.id)}
+          mantisPath={(item) => mantisPath(item.round.id)}
         />
       </Card>
     ) : (
@@ -157,6 +159,7 @@ export function SessionDetail() {
               units={units}
               editPath={roundPath(item.round.id)}
               analysisPath={analysisPath(item.round.id)}
+              mantisPath={mantisPath(item.round.id)}
             />
           </li>
         ))}
