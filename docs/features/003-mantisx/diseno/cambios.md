@@ -1,6 +1,6 @@
 # Cambios de diseño — 003 MantisX
 
-**Estado:** Propuesto
+**Estado:** Aprobado
 **Plan:** [../plan.md](../plan.md) · **Maqueta:** [maqueta/index.html](./maqueta/index.html)
 
 La maqueta trae solo las pantallas nuevas o modificadas; el resto sigue en [`docs/diseno/maqueta/`](../../../diseno/maqueta/index.html). La trayectoria se dibuja con los datos reales de la sesión 36042499 de MantisX (`maqueta/assets/mantis-data.js`). Los demás datos son ilustrativos y no siempre coinciden entre pantallas.

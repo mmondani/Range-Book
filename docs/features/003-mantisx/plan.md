@@ -1,6 +1,6 @@
 # Plan — 003 MantisX
 
-**Estado:** Propuesto
+**Estado:** Aprobado
 **Requerimientos:** [./requerimientos.md](./requerimientos.md)
 **Diseño:** [cambios.md](./diseno/cambios.md) · [maqueta](./diseno/maqueta/index.html)
 
@@ -76,19 +76,19 @@ mantisTraces/{sessionPk}           (~33 KB; se lee solo al ver la trayectoria)
 - Ninguna. El JSON se lee con `File.text()` y la trayectoria se dibuja en SVG propio, como los demás gráficos.
 
 ## Pasos
-- [ ] **0. Hora de las rondas**
+- [x] **0. Hora de las rondas**
   - Qué: `createdAt` en `Round`. Se pone al crear la ronda (hora del dispositivo, en UTC), no se edita y se conserva al reescribir. Las rondas existentes quedan con `null`.
   - Verificación: tests de alta de ronda (tiene hora), de edición (no cambia) y de parseo de rondas viejas (`null`).
-- [ ] **1. Lectura del archivo**
+- [x] **1. Lectura del archivo**
   - Qué: `mantis-import.ts` valida `source: 'mantisx'` y `formatVersion: 1`, se queda con `fire_type === 1` y `drill_id === 0`, descarta las sesiones y los disparos con `deleted`, pasa los strings a números y la fecha a hora local. Devuelve las sesiones válidas, cuántas se omitieron por tipo y los errores ("El archivo no es un export de MantisX", "Formato desconocido", "El archivo está dañado"). Incluye el fixture recortado.
   - Verificación: tests con el fixture y con archivos inválidos.
-- [ ] **2. Diagnósticos y trayectoria**
+- [x] **2. Diagnósticos y trayectoria**
   - Qué: tabla de diagnósticos en castellano, con fallback al texto original. En `mantis-trace.ts`: trayectoria relativa al punto del disparo, fases (apuntado, gatillo, seguimiento), conversión de grados a mm con la distancia de la ronda (`tan(θ)·d`), tiempo total, promedio y extremos.
   - Verificación: tests unitarios (por ejemplo, 0,1° a 5,49 m ≈ 9,6 mm; tiempo total de la sesión 36042015 = 19,72 s).
-- [ ] **3. Matching**
+- [x] **3. Matching**
   - Qué: `mantis-matching.ts` agrupa las sesiones de MantisX por fecha local y propone la sesión de Range Book de ese día (si hay varias, la del arma que coincide con la de MantisX). Dentro de la sesión, asigna uno a uno las rondas sin datos de MantisX **respetando el orden y minimizando la diferencia de hora** entre `createdAt` y la fecha de la sesión de MantisX. Las rondas sin hora (anteriores a esta iteración) se asignan por orden. Marca las ya importadas y las que **no se importan**, con el motivo ("No hay sesión de Range Book el 15/11", "No queda ninguna ronda disponible en esa sesión"), y avisa si no coinciden los disparos. Funciones puras para cambiar una asignación sin repetir rondas.
   - Verificación: tests de la propuesta (por hora, por orden sin hora, más sesiones de MantisX que rondas, ninguna sesión ese día, ya importada) y de la edición.
-- [ ] **4. Modelo y persistencia**
+- [x] **4. Modelo y persistencia**
   - Qué: campo `mantis` en `Round` (parseo tolerante y reescritura cruda), `applyMantisImport` en `SessionRepository`, `mantis-trace-repository.ts`, reglas de `mantisTraces` y dobles en memoria.
   - Verificación: tests de parseo y de reescritura (no se pierde el análisis) y `pnpm test:rules` (dueño, claves, tamaños; otro usuario no lee).
 - [ ] **5. Pantalla de importación**
@@ -97,7 +97,7 @@ mantisTraces/{sessionPk}           (~33 KB; se lee solo al ver la trayectoria)
 - [ ] **6. Ver los datos en la ronda**
   - Qué: línea MantisX en `RoundRow` / `RoundTable` y la pantalla de la ronda: resumen (puntaje promedio, tiempo total, split promedio), lista de disparos (con el mejor y el peor y los splits extremos) y la trayectoria del disparo elegido: **estática** (las tres fases, en mm a la distancia de la ronda) y con **Reproducir / Pausar** para verla animada en tiempo real.
   - Verificación: tests de pantalla (con y sin datos de MantisX, trayectoria que carga, trayectoria faltante, reproducción con el reloj simulado) y prueba manual.
-- [ ] **7. Quitar los datos de MantisX de una ronda**
+- [x] **7. Quitar los datos de MantisX de una ronda**
   - Qué: desde la ronda, "Quitar los datos de MantisX" (con "Deshacer"), que borra el resumen y su trayectoria.
   - Verificación: test de pantalla y de repositorio.
 - [ ] **8. Cierre**
