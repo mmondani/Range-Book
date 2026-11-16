@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 import { AuthProvider } from '@/components/auth-provider';
 import { BackgroundTasks } from '@/components/background-tasks';
 import { InventoryProvider } from '@/components/inventory-provider';
+import { MantisTraceProvider } from '@/components/mantis-trace-provider';
 import { PhotoProvider } from '@/components/photo-provider';
 import { ProfileProvider } from '@/components/profile-provider';
 import { SessionProvider } from '@/components/session-provider';
@@ -12,6 +13,10 @@ import {
   firebaseInventoryRepositories,
   type InventoryRepositories,
 } from '@/data/inventory-repository';
+import {
+  firebaseMantisTraceRepository,
+  type MantisTraceRepository,
+} from '@/data/mantis-trace-repository';
 import { firebasePhotoRepository, type PhotoRepository } from '@/data/photo-repository';
 import { firebaseProfileRepository, type ProfileRepository } from '@/data/profile-repository';
 import { firebaseSessionRepository, type SessionRepository } from '@/data/session-repository';
@@ -25,6 +30,7 @@ export interface AppProps {
   photos?: PhotoRepository;
   inventory?: InventoryRepositories;
   sessions?: SessionRepository;
+  mantisTraces?: MantisTraceRepository;
 }
 
 export function App({
@@ -33,6 +39,7 @@ export function App({
   photos = firebasePhotoRepository,
   inventory = firebaseInventoryRepositories,
   sessions = firebaseSessionRepository,
+  mantisTraces = firebaseMantisTraceRepository,
 }: AppProps) {
   const [router] = useState(() => createBrowserRouter(routes));
   // Mantiene `data-theme` sincronizado (por ejemplo, si cambia el tema del sistema).
@@ -44,10 +51,12 @@ export function App({
         <PhotoProvider repository={photos}>
           <InventoryProvider repositories={inventory}>
             <SessionProvider repository={sessions}>
-              <ToastProvider>
-                <BackgroundTasks />
-                <RouterProvider router={router} />
-              </ToastProvider>
+              <MantisTraceProvider repository={mantisTraces}>
+                <ToastProvider>
+                  <BackgroundTasks />
+                  <RouterProvider router={router} />
+                </ToastProvider>
+              </MantisTraceProvider>
             </SessionProvider>
           </InventoryProvider>
         </PhotoProvider>

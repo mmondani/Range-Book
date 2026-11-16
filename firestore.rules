@@ -116,6 +116,14 @@ service cloud.firestore {
         && data.rounds is list && data.rounds.size() <= 100;
     }
 
+    // Límites de `src/lib/mantis.ts` (MAX_MANTIS_SHOTS). Las reglas no recorren listas: el
+    // contenido de cada disparo lo valida el cliente. Firestore limita el documento a 1 MiB.
+    function isValidMantisTrace(data) {
+      return data.keys().hasOnly(['sampleRate', 'shots'])
+        && data.sampleRate is number && data.sampleRate > 0 && data.sampleRate <= 10000
+        && data.shots is list && data.shots.size() > 0 && data.shots.size() <= 150;
+    }
+
     // Lista de acceso: se administra a mano desde la consola. Cada usuario solo puede
     // consultar su propio email (exista o no) y nadie puede escribirla desde el cliente.
     match /allowedEmails/{allowedEmail} {
@@ -175,13 +183,24 @@ service cloud.firestore {
         allow delete: if isOwner(uid);
       }
 
+      // Trayectorias de MantisX: el id es el de la sesión de MantisX. Se borran al quitar los
+      // datos de MantisX de la ronda.
+      match /mantisTraces/{sessionPk} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && sessionPk.matches('[0-9]{1,20}')
+          && isValidMantisTrace(request.resource.data);
+        allow delete: if isOwner(uid);
+      }
+
       // Resto de los datos del usuario, hasta que tengan sus propias reglas. `{subcollection}`
       // evita que el comodín recursivo (que acepta cero segmentos) también matchee el perfil.
       match /{subcollection}/{document=**} {
         allow read: if isOwner(uid);
         allow write: if isOwner(uid)
           && !(subcollection in [
-            'firearms', 'configurations', 'ammunition', 'ranges', 'targets', 'sessions'
+            'firearms', 'configurations', 'ammunition', 'ranges', 'targets', 'sessions',
+            'mantisTraces'
           ]);
       }
     }

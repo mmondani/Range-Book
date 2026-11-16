@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react';
 import { InventoryProvider } from '@/components/inventory-provider';
+import { MantisTraceProvider } from '@/components/mantis-trace-provider';
 import { PhotoProvider } from '@/components/photo-provider';
 import { SessionProvider } from '@/components/session-provider';
 import { ToastProvider } from '@/components/toast-provider';
 import { createFakeInventory } from './fake-inventory';
+import { createFakeMantisTraces } from './fake-mantis-traces';
 import { createFakePhotos } from './fake-photos';
 import { createFakeSessions } from './fake-sessions';
 
@@ -16,7 +18,9 @@ export function DataProviders({ children }: { children: ReactNode }) {
     <PhotoProvider repository={createFakePhotos().repository}>
       <InventoryProvider repositories={createFakeInventory().repositories}>
         <SessionProvider repository={createFakeSessions().repository}>
-          <ToastProvider>{children}</ToastProvider>
+          <MantisTraceProvider repository={createFakeMantisTraces().repository}>
+            <ToastProvider>{children}</ToastProvider>
+          </MantisTraceProvider>
         </SessionProvider>
       </InventoryProvider>
     </PhotoProvider>

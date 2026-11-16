@@ -393,3 +393,52 @@ describe('sesiones', () => {
     await assertFails(deleteDoc(other));
   });
 });
+
+describe('trayectorias de MantisX', () => {
+  type Db = ReturnType<ReturnType<typeof signedIn>['firestore']>;
+  const TRACE = {
+    sampleRate: 400,
+    shots: [
+      {
+        pk: 452249270,
+        pitch: [-11.81, -11.82],
+        yaw: [0.37, 0.36],
+        holdIndex: 0,
+        pullIndex: 0,
+        shotIndex: 1,
+        absolutePitch: -2.08,
+      },
+    ],
+  };
+  const trace = (db: Db, id = '36042499', uid = ALLOWED.uid) =>
+    doc(db, 'users', uid, 'mantisTraces', id);
+
+  it('el dueño las crea, lee, reemplaza y borra', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    await assertSucceeds(setDoc(trace(db), TRACE));
+    await assertSucceeds(getDoc(trace(db)));
+    await assertSucceeds(setDoc(trace(db), { ...TRACE, sampleRate: 200 }));
+    await assertSucceeds(deleteDoc(trace(db)));
+  });
+
+  it('rechaza ids, campos y tamaños inválidos', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    await assertFails(setDoc(trace(db, 'sesion'), TRACE));
+    await assertFails(setDoc(trace(db), { ...TRACE, extra: true }));
+    await assertFails(setDoc(trace(db), { ...TRACE, sampleRate: 0 }));
+    await assertFails(setDoc(trace(db), { ...TRACE, sampleRate: '400' }));
+    await assertFails(setDoc(trace(db), { ...TRACE, shots: [] }));
+    await assertFails(setDoc(trace(db), { ...TRACE, shots: Array(151).fill({ pk: 1 }) }));
+    await assertFails(setDoc(trace(db), { sampleRate: 400 }));
+  });
+
+  it('el usuario A no lee, escribe ni borra las trayectorias de B', async () => {
+    const db = signedIn(env, ALLOWED).firestore();
+    const other = trace(db, '36042499', OTHER_ALLOWED.uid);
+    await assertFails(getDoc(other));
+    await assertFails(setDoc(other, TRACE));
+    await assertFails(deleteDoc(other));
+    const notAllowed = signedIn(env, NOT_ALLOWED).firestore();
+    await assertFails(setDoc(trace(notAllowed, '1', NOT_ALLOWED.uid), TRACE));
+  });
+});

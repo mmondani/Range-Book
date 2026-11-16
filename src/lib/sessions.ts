@@ -10,6 +10,7 @@ import {
   type Modification,
 } from './firearms';
 import { isValidIsoDate } from './format';
+import { parseRoundMantis, type RoundMantis } from './mantis';
 import {
   ammunitionName,
   matchesSearch,
@@ -60,6 +61,13 @@ export interface Round {
   photo: string | null;
   comments: string;
   analysis: RoundAnalysis | null;
+  /**
+   * Cuándo se creó (ISO 8601 en UTC, hora del dispositivo). No se edita; se usa para proponer la
+   * sesión de MantisX que le corresponde. `null` en las rondas anteriores a la iteración 003.
+   */
+  createdAt: string | null;
+  /** Datos de la sesión de MantisX importada para esta ronda (sin la trayectoria). */
+  mantis: RoundMantis | null;
 }
 
 /** Campos de la sesión que se editan en M04 (las rondas se editan aparte). */
@@ -631,6 +639,11 @@ function parseRound(value: unknown, index: number): Round {
     photo: typeof data.photo === 'string' ? data.photo : null,
     comments: text(data.comments),
     analysis: parseAnalysis(data.analysis),
+    createdAt:
+      typeof data.createdAt === 'string' && !Number.isNaN(Date.parse(data.createdAt))
+        ? data.createdAt
+        : null,
+    mantis: parseRoundMantis(data.mantis),
   };
 }
 

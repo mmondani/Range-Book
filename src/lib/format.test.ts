@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  formatDayMonthYear,
+  formatNumericDayMonth,
+  formatWeekdayDayMonth,
+  formatFixed,
+  formatTime,
   formatDecimal,
   formatInteger,
   formatIsoDate,
@@ -85,5 +90,27 @@ describe('fechas de las sesiones', () => {
     expect(formatLongDate('2026-10-24')).toBe('Sábado 24 de octubre de 2026');
     expect(formatDayMonth('2026-08-02')).toBe('2 ago');
     expect(formatLongDate('2026-03-02')).toBe('Lunes 2 de marzo de 2026');
+  });
+});
+
+describe('formatFixed', () => {
+  it('usa los decimales fijos y coma decimal', () => {
+    expect(formatFixed(3.9, 2)).toBe('3,90');
+    expect(formatFixed(93, 1)).toBe('93,0');
+    expect(formatFixed(1234.5, 1)).toBe('1234,5');
+  });
+});
+
+describe('formatTime', () => {
+  it('muestra la hora local de un instante', () => {
+    expect(formatTime(new Date(2026, 10, 15, 9, 5).toISOString())).toBe('09:05');
+  });
+});
+
+describe('fechas cortas de MantisX', () => {
+  it('muestran el día de la semana y el día, o solo día y mes en números', () => {
+    expect(formatWeekdayDayMonth('2026-11-15')).toBe('Dom 15 nov');
+    expect(formatNumericDayMonth('2026-10-31')).toBe('31/10');
+    expect(formatDayMonthYear('2026-11-15')).toBe('15 nov 2026');
   });
 });

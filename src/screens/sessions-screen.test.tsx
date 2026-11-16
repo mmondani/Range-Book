@@ -116,6 +116,8 @@ describe('SessionsScreen', () => {
         saveRound: async () => {},
         saveAnalysis: async () => {},
         removeRound: async () => ({ undo: async () => {} }),
+        applyMantisImport: async () => 0,
+        removeMantis: async () => ({ undo: async () => {} }),
         migrateMeanRadius: async () => 0,
       },
     });

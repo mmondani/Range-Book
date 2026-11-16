@@ -113,6 +113,8 @@ const round = (overrides: Partial<Round> = {}): Round => ({
   photo: null,
   comments: '',
   analysis: null,
+  createdAt: null,
+  mantis: null,
   ...overrides,
 });
 
@@ -551,8 +553,25 @@ describe('Firestore', () => {
       photo: 'r.jpg',
       comments: '',
       analysis: withGroup(46),
+      createdAt: null,
+      mantis: null,
     });
     expect(parseSession('x', {})).toMatchObject({ date: '', rounds: [], photos: [] });
+  });
+
+  it('lee la hora de creación de las rondas nuevas; las anteriores quedan sin hora', () => {
+    const parsed = parseSession('s1', {
+      rounds: [
+        { id: 'r1', createdAt: '2026-11-15T13:08:00.000Z' },
+        { id: 'r2' },
+        { id: 'r3', createdAt: 'ayer' },
+      ],
+    });
+    expect(parsed.rounds.map((item) => item.createdAt)).toEqual([
+      '2026-11-15T13:08:00.000Z',
+      null,
+      null,
+    ]);
   });
 
   it('junta las fotos de la sesión y de sus rondas', () => {

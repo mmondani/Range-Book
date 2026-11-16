@@ -1,5 +1,6 @@
 import type { AnalysisResult } from './analysis';
 import { formatDecimal, parseDecimal } from './format';
+import type { RoundMantis } from './mantis';
 import { selectableItems, type FieldErrors } from './inventory';
 import { storedPhotos, type PhotoDraft } from './photos';
 import { roundScore, sortSessions, type Round, type Session } from './sessions';
@@ -202,18 +203,22 @@ export function rawRounds(value: unknown): RawRound[] {
 }
 
 /**
- * Agrega la ronda al final o reemplaza sus campos de M05. Si `keepAnalysis` es `false`, borra el
- * análisis y el puntaje calculado.
+ * Agrega la ronda al final (con su hora de creación, `createdAt`) o reemplaza sus campos de M05.
+ * Si `keepAnalysis` es `false`, borra el análisis y el puntaje calculado. La hora de creación y los
+ * datos de MantisX no se tocan al editar.
  */
 export function saveRawRound(
   rounds: readonly RawRound[],
   id: string,
   fields: RoundFields,
   keepAnalysis: boolean,
+  createdAt: string,
 ): RawRound[] {
   const reset = keepAnalysis ? {} : { score: null, analysis: null };
   const index = rounds.findIndex((round) => round.id === id);
-  if (index === -1) return [...rounds, { id, ...fields, score: null, analysis: null }];
+  if (index === -1) {
+    return [...rounds, { id, ...fields, score: null, analysis: null, createdAt, mantis: null }];
+  }
   return rounds.map((round, i) => (i === index ? { ...round, ...fields, ...reset } : round));
 }
 
@@ -252,4 +257,46 @@ export function restoreRawRound(
   const next = [...rounds];
   next.splice(Math.min(removed.index, next.length), 0, removed.round);
   return next;
+}
+
+// --- MantisX ---------------------------------------------------------------------------------
+
+/**
+ * Guarda los datos de MantisX en las rondas indicadas (por id). Las que ya no existen o ya tienen
+ * datos de MantisX no se tocan. Devuelve las rondas y cuántas cambiaron.
+ */
+export function saveRawMantis(
+  rounds: readonly RawRound[],
+  mantis: ReadonlyMap<string, RoundMantis>,
+): { rounds: RawRound[]; saved: number } {
+  let saved = 0;
+  const next = rounds.map((round) => {
+    const data = typeof round.id === 'string' ? mantis.get(round.id) : undefined;
+    if (!data || (round.mantis && typeof round.mantis === 'object')) return round;
+    saved += 1;
+    return { ...round, mantis: data };
+  });
+  return { rounds: next, saved };
+}
+
+/** Quita los datos de MantisX de la ronda y devuelve los que tenía, para poder deshacerlo. */
+export function removeRawMantis(
+  rounds: readonly RawRound[],
+  id: string,
+): { rounds: RawRound[]; removed?: unknown } {
+  const round = rounds.find((item) => item.id === id);
+  if (!round?.mantis) return { rounds: [...rounds] };
+  return {
+    rounds: rounds.map((item) => (item.id === id ? { ...item, mantis: null } : item)),
+    removed: round.mantis,
+  };
+}
+
+/** Vuelve a poner los datos de MantisX quitados (si la ronda sigue y no tiene otros). */
+export function restoreRawMantis(
+  rounds: readonly RawRound[],
+  id: string,
+  mantis: unknown,
+): RawRound[] {
+  return rounds.map((item) => (item.id === id && !item.mantis ? { ...item, mantis } : item));
 }
