@@ -51,17 +51,16 @@ interface UndoableRemoveMessages {
 }
 
 /**
- * Elimina algo con "Deshacer" en un toast. Sus fotos se borran de Storage recién cuando ya no se
- * puede deshacer.
+ * Elimina algo con "Deshacer" en un toast. Lo que depende de eso (fotos de Storage, trayectorias de
+ * MantisX) se borra en `cleanup`, recién cuando ya no se puede deshacer.
  */
-function useUndoableRemove() {
-  const photos = usePhotoRepository();
+export function useUndoableRemove() {
   const toast = useToast();
 
   return useCallback(
     async (
       remove: () => Promise<{ undo: () => Promise<void> }>,
-      photoPaths: readonly string[],
+      cleanup: () => void,
       messages: UndoableRemoveMessages,
     ): Promise<boolean> => {
       let undo: () => Promise<void>;
@@ -74,8 +73,7 @@ function useUndoableRemove() {
       let undone = false;
       // No depende de la pantalla: sigue corriendo aunque se navegue a otra.
       const timer = setTimeout(() => {
-        if (undone) return;
-        for (const path of photoPaths) photos.remove(path).catch(() => {});
+        if (!undone) cleanup();
       }, TOAST_DURATION_MS + UNDO_GRACE_MS);
       toast.show({
         message: messages.removed,
@@ -93,7 +91,18 @@ function useUndoableRemove() {
       });
       return true;
     },
-    [photos, toast],
+    [toast],
+  );
+}
+
+/** Borra las fotos de Storage sin esperar (si fallan, quedan huérfanas). */
+function usePhotoCleanup() {
+  const photos = usePhotoRepository();
+  return useCallback(
+    (paths: readonly string[]) => () => {
+      for (const path of paths) photos.remove(path).catch(() => {});
+    },
+    [photos],
   );
 }
 
@@ -102,18 +111,19 @@ export function useDeleteSession() {
   const uid = useCurrentUser()?.uid;
   const repository = useSessionRepository();
   const remove = useUndoableRemove();
+  const cleanup = usePhotoCleanup();
 
   return useCallback(
     async (session: Session): Promise<boolean> => {
       if (!uid) return false;
-      return remove(() => repository.remove(uid, session.id), sessionPhotoPaths(session), {
+      return remove(() => repository.remove(uid, session.id), cleanup(sessionPhotoPaths(session)), {
         removed: 'Sesión eliminada',
         restored: 'Sesión restaurada',
         removeFailed: 'No se pudo eliminar la sesión',
         restoreFailed: 'No se pudo restaurar la sesión',
       });
     },
-    [uid, repository, remove],
+    [uid, repository, remove, cleanup],
   );
 }
 
@@ -122,13 +132,14 @@ export function useDeleteRound() {
   const uid = useCurrentUser()?.uid;
   const repository = useSessionRepository();
   const remove = useUndoableRemove();
+  const cleanup = usePhotoCleanup();
 
   return useCallback(
     async (session: Pick<Session, 'id'>, round: Round): Promise<boolean> => {
       if (!uid) return false;
       return remove(
         () => repository.removeRound(uid, session.id, round.id),
-        round.photo ? [round.photo] : [],
+        cleanup(round.photo ? [round.photo] : []),
         {
           removed: 'Ronda eliminada',
           restored: 'Ronda restaurada',
@@ -137,6 +148,6 @@ export function useDeleteRound() {
         },
       );
     },
-    [uid, repository, remove],
+    [uid, repository, remove, cleanup],
   );
 }

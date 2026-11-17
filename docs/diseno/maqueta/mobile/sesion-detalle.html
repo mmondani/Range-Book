@@ -25,6 +25,9 @@ body{margin:0;background:#0B0D0F}
 /* Toda la tarjeta lleva al análisis: el link se estira sobre ella; el lápiz queda por encima. */
 .stretch::after{content:'';position:absolute;inset:0;border-radius:16px}
 .edit{position:relative;z-index:1;align-self:flex-start;color:var(--text-2)}
+/* El link a MantisX queda por encima del link estirado de la tarjeta. */
+.mantis{position:relative;z-index:1;display:inline-flex;align-items:center;gap:6px;align-self:flex-start;min-height:32px;padding:0 10px;margin:2px 0;border-radius:999px;background:color-mix(in srgb, var(--info) 14%, transparent);color:var(--info);font-size:14px;font-weight:600;text-decoration:none}
+.mantis:hover{color:var(--info);background:color-mix(in srgb, var(--info) 22%, transparent)}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:13px;font-weight:600}
 .ph{background:repeating-linear-gradient(135deg,var(--surface-2) 0 10px,var(--ph-2) 10px 20px);display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:13px;text-align:center}
 .i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
@@ -90,6 +93,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="font-weight:600">Ronda 1</span><span class="badge" style="background:color-mix(in srgb, var(--success) 14%, transparent);color:var(--success)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;stroke-width:3"><path d="M20 6 9 17l-5-5"></path></svg>Analizada</span></div>
             <span class="num" style="font-size:14px;color:var(--text-2)">15 disparos · 136 pts · 46,0 mm</span>
             <span style="font-size:14px;color:var(--text-3)">ISSF Pistola Precisión · 25 m · Buen control del gatillo</span>
+            <a href="ronda-mantisx.html" class="mantis" aria-label="Ver MantisX de la ronda 1: puntaje 88,3, tiempo 17,1 s"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"></path></svg><span class="num">MantisX 88,3 · 17,1 s</span></a>
             <a href="analisis.html" class="stretch" aria-label="Ver análisis de la ronda 1" style="font-size:14px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;min-height:32px;align-self:flex-start">Ver análisis<svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></a>
           </div>
           <a href="ronda-form.html" class="icon-btn edit" aria-label="Editar ronda 1"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></a>

@@ -1,8 +1,10 @@
 import { Pencil } from 'lucide-react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { OPENED_FROM_LIST } from '@/hooks/use-inventory';
+import { cx } from '@/lib/cx';
 import { formatDecimal, formatInteger } from '@/lib/format';
 import { storedPhotos } from '@/lib/photos';
+import { mantisLinkLabel, mantisSummaryText } from '@/lib/mantis-trace';
 import type { RoundItem } from '@/lib/rounds';
 import { formatLength, type Units } from '@/lib/units';
 import { DataTable, type DataTableColumn } from './data-table';
@@ -17,13 +19,14 @@ export interface RoundTableProps {
   units: Units;
   editPath: (item: RoundItem) => string;
   analysisPath: (item: RoundItem) => string;
+  mantisPath: (item: RoundItem) => string;
 }
 
 /**
  * Rondas del detalle de la sesión en desktop (W02): `RoundRow` como fila de tabla. Un clic en la
  * fila lleva al análisis, igual que el botón de la columna de acciones.
  */
-export function RoundTable({ items, units, editPath, analysisPath }: RoundTableProps) {
+export function RoundTable({ items, units, editPath, analysisPath, mantisPath }: RoundTableProps) {
   const navigate = useNavigate();
   const columns: DataTableColumn<RoundItem>[] = [
     {
@@ -69,6 +72,22 @@ export function RoundTable({ items, units, editPath, analysisPath }: RoundTableP
         const group = round.analysis?.metrics.groupSizeMm;
         return group == null ? '—' : <span className="num">{formatLength(group, units)}</span>;
       },
+    },
+    {
+      key: 'mantis',
+      header: 'MantisX',
+      cell: (item) =>
+        item.round.mantis ? (
+          <Link
+            to={mantisPath(item)}
+            aria-label={mantisLinkLabel(item.round.mantis.shots, item.number)}
+            className={cx('num', styles.mantis)}
+          >
+            {mantisSummaryText(item.round.mantis.shots)}
+          </Link>
+        ) : (
+          '—'
+        ),
     },
     {
       key: 'comments',

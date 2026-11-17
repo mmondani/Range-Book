@@ -1,0 +1,58 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0;
+  padding: 0;
+  color: var(--text-2);
+  font-size: 13px;
+  list-style: none;
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hold,
+.pull,
+.follow,
+.shot {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.hold {
+  stroke: var(--info);
+  stroke-width: 2;
+}
+
+.pull {
+  stroke: var(--warning);
+  stroke-width: 3;
+}
+
+.follow {
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+  stroke-linecap: butt;
+}
+
+.shot {
+  stroke: var(--text);
+  stroke-width: 2.5;
+}
+
+.caption {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 13px;
+}

@@ -1,0 +1,27 @@
+- Agregar la opción dentro de la sección Sesiones de importar un archivo exportado desde train.mantisx.com como el que figura en ./ejemplos/mantisx-2026-10-15_2026-11-15.json
+- Al importar un archivo, se deben proponer los matching que se hagan entre sesiones de Range Book y las provenientes de MantisX. Mostrando también el match entre rondas y sesiones (hacerlo en base a la hora)
+- Se debe permitir editar el matching entre sesiones y rondas
+- La información iportada se guardará en firestore
+- Para cada disparo se importara:
+    - `pk`: ID único del disparo en MantisX, para no duplicar al reimportar.
+    - `score`: puntaje de MantisX (0–100). Mide la calidad de la presión del gatillo, no la precisión en el blanco.
+    - `split`: segundos desde el disparo anterior (`0.00` en el primero).
+    - `problem`: diagnóstico (`GREAT SHOT` = sin problema), traducido al castellano en la UI.
+    - `angle`: dirección del desvío, en grados (0–360).
+    - `trigger_hold`: movimiento del arma durante el apuntado. En la UI: "Mov. apuntando", sin unidad.
+    - `trigger_pull`: movimiento del arma durante la presión del gatillo. En la UI: "Mov. disparando", sin unidad.
+    - `pitch[]` y `yaw[]`: trayectoria (ángulo vertical y horizontal del arma, en grados).
+    - `sample_rate`: muestras por segundo de la trayectoria.
+    - `hold_index`, `pull_index` y `shot_index`: inicio de cada fase dentro de la trayectoria (apuntado, presión del gatillo y disparo; después del disparo viene el seguimiento).
+    - `absolute_roll[]`: inclinación lateral del arma (*cant*) al disparar, en grados. En la UI: "Inclinación arma".
+    - Opcional: `absolute_pitch[]`, ángulo vertical absoluto al disparar.
+    - No se importan los disparos con `deleted: true`. Tampoco se importan `bullseye`, `session_pk` ni `extras.iteration`.
+- De cada sesión de MantisX (equivalente a una ronda) se importará:
+    - `pk`: ID único de la sesión en MantisX, para no duplicar.
+    - `date`: fecha y hora, convertida de UTC a hora local.
+    - `firearm`: marca, modelo y calibre, para sugerir el arma.
+    - `extras.distance` e `extras.isDistanceMetric`: distancia, para precargar la de la ronda.
+    - `right_handed`: mano hábil, para interpretar los diagnósticos.
+    - `extras.hardware`: modelo del sensor.
+- Se calcularán, sin importarlos: el tiempo total de la ronda (suma de los splits), el puntaje promedio, la trayectoria relativa de cada disparo (centrada en `shot_index`), el mejor y el peor disparo, y el split más rápido y el más lento.
+- Para cada ronda se agregará la posibilidad de ver la información de mantis de cada disparo

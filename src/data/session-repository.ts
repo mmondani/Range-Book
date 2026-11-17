@@ -9,12 +9,16 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import type { AnalysisResult } from '@/lib/analysis';
+import type { RoundMantis } from '@/lib/mantis';
 import { migrateRounds } from '@/lib/metrics-migration';
 import {
   rawRounds,
+  removeRawMantis,
   removeRawRound,
+  restoreRawMantis,
   restoreRawRound,
   saveRawAnalysis,
+  saveRawMantis,
   saveRawRound,
   type RawRound,
   type RoundFields,
@@ -64,11 +68,29 @@ export interface SessionRepository {
     roundId: string,
   ): Promise<{ undo: () => Promise<void> }>;
   /**
+   * Guarda los datos de MantisX importados en sus rondas: una escritura por sesión. Las rondas que
+   * ya no existen o ya tienen datos de MantisX se saltean. Devuelve cuántas rondas se guardaron.
+   */
+  applyMantisImport(uid: string, imports: readonly MantisRoundImport[]): Promise<number>;
+  /** Quita los datos de MantisX de una ronda y devuelve cómo deshacerlo. */
+  removeMantis(
+    uid: string,
+    sessionId: string,
+    roundId: string,
+  ): Promise<{ undo: () => Promise<void> }>;
+  /**
    * Reprocesa los análisis guardados (radio medio en lugar de la distancia al centro, ADR 0008).
    * Solo escribe las sesiones que lo necesitan y devuelve cuántas fueron: correrla de nuevo no
    * escribe nada.
    */
   migrateMeanRadius(uid: string): Promise<number>;
+}
+
+/** Datos de MantisX para una ronda. */
+export interface MantisRoundImport {
+  sessionId: string;
+  roundId: string;
+  mantis: RoundMantis;
 }
 
 const sessions = (uid: string) => collection(firebase().db, 'users', uid, 'sessions');
@@ -119,7 +141,7 @@ export const firebaseSessionRepository: SessionRepository = {
   },
   saveRound(uid, sessionId, roundId, fields, keepAnalysis) {
     return changeRounds(uid, sessionId, (rounds) =>
-      saveRawRound(rounds, roundId, fields, keepAnalysis),
+      saveRawRound(rounds, roundId, fields, keepAnalysis, new Date().toISOString()),
     );
   },
   saveAnalysis(uid, sessionId, roundId, result) {
@@ -140,6 +162,42 @@ export const firebaseSessionRepository: SessionRepository = {
       undo: async () => {
         const round = removed;
         if (round) await changeRounds(uid, sessionId, (rounds) => restoreRawRound(rounds, round));
+      },
+    };
+  },
+  async applyMantisImport(uid, imports) {
+    const bySession = new Map<string, Map<string, RoundMantis>>();
+    for (const { sessionId, roundId, mantis } of imports) {
+      const rounds = bySession.get(sessionId) ?? new Map<string, RoundMantis>();
+      rounds.set(roundId, mantis);
+      bySession.set(sessionId, rounds);
+    }
+    const counts = await Promise.all(
+      [...bySession].map(async ([sessionId, mantis]) => {
+        let saved = 0;
+        await changeRounds(uid, sessionId, (rounds) => {
+          const result = saveRawMantis(rounds, mantis);
+          saved = result.saved;
+          return result.rounds;
+        });
+        return saved;
+      }),
+    );
+    return counts.reduce((total, count) => total + count, 0);
+  },
+  async removeMantis(uid, sessionId, roundId) {
+    let removed: unknown;
+    await changeRounds(uid, sessionId, (rounds) => {
+      const result = removeRawMantis(rounds, roundId);
+      removed = result.removed;
+      return result.rounds;
+    });
+    return {
+      undo: async () => {
+        const mantis = removed;
+        if (mantis) {
+          await changeRounds(uid, sessionId, (rounds) => restoreRawMantis(rounds, roundId, mantis));
+        }
       },
     };
   },

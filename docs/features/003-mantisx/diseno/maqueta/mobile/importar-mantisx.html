@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Importar MantisX — mobile · Range Book</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Barlow:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0D0F}
+.rb{--bg:#0B0D0F;--surface:#14181C;--surface-2:#1C2126;--surface-3:#262C33;--border:#2E353D;--text:#F2F4F5;--text-2:#B4BCC5;--text-3:#8A949F;--accent:#FF6A1A;--accent-soft:rgba(255,106,26,.14);--on-accent:#1A0B02;--success:#3DD68C;--warning:#F5C04A;--danger:#FF6B6B;font-family:'Barlow',system-ui,sans-serif;color:var(--text);background:var(--bg);font-size:16px;line-height:1.5}
+.rb *{box-sizing:border-box}
+.rb h1,.rb h2,.rb h3,.rb p{margin:0}
+.display{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.01em;text-transform:uppercase;line-height:1.05}
+.num{font-variant-numeric:tabular-nums}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:12px;border:1px solid transparent;font:600 16px 'Barlow',sans-serif;cursor:pointer;text-decoration:none;color:var(--text);background:var(--surface-2)}
+.btn-primary{background:var(--accent);color:var(--on-accent)}
+.btn-primary:hover{background:var(--accent-hover);color:var(--on-accent)}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:0;background:transparent;color:var(--text);cursor:pointer;text-decoration:none}
+.icon-btn:hover{background:var(--surface-2)}
+.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sm{width:18px;height:18px}
+a{color:var(--accent)}a:hover{color:var(--accent-hover)}
+ol.steps{margin:0;padding:0 0 0 22px;display:flex;flex-direction:column;gap:8px;color:var(--text-2)}
+details summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;font-weight:600}
+details summary::-webkit-details-marker{display:none}
+details[open] summary .chev{transform:rotate(180deg)}
+.alert{display:flex;gap:10px;padding:12px 14px;border-radius:12px;background:color-mix(in srgb, var(--danger) 12%, transparent);border:1px solid color-mix(in srgb, var(--danger) 40%, transparent)}
+</style>
+<link rel="stylesheet" href="../assets/frame.css">
+</head>
+<body class="mk-mobile">
+<div class="rb phone" style="width:390px;height:844px;position:relative;overflow:hidden">
+  <main style="position:absolute;inset:0;overflow-y:auto;display:flex;flex-direction:column">
+    <header style="display:flex;align-items:center;gap:4px;padding:12px 8px 0">
+      <a href="sesiones.html" class="icon-btn" aria-label="Volver a sesiones"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></a>
+      <span style="color:var(--text-2);font-weight:600">Sesiones</span>
+    </header>
+
+    <div style="padding:8px 16px 32px;display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <h1 class="display" style="font-size:32px">Importar MantisX</h1>
+        <p style="color:var(--text-2)">Sumá a tus rondas el puntaje, los tiempos, el diagnóstico y la trayectoria de cada disparo que registró tu sensor MantisX.</p>
+      </div>
+
+      <section class="card" style="padding:20px 16px;display:flex;flex-direction:column;gap:14px;align-items:flex-start">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:32px;height:32px;color:var(--accent)"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M12 12v6"></path><path d="m15 15-3-3-3 3"></path></svg>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <h2 style="font-size:18px;font-weight:600">Elegí el archivo exportado</h2>
+          <p style="font-size:14px;color:var(--text-2)">Un archivo <span class="num">.json</span> generado con el marcador "Exportar a Range Book". Solo se importan las sesiones de fuego real de "Open Training".</p>
+        </div>
+        <a href="importar-mantisx-revision.html" class="btn btn-primary" style="width:100%"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m17 8-5-5-5 5"></path><path d="M12 3v12"></path></svg>Elegir archivo</a>
+      </section>
+
+      <div class="alert" role="alert">
+        <svg class="i sm" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--danger);margin-top:2px"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+        <div style="display:flex;flex-direction:column;gap:2px"><strong style="font-weight:600">El archivo no es un export de MantisX</strong><span style="font-size:14px;color:var(--text-2)">Exportalo de nuevo con el marcador y elegí el archivo <span class="num">mantisx-….json</span> que se descargó.</span></div>
+      </div>
+      <p style="font-size:13px;color:var(--text-3);margin-top:-12px">Ejemplo del error (en la app aparece solo si el archivo no sirve).</p>
+
+      <details class="card" open style="padding:8px 16px 16px">
+        <summary><span>Cómo exportar desde MantisX</span><svg class="i sm chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></summary>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <ol class="steps">
+            <li>Copiá el marcador con el botón de abajo.</li>
+            <li>Creá un marcador nuevo en el navegador y pegá el texto copiado como su dirección (URL). Ponele de nombre "Exportar a Range Book".</li>
+            <li>Entrá a <span style="color:var(--text)">train.mantisx.com</span> con tu cuenta y abrí tu perfil.</li>
+            <li>Tocá el marcador, elegí desde y hasta qué fecha exportar, y esperá a que se descargue el archivo.</li>
+            <li>Volvé acá y elegí ese archivo.</li>
+          </ol>
+          <button type="button" class="btn" style="align-self:flex-start" onclick="this.querySelector('span').textContent='Marcador copiado'"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><span>Copiar el marcador</span></button>
+          <p style="font-size:13px;color:var(--text-3)">En Chrome para Android, para usarlo escribí "Exportar a Range Book" en la barra de direcciones y elegí el marcador. Tu contraseña de MantisX nunca pasa por Range Book.</p>
+        </div>
+      </details>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+</body>
+</html>

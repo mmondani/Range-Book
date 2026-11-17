@@ -1,0 +1,13 @@
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.play {
+  flex: 1;
+}
+
+.speed {
+  flex: none;
+}

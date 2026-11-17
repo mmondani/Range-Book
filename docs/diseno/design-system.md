@@ -85,7 +85,7 @@ Reglas:
 ## Íconos
 
 - Set: **Lucide** (`lucide-react`), trazo 2 px y 24 px (18 px en chips y botones chicos). Es el set que se dibujó en la maqueta.
-- Mapeo: Sesiones `Crosshair`, Rendimiento `TrendingUp`, Inventario `Package`, Perfil `User`, Cámara `Camera`, Galería `Image`, Modificación `Wrench`, Configuración `Layers`, Detectar `WandSparkles`, Agregar impacto `CirclePlus`, Quitar impacto `CircleMinus`, Deshacer `Undo2`, Recalibrar la foto `Crosshair`, Acercar `ZoomIn`, Alejar `ZoomOut`, Ver la foto entera `Maximize2`, Editar `Pencil`, Polígono `MapPin`, Eliminar `Trash2`, Sin conexión `WifiOff`, Instalar `Download`, Compartir (iOS) `Share`, Versión `Info`, Cerrar sesión `LogOut`, Cerrar el visor `X`, Foto anterior `ChevronLeft`, Foto siguiente `ChevronRight`. Clima: `Sun`, `Cloud`, `CloudRain`, `CloudFog`, `Wind`.
+- Mapeo: Sesiones `Crosshair`, Rendimiento `TrendingUp`, Inventario `Package`, Perfil `User`, Cámara `Camera`, Galería `Image`, Modificación `Wrench`, Configuración `Layers`, Detectar `WandSparkles`, Agregar impacto `CirclePlus`, Quitar impacto `CircleMinus`, Deshacer `Undo2`, Recalibrar la foto `Crosshair`, Acercar `ZoomIn`, Alejar `ZoomOut`, Ver la foto entera `Maximize2`, Editar `Pencil`, Polígono `MapPin`, Eliminar `Trash2`, Sin conexión `WifiOff`, Instalar `Download`, Compartir (iOS) `Share`, Versión `Info`, Cerrar sesión `LogOut`, Cerrar el visor `X`, Foto anterior `ChevronLeft`, Foto siguiente `ChevronRight`, Importar MantisX `FileUp`, MantisX `Activity`, Elegir archivo `Upload`, Copiar `Copy`, Copiado `Check`, Reproducir `Play`, Pausar `Pause`, Repetir `RotateCcw`, Aviso `TriangleAlert`. Clima: `Sun`, `Cloud`, `CloudRain`, `CloudFog`, `Wind`.
 - Un ícono decorativo junto a un texto lleva `aria-hidden`. Un botón que solo tiene ícono lleva `aria-label`.
 - Logo provisorio: diana con cruz dentro de un cuadrado redondeado naranja (se ve en Login y en el sidebar). Es también el ícono de la PWA y el favicon (`public/icons/`, generados con `scripts/generate-icons.ps1`).
 
@@ -109,7 +109,7 @@ Reglas:
 | `LinkButton`, `IconLink`, `CardLink` | Links con el aspecto de `Button`, `IconButton` y `Card` | Para navegar se usa un link, no un botón |
 | `Fab` | Extendido (ícono + texto), 56 px | Solo en la lista de sesiones (mobile) |
 | `Chip` | `filter` (con caret), `selectable` (`.on`), `removable` (con ✕ de 32 px), `add` (borde punteado) | Los grupos de chips se acomodan en varias líneas, sin scroll horizontal |
-| `Badge` | `success`, `warning`, `accent`, `neutral` | Con texto siempre. Estados: "Hoy", "Archivado", *Analizada* / *Sin analizar* (`RoundStatus`) |
+| `Badge` | `success`, `warning`, `accent`, `info` (fondo `--info` al 14 %), `neutral` | Con texto siempre. Estados: "Hoy", "Archivado", *Analizada* / *Sin analizar* (`RoundStatus`); extremos de MantisX |
 | `Tag`, `TagList` | Etiqueta chica (calibre, modificaciones) | Sin interacción |
 | `Avatar` | Foto de Google o iniciales | Si la foto no carga, iniciales |
 | `Alert` | `danger`, `warning`; título, texto y acción opcional | `role="alert"`. Login no autorizado, error de red, detección fallida, borrador recuperado |
@@ -136,7 +136,7 @@ Reglas:
 | `Skeleton` | Tarjetas, filas, gráficos | Si la carga tarda más de 300 ms |
 | `SessionCard` | Fecha en bloque, configuración, polígono · munición, clima, rondas / disparos / promedio | Variante "Hoy" con borde y badge de acento. En W02 es una fila compacta |
 | `FirearmCards`, `ConfigurationCard`, `TargetCards`, `InventoryItems` | Tarjetas de armas, configuraciones y blancos; lista (mobile) o tabla (desktop) del inventario, con sus estados (cargando, error, vacío, sin resultados, todo archivado) y archivados atenuados con "Restaurar" | — |
-| `RoundRow` | Miniatura del blanco, ronda, disparos · puntaje · grupo, blanco · distancia · comentarios, estado de análisis, link "Ver análisis" / "Analizar blanco" y lápiz "Editar" | Toda la tarjeta lleva al análisis. En desktop es una fila de tabla (`RoundTable`), que también lleva al análisis con un clic |
+| `RoundRow` | Miniatura del blanco, ronda, disparos · puntaje · grupo, blanco · distancia · comentarios, `MantisPill` si tiene MantisX, estado de análisis, link "Ver análisis" / "Analizar blanco" y lápiz "Editar" | Toda la tarjeta lleva al análisis. En desktop es una fila de tabla (`RoundTable`), que también lleva al análisis con un clic |
 | `TargetThumb` | Foto del blanco o dibujo de sus anillos (silueta de cartón para los blancos sin zonas) | — |
 | `TargetAnalyzer` | Visor de la foto: recuadro 5:6 (mobile) o 1:1 (desktop), la foto arranca cubriéndolo y centrada; zoom propio (botones Acercar / Alejar / Ver la foto entera abajo a la derecha, dos dedos, Ctrl + rueda) y desplazamiento; controles propios arriba a la izquierda (`controls`); impactos (anillo naranja de 2 px sin relleno, 18 px en mobile y 20 px en desktop, con un filo oscuro de cada lado; rojo en Quitar), PMI (cruz azul), grupo (punteado naranja), anillos de calibración y marcadores (verde); overlay de progreso | Marcadores y trazos mantienen su tamaño con cualquier zoom. Arrastre de marcadores con los punteros (con el dedo, a los 100 ms; un segundo dedo es zoom). Ver `pantallas.md` → Análisis |
 | `MarkerPicker` | Botones sobre la foto (40 px, redondeados): Centro / Anillo / Inclinación o Centro / Punto A / Punto B; activo con borde verde, ✓ en los ya ubicados | `radiogroup` "Qué ajustar", navegable con las flechas |
@@ -153,6 +153,14 @@ Reglas:
 | `PhotoViewer` | Visor a pantalla completa: contador, Cerrar, anterior / siguiente, Acercar / Alejar; deslizar, dos dedos, doble toque, Ctrl + rueda | Fondo negro y botones de "sobre la foto" (no cambia con el tema). Capa entre sheet (40) y toast (50) |
 | `PhotoButton` | Foto que se toca para verla a pantalla completa; cursor `zoom-in` | Nombre "Ver la foto N de M en pantalla completa"; la foto conserva su texto alternativo |
 | `DataTable` | Ordenable (`aria-sort`, botón en el encabezado), columnas `numeric` (a la derecha, cifras tabulares), scroll horizontal en su contenedor; filas clickeables (`onRowClick`, con resaltado al pasar el mouse) | Rendimiento, inventario, rondas, impactos. La fila clickeable es un atajo para el mouse: la misma acción tiene que estar en un link o botón de la fila |
+| `MantisMatchList` | Tarjeta por sesión de Range Book con filas (mobile) o tabla (desktop); select de ronda con "No importar"; aviso `--warning` con `TriangleAlert` si no coinciden los disparos | Las opciones de cada select excluyen las rondas elegidas en otras filas. El aviso es la `aria-describedby` del select |
+| `MantisSkippedList` | "No se importan" (con motivo; tabla en desktop) y "Ya importadas" (desplegable cerrado) | — |
+| `MantisExportHelp` | Pasos y "Copiar el marcador" en un desplegable; versión `compact` siempre abierta | Columna lateral de W09 |
+| `MantisTrace` | Cuadro `--surface-2` con ejes, dos círculos de referencia con su medida, fases (`--info` 2 px, `--warning` 3 px, `--accent` 2 px punteado), ✕ del disparo, punto y tiempo durante la reproducción | `role="img"` con `aria-label`. Trazos con `vector-effect: non-scaling-stroke`; el seguimiento se recorta |
+| `MantisShotTrace` | `MantisTrace` + leyenda de las fases + nota de la distancia + `TracePlayback` | M15 / W10 |
+| `TracePlayback` | Reproducir / Pausar / Repetir + `SegmentedControl` Lenta (1/10) / Real | La inicia el usuario; con `prefers-reduced-motion` se mantiene (es el contenido). `useTracePlayback` (`requestAnimationFrame`) |
+| `MantisShotList` | Filas-botón con `aria-pressed`; badges Mejor (`success`), Peor (`warning`), Split más rápido (`info`), Split más lento (`neutral`); flecha de dirección + hora de reloj | El `aria-label` de la fila dice puntaje, split y diagnóstico |
+| `MantisPill` | Píldora `--info` 14 % (22 % al pasar el mouse) con `Activity` y "MantisX 88,3 · 17,1 s" | En `RoundRow` (por encima del link estirado) y en el análisis; link a M15 |
 | `AmmunitionComparison` | Barras horizontales por munición; la mejor ocupa todo el ancho | Rendimiento en mobile |
 
 ## Accesibilidad (mínimos)

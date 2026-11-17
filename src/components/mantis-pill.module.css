@@ -1,0 +1,28 @@
+/* Queda por encima del link estirado de la tarjeta de la ronda (como el lápiz). */
+.pill {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  min-height: 32px;
+  margin: 2px 0;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--info) 14%, transparent);
+  color: var(--info);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pill:hover {
+  background: color-mix(in srgb, var(--info) 22%, transparent);
+  color: var(--info);
+}
+
+.pill:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

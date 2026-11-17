@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import type { SessionRepository } from '@/data/session-repository';
+import type { MantisRoundImport, SessionRepository } from '@/data/session-repository';
 import type { AnalysisResult, RoundAnalysis } from '@/lib/analysis';
 import type { RoundFields } from '@/lib/rounds';
 import type { Round, Session, SessionFields } from '@/lib/sessions';
@@ -52,6 +52,8 @@ export const ROUND_1: Round = {
   photo: 'users/ana/rounds/r1/a.jpg',
   comments: 'Buen control del gatillo',
   analysis: ROUND_1_ANALYSIS,
+  createdAt: null,
+  mantis: null,
 };
 
 export const ROUND_2: Round = {
@@ -64,6 +66,8 @@ export const ROUND_2: Round = {
   photo: null,
   comments: '',
   analysis: null,
+  createdAt: null,
+  mantis: null,
 };
 
 /** Hoy (ver `TODAY`), con "Config. IPSC" y dos rondas. */
@@ -175,7 +179,17 @@ export function createFakeSessions(
                     }
                   : round,
               )
-            : [...rounds, { id: roundId, ...fields, score: null, analysis: null }],
+            : [
+                ...rounds,
+                {
+                  id: roundId,
+                  ...fields,
+                  score: null,
+                  analysis: null,
+                  createdAt: new Date().toISOString(),
+                  mantis: null,
+                },
+              ],
         );
       },
     ),
@@ -203,6 +217,37 @@ export function createFakeSessions(
             next.splice(index, 0, removed);
             return next;
           });
+        },
+      };
+    }),
+    applyMantisImport: vi.fn(async (_uid: string, imports: readonly MantisRoundImport[]) => {
+      let saved = 0;
+      for (const { sessionId, roundId, mantis } of imports) {
+        setRounds(sessionId, (rounds) =>
+          rounds.map((round) => {
+            if (round.id !== roundId || round.mantis) return round;
+            saved += 1;
+            return { ...round, mantis };
+          }),
+        );
+      }
+      return saved;
+    }),
+    removeMantis: vi.fn(async (_uid: string, sessionId: string, roundId: string) => {
+      const round = items
+        .find((item) => item.id === sessionId)
+        ?.rounds.find((item) => item.id === roundId);
+      const removed = round?.mantis ?? null;
+      setRounds(sessionId, (rounds) =>
+        rounds.map((item) => (item.id === roundId ? { ...item, mantis: null } : item)),
+      );
+      return {
+        undo: async () => {
+          setRounds(sessionId, (rounds) =>
+            rounds.map((item) =>
+              item.id === roundId && !item.mantis ? { ...item, mantis: removed } : item,
+            ),
+          );
         },
       };
     }),

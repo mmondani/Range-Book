@@ -24,6 +24,11 @@
   color: var(--warning);
 }
 
+.info {
+  background: color-mix(in srgb, var(--info) 14%, transparent);
+  color: var(--info);
+}
+
 .accent {
   background: var(--accent-soft);
   color: var(--accent);

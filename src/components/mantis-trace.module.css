@@ -1,0 +1,78 @@
+.frame {
+  position: relative;
+  flex-shrink: 0;
+  align-self: center;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+}
+
+.svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Los trazos se miden en px de pantalla, no en mm del gráfico. */
+.axis,
+.ring,
+.hold,
+.pull,
+.follow,
+.shot {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.axis {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.ring {
+  stroke: var(--axis);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.ringLabel {
+  fill: var(--text-3);
+  font-family: var(--font-body);
+}
+
+.hold {
+  stroke: var(--info);
+  stroke-width: 2;
+}
+
+.pull {
+  stroke: var(--warning);
+  stroke-width: 3;
+}
+
+.follow {
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+.shot {
+  stroke: var(--text);
+  stroke-width: 2.5;
+}
+
+.cursor {
+  fill: var(--text);
+  stroke: var(--bg);
+}
+
+.time {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  color: var(--text-2);
+  font-size: 13px;
+}

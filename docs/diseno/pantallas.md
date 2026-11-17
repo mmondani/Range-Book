@@ -1,6 +1,6 @@
 # Pantallas — Range Book
 
-**Estado:** Implementado hasta la iteración 001 (Fixes)
+**Estado:** Implementado hasta la iteración 003 (MantisX)
 **Requerimientos:** [requerimientos del MVP](../features/000-mvp/requerimientos.md) · **Métricas:** [shooting_metrics.md](../features/000-mvp/shooting_metrics.md) · **Sistema de diseño:** [design-system.md](./design-system.md)
 **Maqueta:** [`maqueta/index.html`](./maqueta/index.html): HTML estático; se abre con doble clic en el navegador.
 
@@ -26,12 +26,14 @@
 | `/perfil` | M11 | columna de 640 px | `mobile/perfil.html` |
 | Visor de fotos (sin ruta propia: va en el estado del historial) | M13 | W08 | `mobile/visor-fotos.html`, `web/visor-fotos.html` |
 | `/sesiones/:id?vista=evolucion` | M03, pestaña Evolución | W02, pestaña Evolución | `mobile/sesion-detalle.html`, `web/sesiones.html` |
+| `/sesiones/importar-mantisx` | M14 (elegir archivo y revisión) | W09 | `mobile/importar-mantisx.html`, `mobile/importar-mantisx-revision.html`, `web/importar-mantisx.html` |
+| `/sesiones/:id/rondas/:rid/mantisx` | M15 | W10 | `mobile/ronda-mantisx.html`, `web/ronda-mantisx.html` |
 
 - Todas las rutas, menos `/login`, requieren sesión **y** que el email esté en la colección de autorizados.
 - Los sheets y diálogos tienen su propia URL, así el botón "atrás" del sistema los cierra. Al cerrar o guardar, si se abrieron desde la lista se vuelve atrás en el historial; si se entró directo por URL, se reemplaza la entrada. La única excepción son las instrucciones de instalación en iOS (M11), que son solo informativas.
 - Al volver a una lista se conservan los filtros (van en la query string). El scroll todavía no se restaura.
 - No hay menús "⋮": las acciones (editar, archivar, eliminar) son botones visibles o están dentro del sheet de edición.
-- Las páginas completas con su propia barra de acción (M03, M04, M06) ocultan la barra inferior en mobile.
+- Las páginas completas (M03, M04, M06, M14, M15) ocultan la barra inferior en mobile.
 
 ## Pantallas
 
@@ -41,10 +43,10 @@
 - Si el usuario autenticado no está autorizado, se cierra la sesión de Firebase y se muestra la alerta.
 
 ### M02 · Sesiones (inicio) / W02 · Sesiones lista + detalle
-- Header: título, buscar y filtrar. En mobile, "Buscar" y "Filtrar" abren el campo y los chips de arma debajo del resumen. La búsqueda (`?q=`) y el filtro por arma (`?arma=`) van en la query string.
+- Header: título, **Importar MantisX** (ícono `FileUp`, lleva a M14; en desktop, al lado de "N en total", con `title`), buscar y filtrar. En mobile, "Buscar" y "Filtrar" abren el campo y los chips de arma debajo del resumen. La búsqueda (`?q=`) y el filtro por arma (`?arma=`) van en la query string.
 - Resumen del mes (solo mobile): sesiones, disparos y promedio por tiro. Desktop muestra "N en total".
 - Lista agrupada por mes con `SessionCard`. La sesión de hoy se destaca.
-- Mobile: FAB **Nueva sesión**. Desktop: botón primario en el sidebar; búsqueda y chips de arma arriba de la lista; detalle de la sesión seleccionada a la derecha, con la tabla de rondas (foto, ronda y blanco, distancia, disparos, puntaje, grupo, comentarios, estado del análisis y acciones "Ver análisis" / "Analizar blanco" y editar). Un clic en cualquier parte de la fila (salvo sus links y botones) lleva al análisis; la fila se resalta al pasar el mouse.
+- Mobile: FAB **Nueva sesión**. Desktop: botón primario en el sidebar; búsqueda y chips de arma arriba de la lista; detalle de la sesión seleccionada a la derecha, con la tabla de rondas (foto, ronda y blanco, distancia, disparos, puntaje, grupo, **MantisX** ("88,3 · 17,1 s" como link a W10, o "—"), comentarios, estado del análisis y acciones "Ver análisis" / "Analizar blanco" y editar). Un clic en cualquier parte de la fila (salvo sus links y botones) lleva al análisis; la fila se resalta al pasar el mouse.
 - **Estados:** vacío ("Todavía no registraste sesiones" + Nueva sesión) · cargando (skeletons) · sin resultados de búsqueda.
 
 ### M03 · Detalle de sesión
@@ -53,7 +55,7 @@
 - Datos: polígono, clima y munición en una tarjeta; los totales, en otra fila.
 - Totales: disparos, puntaje (obtenido / máximo) y tamaño de grupo promedio de las rondas analizadas.
 - **Pestañas Rondas / Evolución** (`Tabs`: chips en mobile, subrayadas en desktop), debajo de los totales. "Rondas N" viene elegida; la elegida va en la query string (`?vista=evolucion`; Rondas no aparece) sin pisar los filtros de la lista, y cambiar de pestaña reemplaza la entrada del historial. Así se conserva al volver del análisis o al recargar.
-- **Rondas:** `RoundRow` con miniatura (la foto de la ronda o el dibujo del blanco), "disparos · puntaje · grupo", "blanco · **distancia** · comentarios", estado *Analizada* o *Sin analizar* y el link "Ver análisis" / "Analizar blanco". **Toda la tarjeta lleva al análisis**; el lápiz "Editar ronda N" abre M05. En desktop, "Agregar ronda" va a la derecha de las pestañas, solo con Rondas.
+- **Rondas:** `RoundRow` con miniatura (la foto de la ronda o el dibujo del blanco), "disparos · puntaje · grupo", "blanco · **distancia** · comentarios", estado *Analizada* o *Sin analizar* y el link "Ver análisis" / "Analizar blanco". Si la ronda tiene datos de MantisX, una píldora `--info` (`MantisPill`: ícono `Activity` + "MantisX 88,3 · 17,1 s", puntaje promedio · tiempo total) lleva a M15 y queda por encima del link estirado. **Toda la tarjeta lleva al análisis**; el lápiz "Editar ronda N" abre M05. En desktop, "Agregar ronda" va a la derecha de las pestañas, solo con Rondas.
 - **Evolución** (`SessionEvolution`), una ronda analizada por punto (eje x "R1, R2…", con el número de la ronda en la sesión):
   - Nota "Por ronda analizada · N de M" y, a la derecha, el control **mm | MOA** ("in | MOA" en pulgadas). MOA se calcula a la distancia de cada ronda. Por defecto, la unidad del perfil; MOA si las rondas analizadas son a distancias distintas. La elección no se guarda.
   - Control segmentado **PMI / Grupo / Radio medio**. Cada métrica tiene su línea y, debajo, la dispersión de los PMI de cada ronda alrededor del centro (`MpiScatter`: ejes, dos círculos de referencia con su medida, puntos numerados por ronda, recorrido punteado y la última resaltada). Los títulos dicen la unidad.
@@ -84,12 +86,14 @@
 - Si la ronda tiene un puntaje confirmado por el análisis, la ayuda del campo "Puntaje" lo menciona; el campo sigue siendo el cargado a mano.
 - Si una ronda analizada cambia de foto o de blanco, se avisa debajo de la foto que al guardar se descarta su análisis.
 - Al editar: **Eliminar ronda** (con confirmación y "Deshacer"). Una sesión admite hasta 100 rondas.
+- Al crearla, la ronda guarda la hora del dispositivo (no se ve ni se edita): la usa la importación de MantisX para proponer qué sesión le corresponde. Las rondas anteriores a la iteración 003 no tienen hora.
 - Al editar una ronda con foto guardada y sin cambios sin guardar, debajo de la foto aparece el link "Analizar impactos" / "Ver análisis" (el análisis es sobre la foto guardada).
 - Si la ronda se analiza, el análisis **propone** el puntaje calculado y el usuario lo confirma (ver M06). Sin confirmación se conserva el puntaje cargado a mano.
 - Acciones: Cancelar / **Guardar ronda**. Al guardar una ronda **nueva con foto** se pasa a su análisis (reemplaza al sheet en el historial: "Volver" desde el análisis lleva al detalle); sin foto, o al editar, vuelve al detalle.
 
 ### M06 / W04 · Análisis de blanco
 Página completa (también en desktop, sin la lista de sesiones). Al entrar, la página arranca arriba. Tiene dos etapas: la calibración de la foto y el análisis de los impactos.
+- Si la ronda tiene datos de MantisX, la `MantisPill` va debajo del subtítulo y lleva a M15 (con cambios sin guardar, salir pide confirmación).
 
 **Visor de la foto** (`TargetAnalyzer`, igual en las dos etapas)
 - Recuadro de proporción fija: **5:6** en mobile y **1:1** en desktop. La foto arranca cubriendo el recuadro, centrada en su centro; lo que sobra queda afuera y se desplaza.
@@ -185,6 +189,26 @@ Página completa (también en desktop, sin la lista de sesiones). Al entrar, la 
 - Sin ruta propia: la foto abierta va en el estado del historial, así "atrás" lo cierra y los formularios con cambios sin guardar no lo toman como salir. Escape y "Cerrar" vuelven atrás.
 - `role="dialog"`, foco en "Cerrar" al abrir y de vuelta en la foto al cerrar. Si la flecha que tenía el foco se deshabilita, el foco vuelve al visor. Va arriba de los sheets y debajo de los toasts.
 
+### M14 / W09 · Importar MantisX
+Página completa. Los datos salen de train.mantisx.com con el marcador "Exportar a Range Book", que descarga un JSON ([ADR 0009](../decisiones/0009-mantisx-por-bookmarklet.md)). Dos etapas en la misma ruta:
+- **Elegir el archivo:** "Importar MantisX" y qué se suma a las rondas; tarjeta **Elegí el archivo exportado** con **Elegir archivo** (`.json`; solo se importan las sesiones de fuego real de "Open Training"). En desktop también se puede soltar el archivo sobre la página. Debajo, **Cómo exportar desde MantisX** (desplegable, abierto si nunca se importó): los pasos y **Copiar el marcador** (pasa a "Marcador copiado"); no hay link para arrastrar porque React bloquea los `javascript:`.
+- **Errores** (`Alert`): "El archivo no es un export de MantisX" · "Este archivo es de una versión más nueva del marcador: actualizá Range Book" · "No se pudo leer el archivo" · "El archivo no tiene sesiones de fuego real de «Open Training»".
+- **Revisión:** "Revisá la importación", el nombre del archivo y **Cambiar archivo** (en desktop, una columna con el archivo, "N sesiones de MantisX · del 15/10 al 15/11", **Elegir otro archivo** y la ayuda resumida). Una tarjeta por sesión de Range Book (fecha, "arma · configuración", "polígono · N rondas") con una fila por sesión de MantisX: hora local, "5 disparos · 93,9" y el select **Ronda** ("Ronda 1 · 10:08 · 5 disparos"; sin hora en las rondas viejas) con **No importar**. Las rondas elegidas en otra fila no aparecen en las opciones. En desktop es una tabla (Sesión de MantisX, Disparos, Puntaje, Ronda de Range Book).
+- **Propuesta:** la sesión de Range Book del mismo día (si hay varias, la del arma de MantisX) y, dentro, las rondas sin datos de MantisX por orden y por la menor diferencia de hora. Si los disparos no coinciden, un aviso `--warning` asociado al select: "La ronda 4 tiene 10 disparos y MantisX registró 5." (no impide importar).
+- **No se importan N:** cada sesión de MantisX con su motivo ("No queda ninguna ronda disponible en esa sesión." · "No hay ninguna sesión de Range Book el 31/10." · "Tiene más de 150 disparos."). **Ya importadas N** (desplegable cerrado, también en desktop): "En la ronda 1 de la sesión del 25/10." Nota final con los entrenamientos omitidos.
+- **Importar N rondas** (barra fija en mobile, encabezado en desktop; deshabilitado con 0): vuelve a Sesiones con el toast "Se importaron N rondas de MantisX". Sin conexión importa igual y se sincroniza al volver.
+- **Estados:** leyendo (spinner) · nada nuevo (EmptyState "No hay nada nuevo para importar" con "Elegir otro archivo") · importando. Salir con una revisión sin importar pide confirmación ("¿Descartar la importación?").
+
+### M15 / W10 · MantisX de la ronda
+Página completa. Volver a la sesión (desktop: "Sesiones / fecha · arma / Ronda N"). Se llega desde la ronda (M03 / W02) o desde su análisis (M06 / W04).
+- Eyebrow "Ronda 1 · 15 nov 2026 · 11:04" (fecha y hora de MantisX), **MantisX** y "sensor · arma de MantisX · Zurdo/Diestro · Open Training". En desktop, **Quitar los datos de MantisX** va en el encabezado.
+- **Resumen** (tres `StatTile`): puntaje promedio, tiempo total (suma de los splits) y split promedio (sin el primer disparo). "El puntaje de MantisX mide el control del gatillo, no dónde pegó el disparo en el blanco."
+- **Trayectoria** del disparo elegido ("Disparo 1 de 5", anterior / siguiente): cuadro de 280 px (386 px en desktop) con ejes y dos círculos de referencia en mm; trayectoria relativa al disparo en mm a la distancia de la ronda (`tan(Δángulo) × distancia`): apuntado `--info` 2 px, presión del gatillo `--warning` 3 px, seguimiento `--accent` 2 px punteado y la ✕ del disparo. Leyenda de las fases y nota de la distancia. **Reproducir / Pausar / Repetir** con un punto en la posición actual y el tiempo relativo al disparo ("−0,15 s"); **Velocidad** Lenta (1/10, por defecto) o Real. Cambiar de disparo detiene la reproducción.
+- Datos del disparo: puntaje, split, diagnóstico en castellano, dirección (hora de reloj), inclinación del arma (cant, en grados, sin lado), mov. apuntando y mov. disparando (índices de MantisX, sin unidad).
+- **Disparos** (`MantisShotList`): filas-botón (`aria-pressed`) con número, puntaje, "Split 3,90 s" ("Primer disparo"), diagnóstico, flecha de dirección con su hora, y badges **Mejor**, **Peor**, **Split más rápido** y **Split más lento**.
+- **Quitar los datos de MantisX** (`danger`): confirmación y toast con "Deshacer"; vuelve a la sesión. La trayectoria se borra cuando ya no se puede deshacer.
+- **Estados:** cargando la trayectoria (skeleton) · trayectoria no disponible ("No se pudo cargar la trayectoria"; el resto se ve igual) · ronda sin datos de MantisX (vuelve a la sesión).
+
 ## Comportamiento PWA
 
 - Manifest: `name: Range Book`, `theme_color: #0B0D0F`, `background_color: #0B0D0F`, `display: standalone`, orientación vertical e íconos con la diana del logo sobre naranja (192, 512, *maskable* y `apple-touch-icon`). El `theme-color` de la página sigue al tema.
@@ -214,6 +238,7 @@ Página completa (también en desktop, sin la lista de sesiones). Al entrar, la 
 | Coordenadas del PMI (001) | Solo en el análisis, como "(x; y)" con signo |
 | Fotos a pantalla completa (001) | Solo las fotos de contenido; las miniaturas que llevan a otra pantalla siguen navegando |
 | Nombre de la app (001) | "Range Book", en la PWA y en toda la UI |
+| MantisX (003) | Por marcador en train.mantisx.com + archivo que se importa en el cliente ([ADR 0009](../decisiones/0009-mantisx-por-bookmarklet.md)). Solo fuego real de "Open Training". Matching por día, arma y hora; lo que no tiene ronda o sesión no se importa y se indica. Después de importar solo se pueden quitar los datos. Rendimiento y Evolución no usan MantisX todavía |
 
 ## Preguntas abiertas
 

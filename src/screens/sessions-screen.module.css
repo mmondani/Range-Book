@@ -31,8 +31,10 @@
   font-size: 14px;
 }
 
+.headerEnd,
 .headerActions {
   display: flex;
+  align-items: center;
   gap: var(--space-1);
 }
 
@@ -110,6 +112,7 @@
 
   .total {
     display: inline;
+    margin-right: var(--space-1);
   }
 
   .headerActions,

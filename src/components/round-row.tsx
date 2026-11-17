@@ -8,6 +8,7 @@ import type { RoundItem } from '@/lib/rounds';
 import { formatLength, type Units } from '@/lib/units';
 import { Card } from './card';
 import { IconLink } from './icon-link';
+import { MantisPill } from './mantis-pill';
 import { RoundStatus } from './round-status';
 import { TargetThumb } from './target-thumb';
 import styles from './round-row.module.css';
@@ -17,13 +18,15 @@ export interface RoundRowProps {
   units: Units;
   editPath: string;
   analysisPath: string;
+  /** Pantalla MantisX de la ronda (solo si tiene datos de MantisX). */
+  mantisPath: string;
 }
 
 /**
  * Ronda en el detalle de la sesión (mobile): blanco, disparos, puntaje, grupo y estado. Tocar la
  * tarjeta lleva al análisis; el lápiz, a editarla.
  */
-export function RoundRow({ item, units, editPath, analysisPath }: RoundRowProps) {
+export function RoundRow({ item, units, editPath, analysisPath, mantisPath }: RoundRowProps) {
   const { round, number, target, targetLabel, score, analyzed } = item;
   const [photo] = storedPhotos(round.photo ? [round.photo] : []);
   const group = round.analysis?.metrics.groupSizeMm;
@@ -52,6 +55,9 @@ export function RoundRow({ item, units, editPath, analysisPath }: RoundRowProps)
           {targetLabel} · {formatDecimal(round.distanceM)} m
           {round.comments && ` · ${round.comments}`}
         </span>
+        {round.mantis && (
+          <MantisPill shots={round.mantis.shots} roundNumber={number} to={mantisPath} />
+        )}
         <Link
           to={analysisPath}
           aria-label={`${analysisLabel} de la ronda ${number}`}

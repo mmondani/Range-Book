@@ -22,6 +22,13 @@ export function isoDate(date: Date = new Date()): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
+/** Hora local de un instante ISO 8601: `2026-11-15T13:07:36Z` → `10:07` (en Buenos Aires). */
+export function formatTime(value: string): string {
+  const date = new Date(value);
+  const pad = (part: number) => String(part).padStart(2, '0');
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 /** `2023-03-14` → `14/03/2023`. */
 export function formatIsoDate(value: string): string {
   const [year, month, day] = value.split('-');
@@ -36,6 +43,22 @@ const decimalFormat = new Intl.NumberFormat('es-AR', {
 /** Número con hasta un decimal y coma decimal, sin separador de miles: `12,5`. */
 export function formatDecimal(value: number): string {
   return decimalFormat.format(value);
+}
+
+const fixedFormats = new Map<number, Intl.NumberFormat>();
+
+/** Número con `digits` decimales fijos y coma decimal: `formatFixed(3.9, 2)` → `3,90`. */
+export function formatFixed(value: number, digits: number): string {
+  let format = fixedFormats.get(digits);
+  if (!format) {
+    format = new Intl.NumberFormat('es-AR', {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+      useGrouping: false,
+    });
+    fixedFormats.set(digits, format);
+  }
+  return format.format(value);
 }
 
 /**
@@ -105,6 +128,24 @@ export function formatShortMonth(value: string): string {
 export function formatShortDate(value: string): string {
   const { year, month, day, weekday } = dateParts(value);
   return `${capitalize(weekday.slice(0, 3))} ${day} ${month.slice(0, 3)} ${year}`;
+}
+
+/** `2026-11-15` → `15 nov 2026`. */
+export function formatDayMonthYear(value: string): string {
+  const { year, month, day } = dateParts(value);
+  return `${day} ${month.slice(0, 3)} ${year}`;
+}
+
+/** `2026-11-15` → `Dom 15 nov`. */
+export function formatWeekdayDayMonth(value: string): string {
+  const { month, day, weekday } = dateParts(value);
+  return `${capitalize(weekday.slice(0, 3))} ${day} ${month.slice(0, 3)}`;
+}
+
+/** `2026-10-31` → `31/10`. */
+export function formatNumericDayMonth(value: string): string {
+  const [, month, day] = value.split('-');
+  return month && day ? `${day}/${month}` : value;
 }
 
 /** `2026-08-02` → `2 ago` (ejes de los gráficos). */

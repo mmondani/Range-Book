@@ -13,3 +13,9 @@
   color: var(--accent);
   white-space: nowrap;
 }
+
+.mantis {
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}

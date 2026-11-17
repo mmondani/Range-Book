@@ -3,7 +3,7 @@ import { cx } from '@/lib/cx';
 import styles from './badge.module.css';
 
 export interface BadgeProps {
-  tone?: 'success' | 'warning' | 'accent' | 'neutral';
+  tone?: 'success' | 'warning' | 'accent' | 'info' | 'neutral';
   icon?: ReactNode;
   /** Siempre con texto: el color nunca es el único indicador. */
   children: ReactNode;

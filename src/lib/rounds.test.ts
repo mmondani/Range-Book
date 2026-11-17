@@ -14,6 +14,9 @@ import {
   roundMaxScore,
   roundTargets,
   saveRawRound,
+  saveRawMantis,
+  removeRawMantis,
+  restoreRawMantis,
   validateRound,
   type RoundDraft,
 } from './rounds';
@@ -49,6 +52,8 @@ const round = (overrides: Partial<Round> = {}): Round => ({
   photo: null,
   comments: '',
   analysis: null,
+  createdAt: null,
+  mantis: null,
   ...overrides,
 });
 
@@ -263,20 +268,29 @@ describe('rondas crudas', () => {
   ];
   const fields = roundFields(draft({ shots: 12, manualScore: '90' }), 'a.jpg');
 
-  it('agrega una ronda nueva al final, sin análisis', () => {
-    expect(saveRawRound(stored, 'r3', fields, true)).toEqual([
+  const now = '2026-11-15T13:08:00.000Z';
+
+  it('agrega una ronda nueva al final, sin análisis ni MantisX y con la hora de creación', () => {
+    expect(saveRawRound(stored, 'r3', fields, true, now)).toEqual([
       ...stored,
-      { id: 'r3', ...fields, score: null, analysis: null },
+      { id: 'r3', ...fields, score: null, analysis: null, createdAt: now, mantis: null },
     ]);
   });
 
   it('al editar conserva el análisis completo (que la app no lee)', () => {
-    const [first] = saveRawRound(stored, 'r1', fields, true);
+    const [first] = saveRawRound(stored, 'r1', fields, true, now);
     expect(first).toEqual({ id: 'r1', ...fields, score: 95, analysis });
   });
 
+  it('al editar no cambia la hora de creación ni los datos de MantisX', () => {
+    const mantis = { sessionPk: 1, shots: [] };
+    const created = [{ ...stored[0], createdAt: '2026-11-15T13:00:00.000Z', mantis }];
+    const [first] = saveRawRound(created, 'r1', fields, false, now);
+    expect(first).toMatchObject({ createdAt: '2026-11-15T13:00:00.000Z', mantis });
+  });
+
   it('al editar sin conservar el análisis borra el análisis y el puntaje calculado', () => {
-    const [first] = saveRawRound(stored, 'r1', fields, false);
+    const [first] = saveRawRound(stored, 'r1', fields, false, now);
     expect(first).toMatchObject({ score: null, analysis: null, shots: 12 });
   });
 
@@ -323,5 +337,38 @@ describe('roundItems', () => {
       { number: 1, targetLabel: 'ISSF Pistola Precisión', score: 95, analyzed: true },
       { number: 2, targetLabel: 'Blanco desconocido', score: 80, analyzed: false },
     ]);
+  });
+});
+
+describe('MantisX en las rondas crudas', () => {
+  const analysis = { calibration: { x: 1 }, impacts: [{ x: 0, y: 0 }], metrics: {} };
+  const mantis = { sessionPk: 36042015, date: '2026-11-15T13:07:36.000Z', shots: [] };
+  const other = { sessionPk: 1, date: '2026-11-15T13:00:00.000Z', shots: [] };
+  const stored = [
+    { id: 'r1', shots: 5, analysis, extra: 'x' },
+    { id: 'r2', shots: 5, analysis: null, mantis: other },
+  ];
+
+  it('guarda el resumen sin perder el análisis ni los campos que la app no lee', () => {
+    const { rounds, saved } = saveRawMantis(
+      stored,
+      new Map([
+        ['r1', mantis as never],
+        ['r2', mantis as never],
+        ['borrada', mantis as never],
+      ]),
+    );
+    expect(saved).toBe(1);
+    expect(rounds[0]).toEqual({ id: 'r1', shots: 5, analysis, extra: 'x', mantis });
+    // La que ya tenía datos de MantisX no se pisa.
+    expect(rounds[1]).toBe(stored[1]);
+  });
+
+  it('quitar y deshacer vuelve a poner el resumen', () => {
+    const { rounds, removed } = removeRawMantis(stored, 'r2');
+    expect(rounds[1]).toEqual({ id: 'r2', shots: 5, analysis: null, mantis: null });
+    expect(removed).toBe(other);
+    expect(restoreRawMantis(rounds, 'r2', removed)).toEqual(stored);
+    expect(removeRawMantis(stored, 'r1').removed).toBeUndefined();
   });
 });

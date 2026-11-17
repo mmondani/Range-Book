@@ -47,6 +47,8 @@ const round = (overrides: Partial<Round> = {}): Round => ({
   photo: null,
   comments: '',
   analysis: null,
+  createdAt: null,
+  mantis: null,
   ...overrides,
 });
 
