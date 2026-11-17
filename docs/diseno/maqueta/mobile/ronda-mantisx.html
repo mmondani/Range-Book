@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MantisX de la ronda — mobile · Range Book</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=Barlow:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0D0F}
+.rb{--bg:#0B0D0F;--surface:#14181C;--surface-2:#1C2126;--surface-3:#262C33;--border:#2E353D;--text:#F2F4F5;--text-2:#B4BCC5;--text-3:#8A949F;--accent:#FF6A1A;--accent-soft:rgba(255,106,26,.14);--on-accent:#1A0B02;--success:#3DD68C;--warning:#F5C04A;--danger:#FF6B6B;font-family:'Barlow',system-ui,sans-serif;color:var(--text);background:var(--bg);font-size:16px;line-height:1.5}
+.rb *{box-sizing:border-box}
+.rb h1,.rb h2,.rb h3,.rb p{margin:0}
+.display{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.01em;text-transform:uppercase;line-height:1.05}
+.num{font-variant-numeric:tabular-nums}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:12px;border:1px solid transparent;font:600 16px 'Barlow',sans-serif;cursor:pointer;text-decoration:none;color:var(--text);background:var(--surface-2)}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text)}
+.btn-danger{background:transparent;border-color:color-mix(in srgb, var(--danger) 45%, transparent);color:var(--danger)}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:0;background:transparent;color:var(--text);cursor:pointer;text-decoration:none}
+.icon-btn:hover{background:var(--surface-2)}
+.icon-btn:disabled{opacity:.45;cursor:default}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:13px;font-weight:600}
+.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sm{width:18px;height:18px}
+a{color:var(--accent)}a:hover{color:var(--accent-hover)}
+.seg{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;border:0;border-radius:10px;background:transparent;color:var(--text-2);font:600 15px 'Barlow',sans-serif;cursor:pointer}.seg.on{background:var(--surface-3);color:var(--text)}
+.shot-row{display:flex;align-items:center;gap:12px;width:100%;padding:12px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--text);font:inherit;cursor:pointer}
+.shot-row:hover{background:var(--surface-2)}
+.shot-row[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.shot-n{width:32px;height:32px;border-radius:50%;background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.dir{display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0}
+.kv{display:flex;flex-direction:column;gap:2px;padding:10px 12px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--text-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+</style>
+<link rel="stylesheet" href="../assets/frame.css">
+</head>
+<body class="mk-mobile">
+<div class="rb phone" style="width:390px;height:844px;position:relative;overflow:hidden">
+  <main data-mantis style="position:absolute;inset:0;overflow-y:auto;display:flex;flex-direction:column">
+    <header style="display:flex;align-items:center;gap:4px;padding:12px 8px 0">
+      <a href="sesion-detalle.html" class="icon-btn" aria-label="Volver a la sesión"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></a>
+      <span style="color:var(--text-2);font-weight:600">Sesión</span>
+    </header>
+
+    <div style="padding:8px 16px 32px;display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <span class="eyebrow">Ronda 1 · 15 nov 2026 · 11:04</span>
+        <h1 class="display" style="font-size:32px">MantisX</h1>
+        <span style="font-size:14px;color:var(--text-3)">X10 · Glock G17 · Zurdo · Open Training</span>
+      </div>
+
+      <section aria-label="Resumen" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+        <div class="card" style="padding:12px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Puntaje</span><span class="display num" style="font-size:28px" data-avg></span><span style="font-size:13px;color:var(--text-3)">Promedio</span></div>
+        <div class="card" style="padding:12px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Tiempo</span><span class="display num" style="font-size:28px"><span data-total></span><span style="font-size:16px;color:var(--text-3)"> s</span></span><span style="font-size:13px;color:var(--text-3)">Total</span></div>
+        <div class="card" style="padding:12px;display:flex;flex-direction:column;gap:2px"><span class="eyebrow">Split</span><span class="display num" style="font-size:28px"><span data-split></span><span style="font-size:16px;color:var(--text-3)"> s</span></span><span style="font-size:13px;color:var(--text-3)">Promedio</span></div>
+      </section>
+      <p style="font-size:13px;color:var(--text-3)">El puntaje de MantisX mide el control del gatillo, no dónde pegó el disparo en el blanco.</p>
+
+      <section class="card" aria-labelledby="traza" style="padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <h2 id="traza" style="font-size:16px;font-weight:600" data-shot-title></h2>
+          <div style="display:flex;gap:4px">
+            <button type="button" class="icon-btn" data-prev aria-label="Disparo anterior"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button>
+            <button type="button" class="icon-btn" data-next aria-label="Disparo siguiente"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button>
+          </div>
+        </div>
+        <div style="position:relative;align-self:center;width:280px;height:280px;border-radius:12px;background:var(--surface-2);overflow:hidden">
+          <svg data-trace role="img" width="280" height="280" style="display:block"></svg>
+          <span data-time class="num" style="position:absolute;right:10px;bottom:8px;font-size:13px;color:var(--text-2)"></span>
+        </div>
+        <div class="legend" aria-label="Fases">
+          <span><svg width="22" height="8" aria-hidden="true"><path d="M1 4h20" stroke="var(--info)" stroke-width="2" stroke-linecap="round"></path></svg>Apuntado</span>
+          <span><svg width="22" height="8" aria-hidden="true"><path d="M1 4h20" stroke="var(--warning)" stroke-width="3" stroke-linecap="round"></path></svg>Presión del gatillo</span>
+          <span><svg width="22" height="8" aria-hidden="true"><path d="M1 4h20" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 3"></path></svg>Seguimiento</span>
+          <span><svg width="14" height="14" viewBox="-7 -7 14 14" aria-hidden="true"><path d="M-5-5 5 5M5-5-5 5" stroke="var(--text)" stroke-width="2.5" stroke-linecap="round"></path></svg>Disparo</span>
+        </div>
+        <p style="font-size:13px;color:var(--text-3)">Movimiento de la boca del arma en mm a la distancia de la ronda (5,5 m), centrado en el disparo.</p>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button type="button" class="btn" data-play style="flex:1"><svg class="i sm" data-icon-play viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4 20 12 6 20z"></path></svg><svg class="i sm" data-icon-pause hidden viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg><span>Reproducir</span></button>
+          <div role="radiogroup" aria-label="Velocidad" data-speed style="display:inline-flex;gap:2px;padding:3px;border-radius:12px;background:var(--surface-2)">
+            <button type="button" role="radio" class="seg on" aria-checked="true" data-value="0.1" style="padding:0 12px">Lenta</button>
+            <button type="button" role="radio" class="seg" aria-checked="false" data-value="1" style="padding:0 12px">Real</button>
+          </div>
+        </div>
+        <dl style="margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid var(--border)">
+          <div class="kv"><dt class="eyebrow">Puntaje</dt><dd style="margin:0" class="num" data-shot-score></dd></div>
+          <div class="kv"><dt class="eyebrow">Split</dt><dd style="margin:0" class="num" data-shot-split></dd></div>
+          <div class="kv" style="grid-column:span 2"><dt class="eyebrow">Diagnóstico</dt><dd style="margin:0" data-shot-problem></dd></div>
+          <div class="kv"><dt class="eyebrow">Dirección</dt><dd style="margin:0" class="num" data-shot-dir></dd></div>
+          <div class="kv"><dt class="eyebrow">Inclinación arma</dt><dd style="margin:0" class="num" data-shot-cant></dd></div>
+          <div class="kv"><dt class="eyebrow">Mov. apuntando</dt><dd style="margin:0" class="num" data-shot-hold></dd></div>
+          <div class="kv"><dt class="eyebrow">Mov. disparando</dt><dd style="margin:0" class="num" data-shot-pull></dd></div>
+        </dl>
+      </section>
+
+      <section aria-labelledby="disparos" style="display:flex;flex-direction:column;gap:8px">
+        <h2 id="disparos" class="eyebrow">Disparos</h2>
+        <div class="card" data-shots style="padding:4px;display:flex;flex-direction:column;gap:2px"></div>
+        <p style="font-size:13px;color:var(--text-3)">Tocá un disparo para ver su trayectoria.</p>
+      </section>
+
+      <button type="button" class="btn btn-danger" style="align-self:flex-start"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>Quitar los datos de MantisX</button>
+    </div>
+  </main>
+</div>
+<script src="../assets/app.js"></script>
+<script src="../assets/mantis-data.js"></script>
+<script src="../assets/mantis-trace.js"></script>
+</body>
+</html>

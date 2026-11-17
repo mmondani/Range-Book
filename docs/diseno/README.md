@@ -6,8 +6,8 @@ Recursos de UI de la app. Es la fuente de verdad del diseño y refleja lo que es
 |---|---|
 | [design-system.md](./design-system.md) | Tokens (color, tipografía, espaciado, movimiento), íconos, layout responsive, componentes y mínimos de accesibilidad |
 | [pantallas.md](./pantallas.md) | Rutas, especificación y estados de cada pantalla, métricas del análisis, comportamiento PWA y preguntas abiertas |
-| [maqueta/index.html](./maqueta/index.html) | Maqueta navegable en HTML estático: 15 pantallas mobile (`maqueta/mobile/`, incluidas "Sesiones sin conexión" y el visor de fotos) y 9 web (`maqueta/web/`) |
-| `maqueta/assets/` | `frame.css` (marco de la maqueta), `app.js` (interacciones genéricas), `viewer.css` y `viewer.js` (visor de la foto del blanco, con zoom), `calibration.js` (calibración de la foto, con la inclinación con perspectiva), `analyzer.js` (analizador de impactos de referencia) y `charts.js` (gráficos de línea con el valor de cada punto y la dispersión del PMI) |
+| [maqueta/index.html](./maqueta/index.html) | Maqueta navegable en HTML estático: 18 pantallas mobile (`maqueta/mobile/`, incluidas "Sesiones sin conexión" y el visor de fotos) y 11 web (`maqueta/web/`) |
+| `maqueta/assets/` | `frame.css` (marco de la maqueta), `app.js` (interacciones genéricas), `viewer.css` y `viewer.js` (visor de la foto del blanco, con zoom), `calibration.js` (calibración de la foto, con la inclinación con perspectiva), `analyzer.js` (analizador de impactos de referencia) `charts.js` (gráficos de línea con el valor de cada punto y la dispersión del PMI), `mantis-data.js` (una sesión real de MantisX) y `mantis-trace.js` (pantalla MantisX de la ronda: trayectoria y reproducción) |
 
 ## Cómo ver la maqueta
 

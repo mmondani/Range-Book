@@ -39,8 +39,34 @@
 - **Acceso a MantisX desde el análisis de la ronda** (pedido después del primer deploy): la misma píldora `MantisPill` debajo del subtítulo del análisis, si la ronda tiene datos de MantisX. Si el análisis tiene cambios sin guardar, salir pide confirmación como siempre.
 - **Los tests con el reloj simulado usan `fireEvent`:** `userEvent` se cuelga con `vi.useFakeTimers()` completo en este proyecto.
 
+### Paso 8 — Cierre
+- **`spike/` se borró:** el marcador está en `src/lib/mantis-bookmarklet.ts` (con test de que es JavaScript válido y escribe el formato que lee la app).
+- **ADR 0009** ("Datos de MantisX por bookmarklet e importación de archivo").
+
+## Desvíos respecto de la maqueta aprobada
+- **Velocidad "Lenta" a 1/10** (la maqueta decía ¼).
+- **Acceso a MantisX desde el análisis** de la ronda (no estaba en la maqueta): la misma `MantisPill` debajo del subtítulo. En la maqueta general se agregó en `web/analisis.html`; en `mobile/analisis.html` no, porque su encabezado es de alto fijo y habría que rehacer el layout de la página.
+- **"Ya importadas" en desktop** es un desplegable, como en mobile, en vez de la frase de la maqueta.
+- **Motivo "Tiene más de 150 disparos."** en "No se importan" (no estaba en la maqueta).
+
+## Criterios de aceptación
+| Criterio | Cómo se verificó |
+|---|---|
+| Importar desde Sesiones un archivo exportado de MantisX | `mantis-import.test.ts` (fixture, archivo real e inválidos), `mantis-import-screen.test.tsx` y prueba en `range-book.web.app` |
+| Proponer el matching sesión ↔ sesión y ronda ↔ sesión de MantisX, por la hora | `mantis-matching.test.ts`, test de pantalla y prueba manual |
+| Editar el matching | `mantis-matching.test.ts`, test de pantalla y prueba manual |
+| Guardar lo importado en Firestore | tests de las rondas crudas y de la persistencia (`rounds.test.ts`, `mantis.test.ts`), `pnpm test:rules` y prueba en producción |
+| Datos de cada disparo y de cada sesión de MantisX | tests de normalización y de lectura de Firestore |
+| Valores calculados (tiempo total, promedio, trayectoria relativa, extremos) | `mantis-trace.test.ts`, `mantis-round-screen.test.tsx` y prueba manual |
+| Ver la información de MantisX de cada disparo de la ronda | `mantis-round-screen.test.tsx` (también desde el análisis) y prueba manual |
+
 ## Pendientes
-- **Prueba manual en mobile y desktop** de la importación y de la pantalla MantisX de la ronda (pasos 5 y 6), con el archivo de ejemplo.
-- **Confirmar contra la app de MantisX** la convención de `angle` (0° = derecha, antihorario) y el signo de `yaw` (a la derecha) y de `absolute_roll` (por eso la inclinación se muestra sin lado).
-- **Probar el marcador** pegado desde "Copiar el marcador" en Chrome (desktop y Android).
-- Paso 8 (cierre): `arquitectura.md`, `docs/diseno/`, ADR y borrar `spike/`.
+- **Confirmar contra la app de MantisX** la convención de `angle` (0° = derecha, antihorario) y los signos de `yaw` y de `absolute_roll`; hasta entonces la inclinación se muestra sin lado.
+- **Rendimiento y Evolución no usan MantisX** (fuera de alcance de esta iteración).
+- **Trayectorias huérfanas** de rondas o sesiones eliminadas: se aceptan (ADR 0009).
+- Solo se importa fuego real de "Open Training": tiro en seco y otros entrenamientos quedan para más adelante.
+
+## Aprendizajes
+- **Con `vi.useFakeTimers()` completo, `userEvent` se cuelga** en este proyecto (también con `delay: null`): los tests con reloj simulado usan `fireEvent` dentro de `act` y `getBy*` en vez de `findBy*`.
+- **El emulador de Firestore puede quedar corriendo** después de `pnpm test:rules` (error de java al cerrarse) y ocupar el puerto 8080: hay que cerrarlo a mano.
+- **Los ángulos de un sensor se pasan a mm a la distancia de la ronda** con `tan(θ) · d`; a 5,5 m, 0,1° son ~9,6 mm, así que la escala del cuadro tiene que ser automática.

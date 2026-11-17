@@ -1,6 +1,6 @@
 # Arquitectura — Range Book
 
-Estado del sistema al cierre de la iteración 002 (Upgrades). Las decisiones de fondo están en [`decisiones/`](./decisiones/); el diseño de la UI, en [`diseno/`](./diseno/).
+Estado del sistema al cierre de la iteración 003 (MantisX). Las decisiones de fondo están en [`decisiones/`](./decisiones/); el diseño de la UI, en [`diseno/`](./diseno/).
 
 ## Resumen
 SPA en **React 19 + TypeScript + Vite**, instalable como **PWA**, desplegada en **Firebase Hosting** (`range-book.web.app`). No hay backend propio: el cliente usa directamente **Authentication** (Google), **Firestore** y **Storage**, y las **reglas de seguridad** son la única barrera de privacidad ([ADR 0001](./decisiones/0001-firebase-desde-el-cliente.md)). Toda la lógica de negocio (métricas de tiro, calibración, detección de impactos, rendimiento, validaciones) son funciones puras en `src/lib/`, con tests.
@@ -22,15 +22,15 @@ Navegador / PWA
 | `src/main.tsx`, `src/app.tsx`, `src/routes.tsx` | Entrada, registro del service worker, providers y rutas (React Router 7, `createBrowserRouter`) |
 | `src/screens/` | Una pantalla (o sheet con ruta propia) por archivo, con sus tests de criterios de aceptación |
 | `src/components/` | Componentes del sistema de diseño y de dominio (uno por archivo, CSS Modules). Los `*-provider.tsx` exponen los repositorios por contexto |
-| `src/hooks/` | `useAuth`, `useProfile`, `useTheme`, `useCollection`, `useSessionData`, `useItemForm`, `useModal`, `useOnline`, `useInstall`, `useAppUpdate`, `usePhotoViewer`, `useElementWidth`, `usePinchZoom` (gestos de la dispersión), `useMetricsMigration`, etc. |
-| `src/data/` | Inicialización perezosa de Firebase (`firebase.ts`) y repositorios: `auth`, `profile`, `inventory` (genérico), `session`, `photo` y `upload-store` (IndexedDB) |
-| `src/lib/` | Lógica pura: `metrics`, `calibration`, `homography`, `impact-detection`, `target-zones`, `analysis`, `metrics-migration`, `rounds`, `sessions`, `session-evolution`, `firearms`, `targets`, `inventory`, `performance`, `chart`, `zoom`, `scatter-zoom`, `format`, `units`, `theme`, `photos`, `image-compression`, `upload-queue`, `offline-write`, `install`, `auth`, `profile`, `app-info` (nombre de la app, también para el manifest) |
+| `src/hooks/` | `useAuth`, `useProfile`, `useTheme`, `useCollection`, `useSessionData`, `useItemForm`, `useModal`, `useOnline`, `useInstall`, `useAppUpdate`, `usePhotoViewer`, `useElementWidth`, `usePinchZoom` (gestos de la dispersión), `useMetricsMigration`, `useMantisTrace` / `useImportMantis` / `useRemoveMantis` (`use-mantis.ts`), `useTracePlayback`, etc. |
+| `src/data/` | Inicialización perezosa de Firebase (`firebase.ts`) y repositorios: `auth`, `profile`, `inventory` (genérico), `session`, `mantis-trace`, `photo` y `upload-store` (IndexedDB) |
+| `src/lib/` | Lógica pura: `metrics`, `calibration`, `homography`, `impact-detection`, `target-zones`, `analysis`, `metrics-migration`, `rounds`, `sessions`, `session-evolution`, `firearms`, `targets`, `inventory`, `performance`, `chart`, `zoom`, `scatter-zoom`, `format`, `units`, `theme`, `mantis` (modelo), `mantis-import`, `mantis-matching`, `mantis-trace`, `mantis-problems`, `mantis-bookmarklet`, `photos`, `image-compression`, `upload-queue`, `offline-write`, `install`, `auth`, `profile`, `app-info` (nombre de la app, también para el manifest) |
 | `src/styles/` | `tokens.css` (temas oscuro y claro) y `base.css` |
-| `src/test/` | Dobles de los repositorios (`fake-*.ts`), `matchMedia` simulado, blancos sintéticos |
+| `src/test/` | Dobles de los repositorios (`fake-*.ts`), `matchMedia` simulado, blancos sintéticos, export de MantisX recortado (`mantis-fixture.ts`) |
 | `tests/rules/` | Tests de `firestore.rules` y `storage.rules` contra los emuladores |
 | `scripts/` | `generate-icons.ps1` (íconos PWA) |
 
-**Inyección de dependencias:** `App` recibe los repositorios (`auth`, `profiles`, `photos`, `inventory`, `sessions`) con los de Firebase por defecto; los tests pasan dobles en memoria. Firebase se inicializa recién la primera vez que se usa, así los tests no lo cargan.
+**Inyección de dependencias:** `App` recibe los repositorios (`auth`, `profiles`, `photos`, `inventory`, `sessions`, `mantisTraces`) con los de Firebase por defecto; los tests pasan dobles en memoria. Firebase se inicializa recién la primera vez que se usa, así los tests no lo cargan.
 
 ## Rutas
 | Ruta | Pantalla |
@@ -39,6 +39,8 @@ Navegador / PWA
 | `/sesiones` (+ `:id`, `:id/rondas/nueva`, `:id/rondas/:roundId/editar`) | Lista de sesiones; detalle (en desktop, al lado de la lista) con pestañas Rondas / Evolución (`?vista=evolucion`); sheets de ronda |
 | `/sesiones/nueva`, `/sesiones/:id/editar` | Formulario de sesión (página completa) |
 | `/sesiones/:id/rondas/:roundId/analisis` | Análisis del blanco (página completa) |
+| `/sesiones/importar-mantisx` | Importar MantisX: elegir el archivo y revisar el matching (página completa) |
+| `/sesiones/:id/rondas/:roundId/mantisx` | MantisX de la ronda: resumen, disparos y trayectoria (página completa) |
 | `/rendimiento` | Rendimiento; filtros en la query string |
 | `/inventario/:category` (+ `nueva`/`nuevo`, `:id/editar`) | Inventario por categoría (`armas`, `configuraciones`, `municiones`, `poligonos`, `blancos`) con sheets de alta y edición |
 | `/inventario/armas/:id` (+ `editar`, `modificaciones/…`, `configuraciones/…`) | Detalle del arma |
@@ -60,10 +62,14 @@ users/{uid}                           displayName, photoURL, units ('mm'|'in'), 
   sessions/{id}                       date, firearmId, configurationId|null, modificationsSnapshot[{brand, model}],
                                       rangeId, weather|null, ammunitionId, photos[], notes,
                                       rounds[{id, targetId, distanceM, shots, manualScore|null, score|null,
-                                              photo|null, comments, analysis?}]
+                                              photo|null, comments, analysis?, createdAt|null, mantis?}]
+  mantisTraces/{sessionPk de MantisX} sampleRate, shots[{pk, pitch[], yaw[], holdIndex, pullIndex, shotIndex,
+                                      absolutePitch|null}]
 ```
 - **Rondas embebidas** en la sesión ([ADR 0002](./decisiones/0002-rondas-embebidas.md)). Se modifican leyendo y reescribiendo el array crudo, sin transacción, para que funcione sin conexión.
 - **`analysis`** = `{ calibration, impacts (mm desde el centro), metrics, scoreConfirmed }`. Las métricas guardan el radio medio (`meanRadiusMm`, distancia media de los impactos al PMI); la distancia media al centro (`meanDistanceMm`) ya no existe ([ADR 0008](./decisiones/0008-radio-medio.md)). La calibración guarda los píxeles de los marcadores, el tamaño de la foto y, si la foto está en ángulo, la inclinación del blanco (`tilt: { x, y }`, radianes). Las calibraciones anteriores a la iteración 001 pueden tener la elipse afín (`shape`), que se sigue leyendo.
+- **`createdAt`** (003): hora en que se creó la ronda (ISO en UTC, del dispositivo); no se edita. `null` en las rondas anteriores. Se usa para proponer la sesión de MantisX de cada ronda.
+- **`mantis`** (003) = `{ sessionPk, date, hardware, rightHanded, firearm, distance, shots[{ pk, score, split, problem, angle, triggerHold, triggerPull, cant }] }`: el resumen de la sesión de MantisX importada (~1 KB). La trayectoria va aparte, en `mantisTraces`, y se lee solo al verla ([ADR 0009](./decisiones/0009-mantisx-por-bookmarklet.md)).
 - **Snapshots:** las personalizaciones de la sesión y las métricas del análisis se copian al guardar ([ADR 0003](./decisiones/0003-snapshots-del-historial.md)). Excepción (002): el radio medio de los análisis guardados se recalculó a partir de sus impactos.
 - **Migraciones de datos:** corren en la app, en segundo plano (`BackgroundTasks`), una vez por usuario y por ejecución, después de iniciar sesión. `useMetricsMigration` llama a `SessionRepository.migrateMeanRadius`, que lee las sesiones y reescribe (sin transacción, como el resto) solo las que tienen rondas por migrar (`metrics-migration.ts`); si falla, se reintenta. Mientras no corrió, `parseAnalysis` calcula el radio medio al leer.
 - **Nada del inventario se borra:** se archiva. Las sesiones y las rondas sí se eliminan (con "Deshacer").
@@ -73,7 +79,7 @@ users/{uid}                           displayName, photoURL, units ('mm'|'in'), 
 
 ## Seguridad
 - `isAllowed()`: usuario autenticado, email verificado y presente en `allowedEmails`. `isOwner(uid)`: además, `request.auth.uid == uid`. Storage consulta Firestore con la misma condición (necesita el rol `firebaserules.firestoreServiceAgent` en la cuenta de servicio de Storage).
-- Cada colección valida campos, tipos, longitudes y límites (iguales a los de `src/lib/`). Las reglas no recorren listas: el contenido de rondas, zonas y personalizaciones lo valida el cliente.
+- Cada colección valida campos, tipos, longitudes y límites (iguales a los de `src/lib/`). `mantisTraces` (003): id numérico, solo `sampleRate` (> 0) y `shots` (1 a 150); se puede borrar. Las reglas no recorren listas: el contenido de rondas, zonas y personalizaciones lo valida el cliente.
 - Storage: solo imágenes de hasta 10 MB, solo bajo la carpeta del dueño.
 - Tras el login, si el email no está autorizado, se cierra la sesión de Firebase y se muestra "no autorizado".
 
@@ -86,6 +92,14 @@ Todo en el cliente, con canvas y sin librerías ([ADR 0004](./decisiones/0004-an
 2. **Detección** (`impact-detection.ts`): umbral adaptativo, erosión y componentes conexas con el tamaño de agujero esperado según el calibre. Propone como máximo los disparos declarados de la ronda: si hay más candidatos, se queda con los más parecidos a un agujero (`holeLikeness`).
 3. **Métricas** (`metrics.ts`): puntaje y distribución por zonas con la regla de "toca la línea" (el diámetro del agujero sale del calibre, `holeDiameterMm`; [ADR 0007](./decisiones/0007-toca-la-linea.md)), tamaño de grupo (mm y MOA), PMI (mm y hora de reloj) y radio medio (distancia media de los impactos al PMI).
 El editor trabaja en píxeles y convierte a mm al calcular y al guardar.
+
+## MantisX
+Sin backend ([ADR 0009](./decisiones/0009-mantisx-por-bookmarklet.md)):
+1. **Exportación:** el marcador "Exportar a Range Book" (`mantis-bookmarklet.ts`, que la app copia al portapapeles) corre en train.mantisx.com con la sesión del usuario, usa la API interna de la página y descarga un JSON (`source: 'mantisx'`, `formatVersion: 1`).
+2. **Lectura** (`mantis-import.ts`): valida el formato, se queda con el fuego real de "Open Training", descarta lo borrado y normaliza los tipos.
+3. **Matching** (`mantis-matching.ts`): la sesión de Range Book del mismo día local (si hay varias, la del arma de MantisX) y, dentro, las rondas sin datos de MantisX, uno a uno y sin cruzar el orden, con la menor diferencia de hora (programación dinámica; las rondas sin hora quedan por orden). Marca las ya importadas y lo que no se importa (sin sesión ese día, sin ronda disponible, más de 150 disparos). El usuario lo corrige en la revisión.
+4. **Importación** (`useImportMantis`): primero las trayectorias (`MantisTraceRepository.save`) y después los resúmenes (`SessionRepository.applyMantisImport`, una reescritura de `rounds` por sesión, sin transacción). "Quitar los datos de MantisX" (`removeMantis`) tiene "Deshacer"; la trayectoria se borra cuando ya no se puede deshacer (`useUndoableRemove` con su `cleanup`).
+5. **Vista** (`mantis-trace.ts`): tiempo total, promedios y extremos; trayectoria relativa al disparo en mm a la distancia de la ronda (`tan(θ) · d`), por fase, dibujada en SVG (`MantisTrace`) y reproducida con `requestAnimationFrame` (`useTracePlayback`, Lenta = 1/10 o Real). Diagnósticos en castellano en `mantis-problems.ts`.
 
 ## Rendimiento
 `performance.ts` agrega **rondas** filtradas (configuración, munición, blanco, polígono, distancia, período) en KPIs con delta contra el período anterior, series por sesión, comparación por munición, tabla ordenable y CSV (`;`, coma decimal, BOM). Si se mezclan distancias, el grupo y el PMI se comparan en MOA. Gráficos de línea en SVG propio (`LineChart`): cada punto lleva su valor y, si no entran (menos de 52 px por punto), el gráfico se desplaza en horizontal con el eje y fijo.

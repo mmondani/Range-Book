@@ -1,6 +1,6 @@
 # Plan — 003 MantisX
 
-**Estado:** Aprobado
+**Estado:** Terminado
 **Requerimientos:** [./requerimientos.md](./requerimientos.md)
 **Diseño:** [cambios.md](./diseno/cambios.md) · [maqueta](./diseno/maqueta/index.html)
 
@@ -91,16 +91,16 @@ mantisTraces/{sessionPk}           (~33 KB; se lee solo al ver la trayectoria)
 - [x] **4. Modelo y persistencia**
   - Qué: campo `mantis` en `Round` (parseo tolerante y reescritura cruda), `applyMantisImport` en `SessionRepository`, `mantis-trace-repository.ts`, reglas de `mantisTraces` y dobles en memoria.
   - Verificación: tests de parseo y de reescritura (no se pierde el análisis) y `pnpm test:rules` (dueño, claves, tamaños; otro usuario no lee).
-- [ ] **5. Pantalla de importación**
+- [x] **5. Pantalla de importación**
   - Qué: ruta `/sesiones/importar-mantisx` (página completa), con acceso desde el encabezado de Sesiones (mobile) y el encabezado de la lista (desktop). Pasos: elegir el archivo; revisar el matching (agrupado por sesión de Range Book, un select de ronda por sesión de MantisX, con "No importar"); la sección "No se importan" con el motivo de cada una y cuántas se omitieron por tipo de entrenamiento; botón **Importar N rondas**; toast con el resultado. Ayuda "Cómo exportar desde MantisX" con los pasos y el botón **Copiar el marcador**.
   - Verificación: test de pantalla con el archivo de ejemplo (propuesta, edición, importación, ya importadas al reimportar) y prueba manual en mobile y desktop.
-- [ ] **6. Ver los datos en la ronda**
+- [x] **6. Ver los datos en la ronda**
   - Qué: línea MantisX en `RoundRow` / `RoundTable` y la pantalla de la ronda: resumen (puntaje promedio, tiempo total, split promedio), lista de disparos (con el mejor y el peor y los splits extremos) y la trayectoria del disparo elegido: **estática** (las tres fases, en mm a la distancia de la ronda) y con **Reproducir / Pausar** para verla animada en tiempo real.
   - Verificación: tests de pantalla (con y sin datos de MantisX, trayectoria que carga, trayectoria faltante, reproducción con el reloj simulado) y prueba manual.
 - [x] **7. Quitar los datos de MantisX de una ronda**
   - Qué: desde la ronda, "Quitar los datos de MantisX" (con "Deshacer"), que borra el resumen y su trayectoria.
   - Verificación: test de pantalla y de repositorio.
-- [ ] **8. Cierre**
+- [x] **8. Cierre**
   - Qué: criterios verificados; `arquitectura.md`, `docs/diseno/` y un ADR "Datos de MantisX por bookmarklet e importación de archivo"; `notas.md`; borrar `spike/` (el código pasa a `src/lib/`).
   - Verificación: `pnpm test`, `pnpm lint`, `pnpm build`.
 
@@ -129,9 +129,9 @@ mantisTraces/{sessionPk}           (~33 KB; se lee solo al ver la trayectoria)
 - Ninguna. Respondidas el 2026-11-15: hora en las rondas nuevas; lo que no tiene ronda o sesión no se importa y se indica; trayectoria estática y animada; Rendimiento y Evolución fuera de alcance; después de importar solo se quitan los datos; bookmarklet en la app; `angle` es la dirección física (a confirmar contra la app).
 
 ## Al terminar
-- [ ] Todos los criterios de aceptación verificados
-- [ ] Tests y lint pasan
-- [ ] `docs/arquitectura.md` actualizado
-- [ ] `docs/diseno/` actualizado si la iteración cambió la UI
-- [ ] ADR creado si corresponde
-- [ ] `notas.md` completado
+- [x] Todos los criterios de aceptación verificados
+- [x] Tests y lint pasan
+- [x] `docs/arquitectura.md` actualizado
+- [x] `docs/diseno/` actualizado si la iteración cambió la UI
+- [x] ADR creado si corresponde
+- [x] `notas.md` completado
