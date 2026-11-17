@@ -6,7 +6,7 @@ import styles from './trace-playback.module.css';
 export type PlaybackSpeed = 'slow' | 'real';
 
 /** Muestras por segundo respecto del tiempo real. */
-export const PLAYBACK_SPEEDS: Record<PlaybackSpeed, number> = { slow: 0.25, real: 1 };
+export const PLAYBACK_SPEEDS: Record<PlaybackSpeed, number> = { slow: 0.1, real: 1 };
 
 const SPEED_OPTIONS = [
   { value: 'slow' as const, label: 'Lenta' },
@@ -24,7 +24,7 @@ export interface TracePlaybackProps {
 }
 
 /**
- * Reproducir / Pausar / Repetir la trayectoria y su velocidad: Lenta (¼, por defecto) o Real. La
+ * Reproducir / Pausar / Repetir la trayectoria y su velocidad: Lenta (1/10, por defecto) o Real. La
  * reproducción la inicia el usuario; con `prefers-reduced-motion` se mantiene (es el contenido).
  */
 export function TracePlayback({

@@ -35,6 +35,8 @@
 - **Componente nuevo `MantisShotTrace`**: el cuadro (`MantisTrace`), la leyenda, la nota de la distancia y la reproducción, juntos. `MantisTrace` queda como el SVG puro.
 - **Los trazos usan `vector-effect: non-scaling-stroke`** en vez de escalar el grosor a mano como la maqueta.
 - **`useTracePlayback` recibe una clave del disparo** (`traceKey`): al cambiar de disparo se detiene y muestra la trayectoria completa, sin tener que remontar el componente.
+- **Velocidad "Lenta" a 1/10** (la maqueta decía ¼): pedido después del primer deploy, a ¼ un disparo duraba unos 3 s y no se llegaba a ver. Ahora dura unos 7,6 s.
+- **Acceso a MantisX desde el análisis de la ronda** (pedido después del primer deploy): la misma píldora `MantisPill` debajo del subtítulo del análisis, si la ronda tiene datos de MantisX. Si el análisis tiene cambios sin guardar, salir pide confirmación como siempre.
 - **Los tests con el reloj simulado usan `fireEvent`:** `userEvent` se cuelga con `vi.useFakeTimers()` completo en este proyecto.
 
 ## Pendientes

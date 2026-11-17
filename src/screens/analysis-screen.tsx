@@ -10,6 +10,7 @@ import { EmptyState } from '@/components/empty-state';
 import { IconButton } from '@/components/icon-button';
 import { ImpactTable } from '@/components/impact-table';
 import { LinkButton } from '@/components/link-button';
+import { MantisPill } from '@/components/mantis-pill';
 import { MarkerPicker } from '@/components/marker-picker';
 import { MetricTile } from '@/components/metric-tile';
 import { ScoreTile } from '@/components/score-tile';
@@ -508,6 +509,13 @@ function RoundAnalyzer({
         <div className={styles.titles}>
           <h1 className={cx('display', styles.title)}>{title}</h1>
           <span className={styles.subtitle}>{subtitle}</span>
+          {round.mantis && (
+            <MantisPill
+              shots={round.mantis.shots}
+              roundNumber={number}
+              to={`${detailPath}/rondas/${round.id}/mantisx`}
+            />
+          )}
         </div>
         {!isDesktop && photo && !calibrating && undoButton}
         {isDesktop && photo && (

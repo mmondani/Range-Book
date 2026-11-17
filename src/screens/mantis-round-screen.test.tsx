@@ -101,7 +101,7 @@ describe('MantisRoundScreen', () => {
 
     await click(screen.getByRole('button', { name: 'Reproducir' }));
     expect(screen.getByRole('button', { name: 'Pausar' })).toBeInTheDocument();
-    // 15 muestras a 13,3 por segundo, en cámara lenta (¼): unos 4,2 s en total.
+    // 15 muestras a 13,3 por segundo, en cámara lenta (1/10): unos 10,5 s en total.
     await act(() => vi.advanceTimersByTimeAsync(1000));
     expect(screen.getByText(/^−0,\d\d s$/)).toBeInTheDocument();
 
@@ -157,6 +157,23 @@ describe('MantisRoundScreen', () => {
 });
 
 describe('MantisX en el detalle de la sesión', () => {
+  it('desde el análisis de la ronda también se llega a MantisX', async () => {
+    const user = userEvent.setup();
+    const view = render(`/sesiones/${SESSION.id}/rondas/r1/analisis`);
+    await user.click(
+      await screen.findByRole('link', {
+        name: 'Ver MantisX de la ronda 1: puntaje 88,3, tiempo 17,1 s',
+      }),
+    );
+    expect(view.router.state.location.pathname).toBe(PATH);
+  });
+
+  it('el análisis de una ronda sin MantisX no muestra el acceso', async () => {
+    render(`/sesiones/${SESSION.id}/rondas/r2/analisis`);
+    await screen.findByRole('heading', { level: 1, name: /Análisis · Ronda 2/ });
+    expect(screen.queryByRole('link', { name: /Ver MantisX/ })).toBeNull();
+  });
+
   it('la ronda muestra su resumen de MantisX y lleva a su pantalla', async () => {
     const user = userEvent.setup();
     const view = render(`/sesiones/${SESSION.id}`);
